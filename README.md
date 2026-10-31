@@ -1,16 +1,24 @@
-# Project Grim — Tactical 0.8 (Observer Battlefield Camera)
+# Project Grim — Arena 0.9 (Tactical Battlefield Layout)
 
 This build makes the dark UI a **one-screen DM application** where practical. The global page avoids scrolling on a standard desktop; the encounter list, roster, card editor and online settings have their own scroll areas only when their content exceeds the viewport. Black-and-white wireframe styling is retained.
 
-## New in 0.8 — observer-above battlefield camera
+## New in 0.9 — battlefield composition and initiative order
 
 - **Enemy cards always appear in the upper/far line**, and **player cards in the lower/near line**, like opposing teams on a fighting-game stage.
-- Combat stage now reads like an **overhead tactical battlefield**: the camera looks down across a tilted battle plane while cards stay upright and floating for readability.
-- Cards are positioned as hovering units above the field, with subtle shadows and a compact tactical HUD that stays out of the battle space.
+- Combat battlefield is now a finite rectangular tactical grid with consistent margins, a restrained perspective, and upright floating cards.
+- Players and enemies now have independent stable formations; within each row, **highest initiative is leftmost and lowest is rightmost**, with a global initiative-rank label on each card. The VS badge was removed.
+- Card sizes and spacing are responsive and no longer inherit the ground transform; the active card gets a highlight without changing its initiative position.
+- HUD is compact and pinned above the battle, and hiding it now frees its header space instead of leaving a black strip.
 - The two groups are independently centered and spaced; initiative changes never mix or rearrange them.
 - Cards keep their front faces readable, with a subtle opposing 3D tilt and monochrome **VS** separator. The active combatant still comes forward.
 - Responsive scaling keeps typical encounters inside one screen; oversized groups wrap within their own side.
 - This only changes presentation. All existing enemy/player data, encounter management, Firebase sync, and no-login behavior remain unchanged.
+
+### Turn-order placement details
+
+Enemies stay on the **far/upper** side and player characters on the **near/lower** side. Within each side, the highest initiative is on the left and the lowest on the right. Every card also shows its number in the **global** initiative list so cross-side order remains unambiguous. Active-turn focus does not move the card out of its slot.
+
+The battlefield is a finite, perspective rectangular grid with a subtle center mark, no VS marker, and cards rendered upright separately from the ground transform. Larger rosters reflow into extra rows. No external art or 3D packages are needed.
 
 ## Previous 0.6 functionality — enemy cards
 
@@ -38,7 +46,7 @@ This build makes the dark UI a **one-screen DM application** where practical. Th
 2. Paste `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim` or your actual repository location.
 3. Confirm copy and GitHub upload. The BAT can optionally deploy Firebase Hosting if Firebase CLI is installed and signed in. **Pushing to GitHub alone does not deploy Firebase Hosting.**
 4. For local testing, open `RUN-GRIM.bat` inside the repo, then visit `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
-5. Verify the top bar says **TACTICAL 0.8**.
+5. Verify the top bar says **ARENA 0.9**.
 
 Custom scene, character and combat data are preserved. Reset to test data only if you want to discard edits. Firebase anonymous authentication and DM-browser rules are the same as in 0.4.
 
@@ -80,9 +88,9 @@ Use **black / white / gray only**, easy-to-read buttons, plain typography, visib
 ## Verify the fix
 
 1. Open the **new local URL**: `http://localhost:4174/dm.html` (old builds used 4173).
-2. Confirm both the DM and Stage headers show **TACTICAL 0.8**.
+2. Confirm both the DM and Stage headers show **ARENA 0.9**.
 3. Confirm the DM content area and stage are black/charcoal, with thin gray grid lines and no gold or fantasy typefaces.
-4. In the browser's Network tab, the CSS URL must contain **`/assets/tactical-080/styles.css`**. If you see `assets/styles.css`, the browser is serving an old HTML page. Confirm the uploader copied into the exact Git repository from GitHub Desktop.
+4. In the browser's Network tab, the CSS URL must contain **`/assets/arena-090/styles.css`**. If you see `assets/styles.css`, the browser is serving an old HTML page. Confirm the uploader copied into the exact Git repository from GitHub Desktop.
 5. For a public Firebase site, uploading to **GitHub alone does not guarantee deployment**. Run the optional Firebase Hosting deploy from the uploader (requires Firebase CLI), or manually run `firebase deploy --only hosting --project project-grim-ef4f0` inside the repo. If your actual host is Render, use its deployment process instead.
 6. Browser refresh: Ctrl+Shift+R; if a service worker or external CDN is caching the old deployment, remove its cache according to that hosting setup.
 
