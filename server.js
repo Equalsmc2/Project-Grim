@@ -12,7 +12,7 @@ http.createServer((req,res)=>{
   if (!filename.startsWith(root + path.sep) && filename !== root) {res.writeHead(403);res.end('Forbidden');return;}
   fs.stat(filename,(err,stat)=>{
     if(err||!stat.isFile()){res.writeHead(404);res.end('Not found');return;}
-    res.writeHead(200,{'Content-Type':mime[path.extname(filename)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});
+    res.writeHead(200,{'Content-Type':mime[path.extname(filename)]||'application/octet-stream','Cache-Control':'no-store, max-age=0','X-Content-Type-Options':'nosniff'});
     fs.createReadStream(filename).pipe(res);
   });
 }).listen(port,'127.0.0.1',()=>console.log(`Project Grim stage: http://localhost:${port}/\nDM console: http://localhost:${port}/dm.html`));

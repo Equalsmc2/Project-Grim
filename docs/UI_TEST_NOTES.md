@@ -1,10 +1,10 @@
 # Grim UI test build — Design / interaction checklist
 
-## Current layout (0.3)
+## Current layout (0.4)
 
-**Player stage**: white top status strip, wall grid, perspective floor grid, a simple scene title/description (Scene mode), or four laminated placeholder cards and an initiative strip (Combat mode). No 3D model downloads or image dependencies. One visible callout marks the active character. The card photo slot starts empty.
+**Player stage**: dark top status strip, wall grid, perspective floor grid, a simple scene title/description (Scene mode), or four laminated placeholder cards and an initiative strip (Combat mode). No 3D model downloads or image dependencies. One visible callout marks the active character. The card photo slot starts empty.
 
-**DM controls**: fixed black navigation column on desktop, white page with black actions, compact read-only metrics, scene selector, encounter controls, and roster editor. Scene / Combat controls remain visible in the top bar for fewer clicks.
+**DM controls**: fixed black navigation column on desktop, black page with pale actions, compact read-only metrics, scene selector, encounter controls, and roster editor. Scene / Combat controls remain visible in the top bar for fewer clicks.
 
 ## Test with your players / DM
 

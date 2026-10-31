@@ -41,7 +41,7 @@ Everyone can open the public `dm.html` webpage; they cannot write to Firebase un
 ## Step 3 — Open the Stage on another device
 
 1. **Deploy Grim to a real HTTPS URL** using Firebase Hosting (instructions below). GitHub upload does not host the website.
-2. In the DM console, press **Copy online stage URL**. Open it on the TV or player's device. The link includes the exact room ID. **If the copied link starts with `http://localhost:4173`, it will only work on that computer:** open the hosted `dm.html` instead, or replace only the URL origin with your real hosted site URL while keeping `?online=1&room=...`.
+2. In the DM console, press **Copy online stage URL**. Open it on the TV or player's device. The link includes the exact room ID. **If the copied link starts with `http://localhost:4174`, it will only work on that computer:** open the hosted `dm.html` instead, or replace only the URL origin with your real hosted site URL while keeping `?online=1&room=...`.
 3. The remote Stage automatically authenticates anonymously and listens to the selected room. It has no login screen.
 4. Change the scene or combat on the DM page. Remote Stage should update after Firebase accepts the DM write.
 

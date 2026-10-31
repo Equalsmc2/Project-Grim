@@ -144,7 +144,28 @@ if errorlevel 1 (
 )
 echo.
 echo [SUCCESS] Project Grim pushed to GitHub.
-echo GitHub upload is NOT the same as Firebase Hosting deployment.
+echo.
+echo NOTE: GitHub push does NOT by itself update Firebase Hosting.
+choice /c YN /n /m "Deploy this build to Firebase Hosting too? [Y/N] "
+if errorlevel 2 goto :done
+where firebase >nul 2>nul
+if errorlevel 1 (
+    echo [ACTION NEEDED] Firebase CLI not installed.
+    echo Run: npm install -g firebase-tools
+    echo Then run: firebase login
+    echo After that, run this uploader again or deploy from the repository.
+    goto :done
+)
+echo Deploying Hosting only. This will NOT change Realtime Database rules.
+pushd "%REPO%"
+call firebase deploy --only hosting --project project-grim-ef4f0
+set "DEPLOY_RESULT=%ERRORLEVEL%"
+popd
+if not "%DEPLOY_RESULT%"=="0" (
+    echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
+    goto :done
+)
+echo [SUCCESS] Dark Test 0.4 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed
