@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d0c11"><title>GRIM — Campaign Stage</title><link rel="stylesheet" href="assets/styles.css"></head>
+<body class="stage-page">
+<div class="stage-app scene-mode" id="stageApp" data-palette="violet">
+  <header class="stage-top">
+    <div class="brand"><span class="brand-mark">✧</span><span class="brand-main">GRIM<small>A PATHFINDER CAMPAIGN</small></span></div>
+    <div class="stage-center-top"><span id="chapterLabel" class="eyebrow">ACT I · THE THRESHOLD</span><div class="mode-indicator"><span class="live-dot"></span><span id="stageModeLabel">SCENE MODE</span></div></div>
+    <div class="stage-actions"><span class="sync-pill" id="syncStatus">LOCAL · SYNC READY</span><button class="icon-button" id="toggleHud" title="Toggle HUD [H]" aria-label="Toggle HUD">◫</button><button class="icon-button" id="fullscreen" title="Fullscreen [F]" aria-label="Fullscreen">⛶</button></div>
+  </header>
+  <main class="stage-main">
+    <div class="stage-background"><div class="sky-glow"></div><div class="mountains-back"></div><div class="stage-window window-left"></div><div class="stage-window window-middle"></div><div class="stage-window window-right"></div><div class="fog fog-one"></div><div class="fog fog-two"></div></div>
+    <div class="three-world" id="threeWorld"><div class="room-3d" id="room3d">
+      <div class="floor-plane"><span class="floor-rune">✦</span></div>
+      <div class="rear-wall"><div class="rear-circle"></div><div class="rear-sigil" id="rearSigil">✦</div></div>
+      <div class="plinth plinth-one"></div><div class="plinth plinth-two"></div>
+      <div class="card-positions" id="cardPositions"></div>
+    </div></div>
+    <div class="dust-layer" id="dustLayer" aria-hidden="true"></div>
+    <div class="scene-info" id="sceneInfo"><div class="scene-decor">✦ <span>THE WORLD BEFORE YOU</span> ✦</div><h1 id="sceneTitle">The Ashen Chapel</h1><p id="sceneDescription">The bells have stopped.</p><div class="scene-line"></div><span class="scene-ambience" id="sceneAmbience">Candlelit ruins · drifting ash</span></div>
+    <div class="combat-info" id="combatInfo" hidden><span class="eyebrow">ENCOUNTER IN PROGRESS</span><div class="combat-main-label">ROUND <strong id="roundDisplay">1</strong></div><p id="turnDisplay">Sable Quill's turn</p><div class="initiative-track" id="initiativeTrack"></div></div>
+    <div class="stage-bottom-left"><span>PROJECT GRIM</span><span class="separator">/</span><span id="sceneFooter">THE ASHEN CHAPEL</span></div>
+    <div class="camera-guide stage-only-ui">MOVE YOUR MOUSE TO TILT THE CARDS <span>·</span> ← → CAMERA <span>·</span> H HIDE UI</div>
+    <div class="stage-bottom-right"><span class="tiny-glyph">✥</span> PATHFINDER SECOND EDITION</div>
+  </main>
+</div><script type="module" src="assets/stage.js"></script></body></html>
