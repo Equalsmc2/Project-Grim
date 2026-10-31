@@ -165,7 +165,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] UX Layout 0.5 deployed to Firebase Hosting.
+echo [SUCCESS] Formation 0.7 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

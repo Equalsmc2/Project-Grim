@@ -44,3 +44,11 @@ Limits: an actual localhost navigation was blocked by the testing environment; a
 ## Updating from version 0.2
 
 The website preserves stored campaign data when it updates; **it does not reset or migrate your existing party**. The new neutral layouts apply regardless of old palette values. Use **DM → Connection & setup → Reset to test data** only when you intentionally want generic fighter names and clean test scenes. Confirm before the reset, as it overwrites local scene/roster information.
+
+## 0.6 Enemy cards UX test
+
+- From **Combat control**, press **+ Add enemy**; the enemy immediately joins the shared initiative roster.
+- Confirm the enemy has ◆ ENEMY labeling, a stronger pale leading rule, and its own stage card design.
+- **Edit** on an enemy opens the editor and lets you change its name, HP, AC, initiative, conditions, image and combatant type.
+- Both player and enemy cards show on the TV in Combat mode; Scene mode behavior is unchanged.
+- Desktop pages must have zero document-level scrolling where practical; rosters may independently scroll.
