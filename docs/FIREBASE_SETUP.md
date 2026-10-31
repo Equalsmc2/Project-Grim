@@ -54,7 +54,7 @@ The package includes these two Windows helpers in its **top-level folder**:
 - `github.bat` (short launcher)
 - `GITHUB-UPLOAD.bat` (actual helper)
 
-Extract every ZIP file directly into `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`, next to `RUN-GRIM.bat`, `dm.html` and `index.html`. Double-click `github.bat`. Check the changes and confirm to stage, commit and push. **The repository must already be published** to GitHub using GitHub Desktop. The BAT will never force-push. You can instead use **Commit to main** and **Push origin** in GitHub Desktop.
+Extract the ZIP **anywhere**, including Downloads. Run `github.bat` from the extracted folder and **paste your Project-Grim Git repository path when prompted**. The script checks for `.git`, copies the website files into your repository, then asks separately before committing and pushing. You can also extract directly into the repository. **The repository must already be published** to GitHub using GitHub Desktop. The BAT will never force-push. You can instead use **Commit to main** and **Push origin** in GitHub Desktop.
 
 GitHub uploading **does not deploy Firebase Hosting**.
 

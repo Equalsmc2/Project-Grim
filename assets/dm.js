@@ -2,12 +2,12 @@ import {SCENES,CONDITION_OPTIONS,getState,subscribe,updateState,getScene,ordered
 const $=id=>document.getElementById(id);
 let section='overview';let selectedId=getState().characters[0]?.id;let cloud=null;let cloudConnecting=null;let cloudEpoch=0;let toastTimer;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2800);}
-function go(to){section=to;document.querySelectorAll('.nav-button').forEach(b=>b.classList.toggle('active',b.dataset.section===to));document.querySelectorAll('.dm-section').forEach(el=>el.classList.toggle('active',el.dataset.section===to));$('pageTitle').textContent=({overview:"Director's Overview",scene:'Scene Director',combat:'Combat Control',cast:'Character Cards',settings:'Connection & Setup'})[to];render(getState());window.scrollTo({top:0,behavior:'smooth'});}
+function go(to){section=to;document.querySelectorAll('.nav-button').forEach(b=>b.classList.toggle('active',b.dataset.section===to));document.querySelectorAll('.dm-section').forEach(el=>el.classList.toggle('active',el.dataset.section===to));$('pageTitle').textContent=({overview:"Overview",scene:'Scene controls',combat:'Combat controls',cast:'Card editor',settings:'Connection & Setup'})[to];render(getState());window.scrollTo({top:0,behavior:'smooth'});}
 function switchMode(mode){updateState(s=>{s.mode=mode;},mode==='scene'?'Scene mode presented':'Combat mode presented');toast(`${mode==='scene'?'Scene':'Combat'} now showing on stage`);}
 function nextTurn(){updateState(s=>{const order=orderedCharacters(s).filter(c=>!c.hidden);if(!order.length)return;let index=order.findIndex(c=>c.id===s.combat.activeId);if(index===order.length-1||index<0){s.combat.round+=index<0?0:1;s.combat.activeId=order[0].id;}else s.combat.activeId=order[index+1].id;s.mode='combat';},'Initiative advanced');}
 function metrics(s){const current=s.characters.find(c=>c.id===s.combat.activeId);const wounded=s.characters.filter(c=>c.hp<c.maxHp).length;$('metrics').innerHTML=[['PRESENTATION',s.mode.toUpperCase(),'Current stage mode'],['CHARACTER CARDS',s.characters.length,'Visible & hidden'],['COMBAT ROUND',s.combat.round,`Active: ${current?.name||'None'}`],['INJURED CAST',wounded,'Below maximum HP']].map(a=>`<div class="metric"><span>${escapeHtml(a[0])}</span><strong>${escapeHtml(a[1])}</strong><small>${escapeHtml(a[2])}</small></div>`).join('');}
 function overview(s){const scene=getScene(s);$('overviewSceneTitle').textContent=scene.name;$('overviewSceneDesc').textContent=scene.description;$('sceneMiniature').dataset.palette=scene.palette;$('sceneMiniature').textContent=scene.sigil;$('activityLog').innerHTML=(s.log||[]).slice(-5).reverse().map(l=>`<div class="activity"><time>${prettyTime(l.time)}</time><span>${escapeHtml(l.text)}</span></div>`).join('')||'<p class="muted">No changes yet.</p>';}
-function scenes(s){$('sceneSelector').innerHTML=SCENES.map(sc=>`<button class="scene-choice ${sc.id===s.sceneId?'selected':''}" data-scene="${sc.id}" style="--scene-glow:${({violet:'#9d79bb88',teal:'#77b7b188',blue:'#83a8ce88',amber:'#bf8f5d88'})[sc.palette]}"><small>${escapeHtml(sc.kicker)}</small><strong>${escapeHtml((s.sceneOverrides[sc.id]||{}).name||sc.name)}</strong></button>`).join('');const sc=getScene(s);
+function scenes(s){$('sceneSelector').innerHTML=SCENES.map(sc=>`<button class="scene-choice ${sc.id===s.sceneId?'selected':''}" data-scene="${sc.id}"><small>${escapeHtml(sc.kicker)}</small><strong>${escapeHtml((s.sceneOverrides[sc.id]||{}).name||sc.name)}</strong></button>`).join('');const sc=getScene(s);
  if(document.activeElement!==$('sceneNameInput'))$('sceneNameInput').value=sc.name;
  if(document.activeElement!==$('sceneAmbientInput'))$('sceneAmbientInput').value=sc.ambience;
  if(document.activeElement!==$('sceneDescInput'))$('sceneDescInput').value=sc.description;
@@ -24,11 +24,11 @@ function renderCombat(s){$('dmRound').textContent=s.combat.round;const current=s
   <div class="select-cell"><button class="select-button" data-focus="${c.id}">${c.id===s.combat.activeId?'✦ ACTIVE':'SPOTLIGHT →'}</button></div></div>`;}).join('')||'<p class="muted">Add character cards in the Cast tab to start an encounter.</p>';
 }
 function cast(s){if(!s.characters.some(c=>c.id===selectedId))selectedId=s.characters[0]?.id;
- $('castList').innerHTML=s.characters.map(c=>`<button class="cast-entry${c.id===selectedId?' active':''}" data-select-cast="${escapeHtml(c.id)}"><span class="cast-avatar">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="">`:escapeHtml(c.symbol||'✦')}</span><span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.ancestry)} · ${escapeHtml(c.className)} · LVL ${c.level}${c.hidden?' · HIDDEN':''}</small></span></button>`).join('');
+ $('castList').innerHTML=s.characters.map(c=>`<button class="cast-entry${c.id===selectedId?' active':''}" data-select-cast="${escapeHtml(c.id)}"><span class="cast-avatar">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="">`:String(s.characters.indexOf(c)+1).padStart(2,'0')}</span><span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.ancestry)} · ${escapeHtml(c.className)} · LVL ${c.level}${c.hidden?' · HIDDEN':''}</small></span></button>`).join('');
  const c=s.characters.find(c=>c.id===selectedId);if(!c){$('castEditor').innerHTML='<p class="muted">Add a character to begin editing.</p>';return;}
  // Never destroy a focused editor field on a keystroke.
  if($('castEditor').contains(document.activeElement)&&document.activeElement?.matches('input,textarea,select'))return;
- $('castEditor').innerHTML=`<div class="cast-portrait-zone"><div class="portrait-preview">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="${escapeHtml(c.name)} portrait">`:escapeHtml(c.symbol||'✦')}</div><div><label for="portraitUpload">↑ Upload portrait<input id="portraitUpload" type="file" accept="image/png,image/jpeg,image/webp"></label><p>PNG, JPG or WebP. Automatically resized for quick syncing. Demo illustrations are placeholders.</p></div></div>
+ $('castEditor').innerHTML=`<div class="cast-portrait-zone"><div class="portrait-preview">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="${escapeHtml(c.name)} portrait">`:String(s.characters.indexOf(c)+1).padStart(2,'0')}</div><div><label for="portraitUpload">↑ Upload portrait<input id="portraitUpload" type="file" accept="image/png,image/jpeg,image/webp"></label><p>Optional image. Without one, the card stays a neutral numbered placeholder.</p></div></div>
  <div class="cast-edit-grid">
  <label class="field"><span>Display name</span><input data-edit="name" maxlength="48" value="${escapeHtml(c.name)}"></label>
  <label class="field"><span>Ancestry</span><input data-edit="ancestry" maxlength="35" value="${escapeHtml(c.ancestry)}"></label>
@@ -40,8 +40,6 @@ function cast(s){if(!s.characters.some(c=>c.id===selectedId))selectedId=s.charac
  <label class="field"><span>Armor Class</span><input type="number" data-edit="ac" min="0" max="99" value="${c.ac}"></label>
  <label class="field"><span>Initiative</span><input type="number" data-edit="initiative" min="-100" max="150" value="${c.initiative}"></label>
  <label class="field"><span>Perception modifier</span><input type="number" data-edit="perception" min="-20" max="80" value="${c.perception||0}"></label>
- <label class="field"><span>Card foil color</span><select data-edit="accent">${['gold','violet','teal','rose'].map(x=>`<option value="${x}"${c.accent===x?' selected':''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label>
- <label class="field"><span>Card emblem</span><input data-edit="symbol" maxlength="3" value="${escapeHtml(c.symbol||'✦')}"></label>
  </div><label class="toggle-line"><input id="hiddenCharacter" type="checkbox"${c.hidden?' checked':''}><span>Hide this card from the stage</span></label>
  <div class="cast-footer"><button class="danger" id="removeCharacter">Remove character</button><span class="helper">Edits sync to the stage automatically.</span></div>`;
 }
@@ -54,6 +52,7 @@ document.querySelector('.dm-sidebar .side-nav:nth-of-type(2)')?.addEventListener
 document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));
 $('openStage').onclick=()=>window.open('index.html','_blank','noopener');
 $('liveSceneButton').onclick=()=>switchMode('scene');
+$('liveCombatButton').onclick=()=>switchMode('combat');
 $('overviewScene').onclick=()=>switchMode('scene');
 $('overviewCombat').onclick=()=>switchMode('combat');
 $('startCombat').onclick=()=>{switchMode('combat');go('combat');};
@@ -77,7 +76,7 @@ $('combatRows').onclick=e=>{const b=e.target.closest('button');if(!b)return;cons
 };
 // Cast / portrait editor
 $('castList').onclick=e=>{const b=e.target.closest('[data-select-cast]');if(b){selectedId=b.dataset.selectCast;render(getState());}};
-$('addCharacter').onclick=()=>{const id='character-'+Date.now().toString(36);updateState(s=>s.characters.push({id,name:'New Adventurer',ancestry:'Human',className:'Adventurer',level:1,maxHp:20,hp:20,tempHp:0,ac:16,initiative:10,perception:4,conditions:[],accent:'gold',symbol:'✦',portrait:'',hidden:false}),'Character added');selectedId=id;render(getState());toast('New card added');};
+$('addCharacter').onclick=()=>{const id='character-'+Date.now().toString(36);updateState(s=>s.characters.push({id,name:'New Fighter',ancestry:'Human',className:'Fighter',level:1,maxHp:20,hp:20,tempHp:0,ac:16,initiative:10,perception:4,conditions:[],accent:'gold',symbol:'✦',portrait:'',hidden:false}),'Character added');selectedId=id;render(getState());toast('New test card added');};
 const numericFields=new Set(['level','maxHp','hp','tempHp','ac','initiative','perception']);
 $('castEditor').addEventListener('input',e=>{const key=e.target.dataset.edit;if(!key)return;let val=numericFields.has(key)?Number(e.target.value):e.target.value;updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(!c)return;c[key]=val;if(key==='maxHp'){c.maxHp=Math.max(1,c.maxHp);c.hp=Math.min(c.hp,c.maxHp);}if(key==='hp')c.hp=Math.max(0,Math.min(c.maxHp,c.hp));if(key==='tempHp')c.tempHp=Math.max(0,c.tempHp);});});
 $('castEditor').addEventListener('change',e=>{if(e.target.id==='hiddenCharacter'){updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.hidden=e.target.checked;},'Card visibility changed');return;}

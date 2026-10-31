@@ -1,76 +1,58 @@
-# PROJECT GRIM — Pathfinder Campaign Stage (Prototype 0.2.1)
+# PROJECT GRIM — Wireframe 0.3.1 (Black-dominant comfort pass)
 
-An original lightweight campaign-presentation website with a dedicated **player / TV stage** and a separate **DM console**. It is an early interactive prototype, not a Pathfinder rules engine.
+A simple, editable Pathfinder 2e campaign presentation prototype. This build intentionally **removes decorative assets and themed styling** so we can evaluate UI and UX before choosing the campaign's aesthetic.
 
-## Start on Windows — no npm install required
+## What's new in 0.3.1
 
-1. Extract **all contents** of `Project-Grim_PROTOTYPE_0.2.1_NO_LOGIN.zip` anywhere, including Downloads. Double-click **`github.bat`**. When prompted, paste the path to your existing Git repository (for example `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`). The BAT copies the website into that folder, shows the Git changes, and asks separately before committing and pushing. You can also extract directly into the repository.
-2. In your **Git repository folder**, double-click **`RUN-GRIM.bat`**. It will launch a local server using Node.js (preferred) or Python, and open:
-   - **DM console:** http://localhost:4173/dm.html
-   - **Player / TV stage:** http://localhost:4173/index.html
-3. Place the player stage on your TV or second monitor. Keep DM console private.
-4. Try **Scene director** > choose another scene; or **Combat control** > damage, heal, conditions, next turn. The TV stage changes immediately.
-5. **Upload future updates to GitHub:** Double-click **`github.bat`** (or `GITHUB-UPLOAD.bat`) from the extracted update folder. Enter your Git repository folder when prompted. It copies only the website files (not `.git`), shows changes, and asks before committing and pushing. **Matching website files in the repository will be overwritten**, so back up local edits first. It never force-pushes. If your GitHub repository has not been published yet, choose **Publish repository** in GitHub Desktop first. GitHub Desktop can also be used to commit/push manually.
-6. **Publish the website online (optional):** GitHub upload does not deploy to Firebase Hosting. Follow `docs/FIREBASE_SETUP.md` for the separate Firebase Hosting command.
+- Fighting-game-style training room: **white/gray grid walls and perspective floor** drawn with CSS, no downloaded images or 3D models.
+- Four all-grayscale layout presets: **Training Grid, White Studio, Graybox, Black Studio**.
+- **Comfort pass:** black is now the primary background across the stage, DM dashboard, panels, and cards, reducing eye strain while preserving the wireframe layout.
+- Scene mode shows a plain stage and editable text; combat mode adds **simple laminated 3D placeholder cards**.
+- Neutral card faces and numbered image slots; upload portrait photos later if desired. Removed the old fantasy silhouettes, colored foils, arcane symbols, fog, windows, particles, and web-font downloads.
+- A black-and-white DM dashboard, more uniform forms, legible HP actions, and **Scene / Combat** switches always available in the DM top bar.
+- Preserved existing controls, editing, local synchronization, anonymous Firebase options, and **the GitHub BAT that prompts for your repository path**.
 
-If Windows warns you before running the BAT file, you can inspect it with Notepad. It starts only a localhost server and opens the two pages in your browser.
+**This is still a CSS perspective prototype, not a full 3D engine or Pathfinder rules automation.** The goal for now is to validate composition and interaction.
 
-## Features included
+## Install and upload (Windows)
 
-- **Scene mode:** title, narration and atmospheric scene changes. Four visually distinct demo environments; the DM can optionally show cast cards here as well.
-- **Combat mode:** 3D, glossy laminated cards on a perspective stage, active turn spotlight, round counter and turn order; mouse tilt and arrow-key camera movement.
-- **Separate DM page:** scene controls, on-the-fly HP adjustment, temporary HP handling, manually applied Pathfinder 2e conditions, round/initiative controls.
-- **Card editor:** modify names, ancestries, classes, HP, AC, level, initiative, Perception modifier; upload portraits (downscaled automatically), toggle visibility and add/remove cards.
-- **Same-browser live sync:** changes appear on the stage in another tab using BroadcastChannel and localStorage, with no Firebase connection required.
-- **Optional Firebase Realtime Database:** for sending stage updates to another device **after** secure setup, with **automatic anonymous authentication for DM and stage**—there is no login screen. The DM browser UID is registered once in secure database rules.
-- **No Terminal mode.** This is intentionally two presentation modes plus a DM control page.
-- **Dependency-free local build** for the site itself. Remote Firebase mode fetches Google's Firebase SDK, and web fonts are an optional network enhancement.
+1. Extract `Project-Grim_WIREFRAME_0.3.zip` into a folder, including Downloads. Keep the extracted `assets` and `docs` directories next to the `.html` and `.bat` files.
+2. Double-click `github.bat` or `GITHUB-UPLOAD.bat`.
+3. Paste the path to your existing Git repository when prompted, or press Enter for the default path:
+   `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`
+4. The uploader verifies that folder is a Git repository, asks before **copying** the website files, displays Git changes, and asks again before committing and pushing. It does not force-push or remove unrelated files.
+5. Once the website is in the repository, double-click `RUN-GRIM.bat` **from the repository folder**. Node.js or Python must be installed for its local server.
+6. Use the DM page at `http://localhost:4173/dm.html` and the TV/Stage page at `http://localhost:4173/index.html`.
 
-## Keyboard controls
+**Important:** Existing local site data from 0.2 is deliberately preserved so upgrading does not erase your edits. If you want the new generic sample names and training-stage labels, use **DM → Connection & setup → Reset to test data**. This replaces the saved sample roster, scene text, and combat data in that browser; it does not delete Firebase data by itself. Back up custom work before resetting.
 
-Stage: `←` and `→` turn the camera, `↑` and `↓` pitch it, `0` resets camera, `H` hides/shows the overlay, and `F` requests fullscreen. Mouse movement tilts the cards. Fullscreen might be restricted by browser or display settings.
+## Try the UX
 
-DM page: `S` Scene mode, `C` Combat mode, `N` Next turn, when not editing a form field.
+1. Open DM and Stage in two tabs **of the same browser profile**. Local changes sync automatically.
+2. In DM, click **Combat** in the top right. You should see four plain plastic-like cards on the grid, the round, active turn, and initiative strip.
+3. Open **Combat control**. Try `−5`, `+5`, conditions, spotlight and **Next turn**.
+4. Open **Scene director**, select another grayscale stage, change the title, and click **Present scene**.
+5. Open **Character cards** to edit names/classes/stats, hide a card, upload a portrait, or add another card.
+6. **Connection & setup** controls card scale, stage labels and whether Scene mode shows character cards.
 
-## Firebase connection — optional
+### Keyboard
 
-**Do not switch on online sync before you secure the database.** Your screenshot shows temporary rules that allow anybody to read and write until November 30, 2026; this isn't safe for live player data.
+Stage: **arrow keys** orbit camera, **0** reset, **H** toggle HUD, **F** fullscreen, mouse motion tilts the cards. DM: **S** = Scene, **C** = Combat, **N** = Next turn (when not typing).
 
-Read [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md) and use [firebase-rtdb.rules.json](firebase-rtdb.rules.json) with your DM browser's anonymously generated Firebase UID. The DM page can generate the exact rules using **Connection & setup → Copy secure rules** after enabling Firebase. No email/password account is required. The public Firebase web-app configuration copied from your screenshot is in `assets/firebase-config.js` for your existing `project-grim-ef4f0` Firebase project. If online mode fails with `auth/invalid-api-key`, re-copy the configuration from Firebase Console > Project settings > Your apps > Config and compare values.
+## No login / Firebase
 
-## Prototype boundaries
+There is **no user login screen**. For a two-tab local demo, Firebase is not needed. Across devices, enable Firebase Anonymous Authentication and register your DM browser as the only writer using **Connection & setup → Copy secure rules**. All anonymous viewers with the room link can read player-facing state, so do not store GM secrets there. The previous temporary open database rules from your screenshots are unsafe.
 
-- This is **visual 3D built with CSS perspective, depth planes, card thickness and interactive tilt**; it is not a full Three.js/WebGL tactical map, room editor, or 3D miniatures system.
-- PF2e statistics are displayed and initiative is a demo `d20 + Perception` button. **It does not automatically calculate encounter actions, degrees of success, conditions, dying recovery, damage resistance, or character sheets.** Edit initiatives to match actual PF2e checks (e.g., Stealth initiative). This makes it system-agnostic enough to prototype the presentation while establishing the Pathfinder terminology.
-- Default characters and lore are **illustrative placeholders**, not assumptions about your new campaign.
-- The local DM page is not password protected. Do not publish sensitive DM-only content in it. Firebase Security Rules prevent unauthorized writes in online mode once installed; guests can still load the page's interface.
-- Multiple DMs concurrently updating the same room aren't supported. Use one trusted, automatically authenticated DM browser profile.
-- Firebase is NOT enabled automatically. The local demo works before Firebase Authentication and database rules are configured. Once enabled, both pages authenticate silently as anonymous Firebase users, with no sign-in screens.
-- The DM browser UID is persistent in its browser profile, not a recoverable password-based account. Clearing browser storage or switching devices can change your UID; publish new database rules from the new DM browser if that happens.
-- For an online campaign, use the generated random room ID instead of `grim-demo`. Any anonymous viewer who knows the room ID can read the shared player-facing stage data; do not include GM-only content or spoilers.
+See [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md) for details. **GitHub upload and Firebase Hosting deployment are separate actions.** No Firebase connection was tested live in this package.
 
-## Folder structure
+## Design principle
 
-```text
-Project-Grim/
-├── index.html                 Player / TV stage
-├── dm.html                    DM controls
-├── assets/
-│   ├── stage.js, dm.js        Interfaces
-│   ├── state.js               Shared local state, PF2e demo stats
-│   ├── firebase-sync.js       Optional remote sync
-│   ├── firebase-config.js     Public app connection metadata
-│   ├── portraits.js           Placeholder silhouettes
-│   └── styles.css             3D presentation and layouts
-├── firebase-rtdb.rules.json   Secure rules TEMPLATE (paste DM browser UID)
-├── firebase.json              Hosting config (does not deploy database rules)
-├── .firebaserc                Project association
-├── server.js                 Built-in Node localhost server
-├── RUN-GRIM.bat              Windows localhost launcher
-├── github.bat                Shortcut for GitHub upload
-├── GITHUB-UPLOAD.bat         Review, commit, push to GitHub
-└── docs/
-    └── FIREBASE_SETUP.md     Connection and deployment guide
-```
+Use **black / white / gray only**, easy-to-read buttons, plain typography, visible spacing, CSS grid geometry and a single 3D card component. Art direction will be applied in a later project phase. Design rationale and UX checklist: [`docs/UI_TEST_NOTES.md`](docs/UI_TEST_NOTES.md).
 
-**Project Grim** · Prototype 0.2.1 · No-login DM + anonymous auth + GitHub upload helper
+## Limitations
+
+- CSS 3D card perspective, not WebGL/free-roam 3D or a map editor.
+- Not a Pathfinder rule engine or live VTT integration.
+- No private GM-only data layer; the cloud room stores only player-facing state.
+- `github.bat` requires an existing local Git repository with an origin remote; you can publish through GitHub Desktop first.
+- The browser sandbox used during verification disallowed direct localhost navigation. Inline browser checks of the new interface and interactions passed, but live deployment and Firebase were not tested.

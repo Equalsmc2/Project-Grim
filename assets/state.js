@@ -1,20 +1,20 @@
 export const SCENES = [
-  { id:'chapel', name:'The Ashen Chapel', kicker:'ACT I · THE THRESHOLD', description:'The bells have stopped. Somewhere beyond the broken altar, something is still listening.', palette:'violet', ambience:'Candlelit ruins · drifting ash', sigil:'✦' },
-  { id:'forest', name:'Blackwood Crossing', kicker:'ACT I · THE WILDERNESS', description:'The last lantern in the valley vanishes behind a wall of ancient pines.', palette:'teal', ambience:'Mist · cold moonlight', sigil:'✧' },
-  { id:'archive', name:'The Drowned Archive', kicker:'ACT II · BELOW THE CITY', description:'Water crawls across the marble. Every book on the shelves is open to the same page.', palette:'blue', ambience:'Flooded halls · pale light', sigil:'◇' },
-  { id:'court', name:'The Gilded Court', kicker:'ACT II · THE RECKONING', description:'A hundred empty chairs face the throne. An unseen audience waits for judgment.', palette:'amber', ambience:'Dust · dying daylight', sigil:'♜' },
+  { id:'chapel', name:'Training Grid', kicker:'STAGE 01 / GRID', description:'A neutral test environment for checking layout and camera framing.', palette:'grid', ambience:'GRID ON / NEUTRAL LIGHT', sigil:'01' },
+  { id:'forest', name:'White Studio', kicker:'STAGE 02 / BLANK', description:'A plain white background for checking readability and contrast.', palette:'blank', ambience:'GRID OFF / NEUTRAL LIGHT', sigil:'02' },
+  { id:'archive', name:'Graybox', kicker:'STAGE 03 / GRAY', description:'A middle-gray test space for checking spacing and proportions.', palette:'gray', ambience:'GRAY GRID / NEUTRAL LIGHT', sigil:'03' },
+  { id:'court', name:'Black Studio', kicker:'STAGE 04 / DARK', description:'A dark neutral stage for testing light text and card contrast.', palette:'dark', ambience:'DARK GRID / NEUTRAL LIGHT', sigil:'04' },
 ];
 export const CONDITION_OPTIONS=['Frightened','Off-guard','Prone','Stunned','Dying','Wounded','Slowed','Sickened','Clumsy','Enfeebled','Drained','Grabbed'];
 export const DEMO_CHARACTERS = [
-  {id:'mara',name:'Mara Voss',ancestry:'Human',className:'Thaumaturge',level:3,maxHp:46,hp:36,tempHp:0,ac:20,initiative:22,perception:8,conditions:[],accent:'gold',symbol:'✥',portrait:'',hidden:false},
-  {id:'ilyra',name:'Ilyra Fen',ancestry:'Elf',className:'Witch',level:3,maxHp:32,hp:32,tempHp:0,ac:17,initiative:18,perception:7,conditions:['Frightened 1'],accent:'violet',symbol:'☽',portrait:'',hidden:false},
-  {id:'borin',name:'Borin Ash',ancestry:'Dwarf',className:'Champion',level:3,maxHp:52,hp:48,tempHp:0,ac:22,initiative:16,perception:6,conditions:[],accent:'teal',symbol:'⚔',portrait:'',hidden:false},
-  {id:'sable',name:'Sable Quill',ancestry:'Fetchling',className:'Rogue',level:3,maxHp:36,hp:29,tempHp:0,ac:19,initiative:25,perception:9,conditions:[],accent:'rose',symbol:'◆',portrait:'',hidden:false}
+  {id:'mara',name:'Fighter 01',ancestry:'Human',className:'Fighter',level:3,maxHp:46,hp:46,tempHp:0,ac:20,initiative:22,perception:8,conditions:[],accent:'gold',symbol:'01',portrait:'',hidden:false},
+  {id:'ilyra',name:'Fighter 02',ancestry:'Elf',className:'Witch',level:3,maxHp:32,hp:32,tempHp:0,ac:17,initiative:18,perception:7,conditions:[],accent:'violet',symbol:'02',portrait:'',hidden:false},
+  {id:'borin',name:'Fighter 03',ancestry:'Dwarf',className:'Champion',level:3,maxHp:52,hp:52,tempHp:0,ac:22,initiative:16,perception:6,conditions:[],accent:'teal',symbol:'03',portrait:'',hidden:false},
+  {id:'sable',name:'Fighter 04',ancestry:'Human',className:'Rogue',level:3,maxHp:36,hp:36,tempHp:0,ac:19,initiative:25,perception:9,conditions:[],accent:'rose',symbol:'04',portrait:'',hidden:false}
 ];
 const KEY='grim:campaign:v1';
 const OPTIONS_KEY='grim:options:v1';
 const clone=x=>JSON.parse(JSON.stringify(x));
-export function defaultState(){return {version:1,updatedAt:Date.now(),campaign:'PROJECT GRIM',subtitle:'A PATHFINDER CAMPAIGN',mode:'scene',sceneId:'chapel',sceneOverrides:{},combat:{round:1,activeId:'sable'},characters:clone(DEMO_CHARACTERS),presentation:{cardScale:1,showHud:true,showSceneCards:false},log:[{id:'intro',time:Date.now(),text:'Prototype ready. Open the DM page to control the stage.'}]};}
+export function defaultState(){return {version:1,updatedAt:Date.now(),campaign:'PROJECT GRIM',subtitle:'PATHFINDER // UI TEST BUILD',mode:'scene',sceneId:'chapel',sceneOverrides:{},combat:{round:1,activeId:'sable'},characters:clone(DEMO_CHARACTERS),presentation:{cardScale:1,showHud:true,showSceneCards:false},log:[{id:'intro',time:Date.now(),text:'Wireframe ready. Open the DM page to control the stage.'}]};}
 function normalize(candidate){if(!candidate||typeof candidate!=='object')return defaultState();let d=defaultState();return {...d,...candidate,mode:candidate.mode==='combat'?'combat':'scene',sceneOverrides:{...d.sceneOverrides,...(candidate.sceneOverrides||{})},combat:{...d.combat,...(candidate.combat||{})},presentation:{...d.presentation,...(candidate.presentation||{})},characters:Array.isArray(candidate.characters)?candidate.characters:d.characters,log:Array.isArray(candidate.log)?candidate.log.slice(-35):d.log};}
 let state;
 try{state=normalize(JSON.parse(localStorage.getItem(KEY)));}catch{state=defaultState();}

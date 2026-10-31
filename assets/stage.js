@@ -1,5 +1,4 @@
 import {getState,subscribe,getScene,orderedCharacters,getOptions,escapeHtml} from './state.js';
-import {silhouettes} from './portraits.js';
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 let yaw=0,pitch=0,lastSignature='';
@@ -13,19 +12,18 @@ function cardHTML(c,s,index,total){
   const z=active?80:-back;const ry=positions[index]*-5;
   const p=safeImg(c.portrait);
   const pct=Math.round(Math.max(0,Math.min(100,c.hp/Math.max(1,c.maxHp)*100)));
-  const art=p?`<img src="${p}" alt="Portrait of ${escapeHtml(c.name)}">`:(silhouettes[c.accent]||silhouettes.gold);
+  const art=p?`<img src="${p}" alt="Portrait of ${escapeHtml(c.name)}">`:`<span class="card-placeholder">CARD ${String(index+1).padStart(2,'0')}</span>`;
   return `<div class="card-position${c.hidden?' is-hidden':''}" style="--px:${x}px;--py:${curve+(active?-35:0)}px;--pz:${z}px;--rotation:${ry}deg;--card-s:${Math.max(.52,Math.min(1.2,(s.presentation?.cardScale||1)*(total>=7?.67:total>=5?.84:1)))}">
-   <article class="lam-card${active?' active':''}" data-accent="${['gold','violet','teal','rose'].includes(c.accent)?c.accent:'gold'}" aria-label="${escapeHtml(c.name)} card"><div class="card-back"></div><div class="card-bevel"></div><div class="card-face"><div class="card-inner"><div class="card-topline"><span>✥ GRIM</span><span>LVL ${Number(c.level)||1}</span></div><div class="card-art"><span class="card-art-mark">${escapeHtml(c.symbol||'✦')}</span>${art}</div><h3 class="card-character-name">${escapeHtml(c.name)}</h3><p class="card-class">${escapeHtml(c.ancestry)} · ${escapeHtml(c.className)}</p><div class="card-divider"></div><div class="card-stats"><div class="stat-sm"><small>HP</small>${Math.max(0,c.hp)}/${c.maxHp}</div><div class="stat-sm"><small>AC</small>${c.ac}</div><div class="stat-sm"><small>${combat?'INIT':'LEVEL'}</small>${combat?c.initiative:c.level}</div></div></div></div>
+   <article class="lam-card${active?' active':''}" data-accent="${['gold','violet','teal','rose'].includes(c.accent)?c.accent:'gold'}" aria-label="${escapeHtml(c.name)} card"><div class="card-back"></div><div class="card-bevel"></div><div class="card-face"><div class="card-inner"><div class="card-topline"><span>GRIM / TEST</span><span>LVL ${Number(c.level)||1}</span></div><div class="card-art"><span class="card-art-mark">${escapeHtml(c.symbol||'✦')}</span>${art}</div><h3 class="card-character-name">${escapeHtml(c.name)}</h3><p class="card-class">${escapeHtml(c.ancestry)} · ${escapeHtml(c.className)}</p><div class="card-divider"></div><div class="card-stats"><div class="stat-sm"><small>HP</small>${Math.max(0,c.hp)}/${c.maxHp}</div><div class="stat-sm"><small>AC</small>${c.ac}</div><div class="stat-sm"><small>${combat?'INIT':'LEVEL'}</small>${combat?c.initiative:c.level}</div></div></div></div>
    ${combat&&c.conditions?.length?`<div class="card-conditions">${c.conditions.slice(0,3).map(k=>`<span class="condition-ribbon">${escapeHtml(k)}</span>`).join('')}</div>`:''}
-   ${active?`<div class="turn-marker">✧ ACTIVE TURN ✧</div>`:''}</article></div>`;
+   ${active?`<div class="turn-marker">ACTIVE TURN</div>`:''}</article></div>`;
 }
 function render(s){
  const scene=getScene(s),combat=s.mode==='combat';
  app.dataset.palette=scene.palette;
  $('chapterLabel').textContent=scene.kicker;
  $('stageModeLabel').textContent=combat?'COMBAT MODE':'SCENE MODE';
- $('rearSigil').textContent=scene.sigil;
- $('sceneTitle').textContent=scene.name;
+  $('sceneTitle').textContent=scene.name;
  $('sceneDescription').textContent=scene.description;
  $('sceneAmbience').textContent=scene.ambience;
  $('sceneFooter').textContent=scene.name.toUpperCase();
@@ -40,7 +38,6 @@ function render(s){
 }
 subscribe(render);
 window.addEventListener('resize',()=>{lastSignature='';render(getState());});
-for(let i=0;i<38;i++){const p=document.createElement('span');p.className='dust';p.style.setProperty('--x',`${Math.random()*100}%`);p.style.setProperty('--y',`${Math.random()*100}%`);p.style.setProperty('--dur',`${12+Math.random()*16}s`);p.style.setProperty('--delay',`${Math.random()*-25}s`);$('dustLayer').appendChild(p);}
 function updateCamera(){const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
 window.addEventListener('mousemove',e=>{const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;document.querySelectorAll('.lam-card').forEach(card=>{card.style.setProperty('--tilt-y',`${x*7}deg`);card.style.setProperty('--tilt-x',`${-y*4}deg`);card.style.setProperty('--shine',`${x*12}%`);});},{passive:true});
 function hudToggle(){const v=!(localStorage.getItem('grim:hideHud')==='true');localStorage.setItem('grim:hideHud',v?'true':'false');render(getState());}
