@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 set "PORT=4174"
 echo.
-echo   PROJECT GRIM - Dark Test 0.4 Launcher
+echo   PROJECT GRIM - UX Layout 0.5 Launcher
 echo   =================================
 echo   Stage: http://localhost:4174/
 echo   DM:    http://localhost:4174/dm.html

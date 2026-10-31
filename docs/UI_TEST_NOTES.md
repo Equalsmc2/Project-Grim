@@ -1,3 +1,20 @@
+# Project Grim 0.5 — UX layout acceptance checks
+
+Expected viewport behavior:
+- On desktop 1920×1080, 1536×960, 1366×768 and 1024×768: no **page-level** scrollbar for Overview, Scene, Combat, Cast, or Settings.
+- Long combatant lists, character roster/editor, and the Firebase setup can scroll **inside their own panels**.
+- On phones or windows shorter than 620 px, normal page scrolling is allowed to avoid hiding controls.
+
+Checks in the isolated Chromium preview (no live server access):
+- All five sections: no horizontal or global vertical overflow on the above desktop sizes.
+- Health adjustment: first combatant changed from 36/36 to 31/36 after pressing −5.
+- DM sections, mode buttons and next-turn operation rendered and responded without JS page errors.
+- Scene has editable text and a live preview; Cast has editable stats and a preview card.
+- Stage retains prior viewer functionality and black-and-white training grid.
+
+Limits: an actual localhost navigation was blocked by the testing environment; a live Firebase sync and Windows BAT upload/deploy still require tests on the user's computer. The preview was tested by mounting code and CSS in an isolated browser, not by connecting to a production deployment.
+
+---
 # Grim UI test build — Design / interaction checklist
 
 ## Current layout (0.4)

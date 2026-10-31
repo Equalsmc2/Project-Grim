@@ -1,36 +1,31 @@
-# PROJECT GRIM — Dark Test 0.4 (cache-safe black-first UI)
+# Project Grim — UX Layout 0.5 (Compact DM Workspace)
 
-A simple, editable Pathfinder 2e campaign presentation prototype. This build intentionally **removes decorative assets and themed styling** so we can evaluate UI and UX before choosing the campaign's aesthetic.
+This build makes the dark UI a **one-screen DM application** where practical. The global page avoids scrolling on a standard desktop; the encounter list, roster, card editor and online settings have their own scroll areas only when their content exceeds the viewport. Black-and-white wireframe styling is retained.
 
-## What's changed in 0.4
+## UX changes
 
-- Fighting-game-style training room: **dark charcoal grid walls and perspective floor** drawn with CSS, no downloaded images or 3D models.
-- Four all-grayscale layout presets: **Training Grid, White Studio, Graybox, Black Studio** (all dark in this testing build).
-- **Comfort pass:** black is now the primary background across the stage, DM dashboard, panels, and cards, reducing eye strain while preserving the wireframe layout.
-- Scene mode shows a plain stage and editable text; combat mode adds **simple laminated 3D placeholder cards**.
-- Neutral card faces and numbered image slots; upload portrait photos later if desired. Removed the old fantasy silhouettes, colored foils, arcane symbols, fog, windows, particles, and web-font downloads.
-- A black-first DM dashboard, more uniform forms, legible HP actions, and **Scene / Combat** switches always available in the DM top bar.
-- Preserved existing controls, editing, local synchronization, anonymous Firebase options, and **the GitHub BAT that prompts for your repository path**.
+- **Overview:** equal-height content panels and compact summary metrics, without unused empty areas.
+- **Scene director:** stage presets (2×2) alongside live scene inputs instead of two stacked full-width panels.
+- **Combat control:** round/turn toolbar above a compact, internally scrollable initiative roster.
+- **Character cards:** selectable roster at left, three-column editor at right on wide screens; portrait & fields are compact.
+- **Connection & setup:** evenly spaced view/online setup columns, concise security reminder.
+- **Navigation:** fixed DM header and sidebar; no page-level scrolling on desktop where content fits.
+- **Responsive:** icon sidebar at medium widths, single-column and natural scrolling on phones where necessary for legibility.
+- **Stage:** existing Scene and Combat behaviors, laminated card effect and no-login operation are unchanged.
 
-**This is still a CSS perspective prototype, not a full 3D engine or Pathfinder rules automation.** The goal for now is to validate composition and interaction.
+## Installing from Downloads
 
-## Why previous screenshots still showed old styling
+1. Extract the full ZIP (keep folders). Run **`github.bat`**.
+2. Paste `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim` or your actual repository location.
+3. Confirm copy and GitHub upload. The BAT can optionally deploy Firebase Hosting if Firebase CLI is installed and signed in. **Pushing to GitHub alone does not deploy Firebase Hosting.**
+4. For local testing, open `RUN-GRIM.bat` inside the repo, then visit `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
+5. Verify the top bar says **UX BUILD 0.5**.
 
-The old HTML reused the unchanged `assets/styles.css` and `assets/*.js` addresses from the fantasy prototype, so browsers and hosting/CDN caches could serve old gold/serif styles and old scene definitions even while the HTML had new labels. **0.4 uses a unique `assets/dark-040/` bundle** and sets no-store cache headers for new hosting deployments. Look for **DARK BUILD 0.4** in the header of both pages. If absent, the page is still serving an earlier deployment/path.
+Custom scene, character and combat data are preserved. Reset to test data only if you want to discard edits. Firebase anonymous authentication and DM-browser rules are the same as in 0.4.
 
-The old names and scene descriptions can also persist in `localStorage` or Firebase. We do not silently erase user changes. To replace only the current browser's local demo with new placeholders, use **DM → Connection & setup → Reset to test data** (confirmation required). For Firebase data, existing cloud data requires a deliberate publish by the authorized DM.
+## Scope and limits
 
-## Install and upload (Windows)
-
-1. Extract `Project-Grim_DARK_TEST_0.4_CACHE_FIX.zip` into a folder, including Downloads. Keep the extracted `assets` and `docs` directories next to the `.html` and `.bat` files.
-2. Double-click `github.bat` or `GITHUB-UPLOAD.bat`.
-3. Paste the path to your existing Git repository when prompted, or press Enter for the default path:
-   `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`
-4. The uploader verifies that folder is a Git repository, asks before **copying** the website files, displays Git changes, and asks again before committing and pushing. It does not force-push or remove unrelated files. **After pushing, it offers an optional Firebase Hosting deployment**, if the Firebase CLI is installed and you are signed in.
-5. Once the website is in the repository, double-click `RUN-GRIM.bat` **from the repository folder**. Node.js or Python must be installed for its local server.
-6. Use the DM page at `http://localhost:4174/dm.html` and the TV/Stage page at `http://localhost:4174/index.html`.
-
-**Important:** Existing local site data from 0.2 is deliberately preserved so upgrading does not erase your edits. If you want the new generic sample names and training-stage labels, use **DM → Connection & setup → Reset to test data**. This replaces the saved sample roster, scene text, and combat data in that browser; it does not delete Firebase data by itself. Back up custom work before resetting.
+This remains a UI prototype with CSS 3D cards, not true WebGL terrain or Pathfinder rules automation. Check the BAT and Firebase connection on your Windows machine; the packaged app does not change live Firebase rules.
 
 ## Try the UX
 
@@ -66,9 +61,9 @@ Use **black / white / gray only**, easy-to-read buttons, plain typography, visib
 ## Verify the fix
 
 1. Open the **new local URL**: `http://localhost:4174/dm.html` (old builds used 4173).
-2. Confirm both the DM and Stage headers show **DARK BUILD 0.4**.
+2. Confirm both the DM and Stage headers show **UX BUILD 0.5**.
 3. Confirm the DM content area and stage are black/charcoal, with thin gray grid lines and no gold or fantasy typefaces.
-4. In the browser's Network tab, the CSS URL must contain **`/assets/dark-040/styles.css`**. If you see `assets/styles.css`, the browser is serving an old HTML page. Confirm the uploader copied into the exact Git repository from GitHub Desktop.
+4. In the browser's Network tab, the CSS URL must contain **`/assets/layout-050/styles.css`**. If you see `assets/styles.css`, the browser is serving an old HTML page. Confirm the uploader copied into the exact Git repository from GitHub Desktop.
 5. For a public Firebase site, uploading to **GitHub alone does not guarantee deployment**. Run the optional Firebase Hosting deploy from the uploader (requires Firebase CLI), or manually run `firebase deploy --only hosting --project project-grim-ef4f0` inside the repo. If your actual host is Render, use its deployment process instead.
 6. Browser refresh: Ctrl+Shift+R; if a service worker or external CDN is caching the old deployment, remove its cache according to that hosting setup.
 
