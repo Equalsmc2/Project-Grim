@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask} from '../assets/grim-141/card-occlusion.js';
+import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask,cardOcclusionClip} from '../assets/grim-143/card-occlusion.js';
 
 const specs=makeOccluderSpecs({tree:[{x:0,z:1,s:1}],rock:[{x:3,z:-5,s:1}],pillar:[{x:-2,z:2,s:1}]},()=>0);
 assert.equal(specs.length,3);
@@ -14,9 +14,17 @@ assert(!front.some(o=>o.kind==='rock'),'Objects behind or outside the card must 
 assert(front.some(o=>o.kind==='pillar'),'Foreground ruins should mask the card');
 const behind=foregroundForCard(shapes,{...card,depth:10});
 assert.equal(behind.length,0,'Nothing behind a nearer card should mask it');
+const persistent=foregroundForCard([{id:'tree:0',depth:18.1,maxX:450,minX:440,maxY:350,minY:340}],card,new Set(['tree:0']));
+assert.equal(persistent.length,1,'Previously foreground props should survive small depth changes');
+const absent=foregroundForCard([{id:'tree:0',depth:18.1,maxX:450,minX:440,maxY:350,minY:340}],card,new Set());
+assert.equal(absent.length,0,'New occluders should only enter with a meaningful depth margin');
 let begun=0,drawn=0;
 const ctx={clearRect(){},fillRect(){},save(){},restore(){},beginPath(){begun++;},moveTo(){},lineTo(){},closePath(){},fill(){drawn++;}};
 assert(paintOcclusionMask(ctx,front,card,{width:174,height:240}));
 assert(begun>0&&drawn>0,'Silhouettes should be drawn into card masks');
 assert.equal(paintOcclusionMask(ctx,[],card,{width:174,height:240}),false);
+const clip=cardOcclusionClip(front,card);
+assert(clip.startsWith('path(evenodd, "M 0 0'),'Vector clip path must have a native outer rectangle');
+assert(clip.includes('L '),'Projected occluders should create hole polygons');
+assert.equal(cardOcclusionClip([],card),'');
 console.log('PASS: depth-aware per-card occlusion masks, foreground projection, hidden silhouettes and no-op cases.');

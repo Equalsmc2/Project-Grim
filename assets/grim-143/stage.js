@@ -1,4 +1,5 @@
-import {getState,subscribe,getScene,orderedCharacters,getOptions,escapeHtml,isEnemy} from './state.js';
+import {AMBIENCE_TRACKS,createAmbiencePlayer} from './ambience.js';
+import {getState,subscribe,getScene,orderedCharacters,getOptions,updateState,escapeHtml,isEnemy} from './state.js';
 import {planFormation} from './formation.js';
 import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,DEFAULT_CAMERA_VIEW} from './camera-frame.js';
 const $=id=>document.getElementById(id);
@@ -47,6 +48,7 @@ function render(s){
     lastSignature=signature;
   }
   if(world){world.update(s.environment);world.setCards(layout.placements);}
+  updateCinematicUI(s.environment?.cinematicPan);
   if(combat){
     $('roundDisplay').textContent=s.combat.round;
     const current=s.characters.find(c=>c.id===s.combat.activeId);
@@ -54,6 +56,11 @@ function render(s){
     $('initiativeTrack').innerHTML=orderedCharacters(s).filter(c=>!c.hidden).map(c=>`<span class="initiative-chip ${isEnemy(c)?'enemy-chip':'player-chip'}${current?.id===c.id?' active':''}"><b>${escapeHtml(c.initiative)}</b> ${isEnemy(c)?'◆':'●'} ${escapeHtml(c.name)}</span>`).join('');
   }
 }
+const autoPanButton=$('autoPanToggle');
+function updateCinematicUI(on){if(!autoPanButton)return;autoPanButton.classList.toggle('active',!!on);autoPanButton.setAttribute('aria-pressed',String(!!on));autoPanButton.textContent=on?'◉ Auto pan':'○ Auto pan';}
+if(autoPanButton)autoPanButton.addEventListener('click',()=>updateState(s=>{s.environment.cinematicPan=!s.environment.cinematicPan;}));
+
+
 subscribe(render);
 window.addEventListener('resize',()=>{world?.resize();lastSignature='';render(getState());});
 function updateCamera(){world?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
@@ -73,7 +80,6 @@ function selectCameraView(mode){
  $('chapterLabel').textContent=`BATTLEFIELD / ${names[mode]}`;
 }
 document.querySelectorAll('[data-camera-view]').forEach(btn=>btn.addEventListener('click',()=>selectCameraView(btn.dataset.cameraView)));
-
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
@@ -93,11 +99,12 @@ window.addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
  if(e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
  if(key==='h')hudToggle();
+ else if(key==='c'){e.preventDefault();autoPanButton?.click();}
  else if(key==='f')$('fullscreen').click();
- else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-(viewMode==='ground'?20:MAX_ORBIT_DEGREES),yaw-3);updateCamera();}
- else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(viewMode==='ground'?20:MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
- else if(e.key==='ArrowUp'){e.preventDefault();pitch=Math.max(-10,pitch-3);updateCamera();}
- else if(e.key==='ArrowDown'){e.preventDefault();pitch=Math.min(10,pitch+3);updateCamera();}
+ else if(e.key==='ArrowLeft'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});yaw=Math.max(-(viewMode==='ground'?20:MAX_ORBIT_DEGREES),yaw-3);updateCamera();}
+ else if(e.key==='ArrowRight'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});yaw=Math.min(viewMode==='ground'?20:MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
+ else if(e.key==='ArrowUp'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});pitch=Math.max(-10,pitch-3);updateCamera();}
+ else if(e.key==='ArrowDown'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});pitch=Math.min(10,pitch+3);updateCamera();}
  else if(['1','2','3'].includes(key)){selectCameraView(({1:'tactical',2:'ground',3:'overhead'})[key]);}
  else if(key==='0'){selectCameraView(DEFAULT_CAMERA_VIEW);updateCamera();}
  else if(['+','='].includes(key)){e.preventDefault();changeZoom(zoom*1.09);}
@@ -114,6 +121,8 @@ stage.addEventListener('wheel',e=>{
 let cameraDrag=null;
 stage.addEventListener('pointerdown',e=>{
   if(e.button!==0||!world||e.target.closest('button,a,input,select,textarea'))return;
+  ({yaw,pitch}=world.getOrbit());
+  world.pauseCinematic();
   cameraDrag={id:e.pointerId,x:e.clientX,y:e.clientY};
   stage.setPointerCapture?.(e.pointerId);
 });
@@ -143,3 +152,28 @@ async function launchWorld(){
 }
 launchWorld();
 window.addEventListener('pagehide',()=>{if(tiltFrame)cancelAnimationFrame(tiltFrame);world?.dispose();});
+
+// Browsers block audio autoplay until someone interacts with the stage.
+// The sound enable button is deliberately separate from the hidden HUD so
+// there is always a way to start playback on a TV or secondary display.
+const soundToggle=$('stageSoundToggle'),soundLabel=$('stageSoundLabel');
+const stageSound=createAmbiencePlayer({onStatus:(type,detail)=>{
+ const name=AMBIENCE_TRACKS[stageSound.track]?.label||'Off';
+ if(type==='playing'){soundToggle.textContent='♪ Mute sound';soundLabel.textContent=name;}
+ else if(type==='loading'){soundLabel.textContent=`Loading ${name}…`;}
+ else if(type==='off'){soundLabel.textContent='Ambience off';soundToggle.textContent=stageSound.enabled?'♪ Disable sound':'▶ Enable sound';}
+ else if(type==='blocked'){soundLabel.textContent='Click Enable sound to allow audio';soundToggle.textContent='▶ Enable sound';}
+ else if(type==='error'){soundLabel.textContent='Audio file unavailable';}
+ else if(type==='locked'){soundToggle.textContent='▶ Enable sound';soundLabel.textContent=stageSound.track==='none'?'Ambience off':`${name} · sound disabled`;}
+}});
+soundToggle.addEventListener('click',()=>{
+ if(stageSound.enabled)stageSound.disable();else stageSound.enable();
+});
+subscribe(s=>{
+ stageSound.sync(s.environment?.ambience||'none',s.environment?.ambienceVolume??.55);
+ if(!stageSound.enabled){
+  const name=AMBIENCE_TRACKS[stageSound.track]?.label||'Off';
+  soundLabel.textContent=stageSound.track==='none'?'Ambience off':`${name} · click to enable`;
+ }
+});
+window.addEventListener('pagehide',()=>stageSound.dispose());

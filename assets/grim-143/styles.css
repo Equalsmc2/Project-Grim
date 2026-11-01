@@ -1031,3 +1031,26 @@ html,body{height:100%}
 .stage-app.webgl-ready.grim-night .lam-card{filter:drop-shadow(0 10px 12px rgba(0,0,0,.83)) drop-shadow(0 0 5px rgba(220,236,246,.18))!important}
 .stage-app.webgl-ready.grim-night .lam-card.active{filter:drop-shadow(0 8px 14px rgba(0,0,0,.84)) drop-shadow(0 0 9px rgba(232,246,255,.43))!important}
 @media(prefers-reduced-motion:reduce){.stage-app.webgl-ready .lam-card.active{animation:none!important}}
+
+/* Project Grim 1.4.2 — Ambient audio: deliberately small, no page scrolling. */
+.grim-ambience-panel{border:1px solid rgba(255,255,255,.17);border-radius:8px;background:#111416;padding:14px;margin:0 0 12px}
+.grim-ambience-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.grim-ambience-heading h3{font-size:16px;line-height:1.2;margin:3px 0 0}
+.ambient-muted{font-size:11px;color:#b7bdc1;max-width:44%;text-align:right}
+.grim-ambience-controls{display:grid;grid-template-columns:minmax(155px,1.3fr) minmax(140px,1fr) auto;gap:12px;align-items:end}
+.grim-ambience-controls .field{margin:0;min-width:0}
+.grim-ambience-controls #ambiencePreview{height:36px;white-space:nowrap}
+.grim-ambience-panel .helper{margin:10px 0 0;font-size:11px}
+.grim-stage-audio{position:absolute;left:16px;top:15px;z-index:45;display:flex;align-items:center;gap:8px;max-width:min(380px,55vw);padding:5px 9px;background:rgba(7,10,12,.84);border:1px solid rgba(234,234,234,.23);border-radius:6px;backdrop-filter:blur(8px);font:11px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.01em;color:#d7d9da}
+.grim-stage-audio button{border:1px solid #585d60;background:#1b2023;color:#fff;cursor:pointer;border-radius:4px;padding:6px 8px;white-space:nowrap;font:inherit}
+.grim-stage-audio button:hover{background:#32383b}
+.grim-stage-audio button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#stageSoundLabel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.grim-ambience-controls{grid-template-columns:1fr 1fr}.grim-ambience-controls #ambiencePreview{grid-column:1/-1}}
+@media(max-width:600px){.grim-ambience-controls{grid-template-columns:1fr}.grim-ambience-controls #ambiencePreview{grid-column:auto}.grim-stage-audio{top:8px;left:8px;max-width:70vw;font-size:9px;padding:4px}.grim-stage-audio button{padding:4px 6px}}
+
+/* Project Grim 1.4.3: cinematic pan + stable occlusion without bitmap masks */
+.webgl-ready .card-position .lam-card {transition: opacity .22s ease-out;}
+.auto-pan-control {border-left:1px solid #444; padding-left:13px; margin-left:3px;}
+@media(max-width:730px){.auto-pan-control{font-size:9px;padding:5px 6px;}}
+@media(prefers-reduced-motion:reduce){.webgl-ready .card-position .lam-card{transition:none;}}

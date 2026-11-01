@@ -2,7 +2,7 @@ import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
 import {effectiveTime,lightAt,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
 import {clusteredProps,accumulationTarget,pathDistance} from './world-polish.js';
-import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask} from './card-occlusion.js';
+import {makeOccluderSpecs,projectOccluders,foregroundForCard,cardOcclusionClip} from './card-occlusion.js';
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
@@ -77,13 +77,15 @@ export function createWorld(host,stage){
  let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
- let occluders=[],lastOcclusionAt=0;
+ let occluders=[];
+ let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0;
  const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
  let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0,windPhase=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),proj=new T.Vector3(),foot=new T.Vector3(),cardPoint=new T.Vector3(),target=new T.Vector3();
  const occlusionPoint=new T.Vector3(),viewDirection=new T.Vector3();
- const maskCanvases=new Map();
+ const clipCache=new Map(),occlusionHistory=new Map();
+ const cssClipSupported=typeof CSS!=='undefined'&&CSS.supports?.('clip-path','path(evenodd, \"M 0 0 H 10 V 10 H 0 Z\")');
  const cardElements=new Map();const stageShell=document.getElementById('stageApp');
  function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
  function cameraPose(animate=false){
@@ -419,11 +421,11 @@ export function createWorld(host,stage){
   const nextEnv=normalizeEnvironment(value);
   const next=JSON.stringify(nextEnv);if(next===signature)return;
   const oldW=fieldWidth,oldD=fieldDepth;
-  env=nextEnv;signature=next;
+  env=nextEnv;signature=next;updateCinematicSettings(env);
   fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
   const stable=JSON.stringify([env.ground,env.hills,env.variation,env.path,env.pathX,env.pathZ,env.pathAngle,env.pathWidth,env.pathEdge,env.props,env.density,env.seed,fieldWidth,fieldDepth]);
   if(stable!==terrainSignature){
-   terrainSignature=stable;markerSignature='';clearRoot();weatherSystems=[];fogMeshes=[];
+   terrainSignature=stable;markerSignature='';clipCache.clear();occlusionHistory.clear();clearRoot();weatherSystems=[];fogMeshes=[];
    skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=wetPatches=snowPatches=sandPatches=null;scenicMaterials=[];
    cloudClock=cloudUpdated=0;
    const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
@@ -435,8 +437,8 @@ export function createWorld(host,stage){
  }
  function setCards(placements){
   if(width!==stage.clientWidth||height!==stage.clientHeight)resize();
-  anchors=[];cardElements.clear();
-  for(const id of maskCanvases.keys())if(!placements.has(id))maskCanvases.delete(id);
+  anchors=[];cardElements.clear();clipCache.clear();
+  for(const id of clipCache.keys())if(!placements.has(id)){clipCache.delete(id);occlusionHistory.delete(id);}
   for(const [id,p] of placements){
    const x=clamp(Number(p.worldX)||0,-fieldWidth*.5+1,fieldWidth*.5-1);
    const z=clamp(Number(p.worldZ)||0,-fieldDepth*.5+1,fieldDepth*.5-1);
@@ -455,6 +457,34 @@ export function createWorld(host,stage){
    }
   }
   dirty=true;projectionDirty=true;wake();
+ }
+ function updateCinematicSettings(e){
+  const nextEnabled=!!e.cinematicPan;
+  cinematicSpeed=clamp(Number(e.cinematicSpeed)||1,.35,2.5);
+  if(nextEnabled!==cinematicEnabled){
+   cinematicEnabled=nextEnabled;
+   cinematicStart=performance.now();
+   dirty=true;wake();
+  }
+ }
+ function cinematicStep(t,dt){
+  if(!cinematicEnabled||transition||t<cinematicPauseUntil)return false;
+  if(!cinematicStart)cinematicStart=t;
+  // A restrained side-to-side dolly/orbit, not a full spin. Fixed zoom means
+  // no automatic camera retreat and no sudden change in card size.
+  const phase=(t-cinematicStart)*.00022*cinematicSpeed;
+  const presetLimit=viewMode==='ground'?20:viewMode==='overhead'?28:24;
+  const desiredYaw=Math.sin(phase)*Math.min(presetLimit-2,12)*Math.PI/180;
+  const desiredPitch=Math.sin(phase*.68+.8)*1.7;
+  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*2.5);
+  const y0=yaw,p0=pitch;
+  yaw+=(desiredYaw-yaw)*blend;pitch+=(desiredPitch-pitch)*blend;
+  if(Math.abs(yaw-y0)<1e-7&&Math.abs(pitch-p0)<1e-5)return false;
+  const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
+  const glide=Math.sin(phase*.53)*.55;
+  pose.position.x+=glide;pose.target.x+=glide;
+  applyCameraPose(camera,pose);target.copy(pose.target);
+  projectionDirty=true;dirty=true;return true;
  }
  function projectCards(){
   camera.updateMatrixWorld();let active=false;
@@ -479,33 +509,33 @@ export function createWorld(host,stage){
    if(a.active){spotlight.position.set(a.x,10,a.z+2);spotlight.target.position.set(a.x,0,a.z);active=true;}
   }
   spotlight.visible=active;
-  // DOM cards are always above WebGL unless their front-facing imagery is
-  // alpha-masked. Use actual world-object silhouettes and signed camera
-  // depth to reveal a nearer tree, ruin, pillar or boulder through the card.
-  // Masks update only during camera/formation changes, never weather ticks.
-  const now=performance.now();
-  if(!transition||now-lastOcclusionAt>=85){
-   lastOcclusionAt=now;
-   camera.getWorldDirection(viewDirection);
-   const screenProject=(x,y,z)=>{
-    occlusionPoint.set(x,y,z).project(camera);
-    return {x:(occlusionPoint.x+1)*width*.5,y:(1-occlusionPoint.y)*height*.5};
-   };
-   const depthOf=(x,y,z)=>(x-camera.position.x)*viewDirection.x+(y-camera.position.y)*viewDirection.y+(z-camera.position.z)*viewDirection.z;
-   const shapes=cardRects.length&&occluders.length?projectOccluders(occluders,screenProject,depthOf):[];
-   for(const card of cardRects){
-    const face=card.el.querySelector('.lam-card');if(!face)continue;
-    const inFront=foregroundForCard(shapes,{...card,depth:depthOf(card.x,card.y,card.z)});
-    if(!inFront.length){face.style.maskImage='';face.style.webkitMaskImage='';continue;}
-    let canvas=maskCanvases.get(card.id);
-    if(!canvas){canvas=document.createElement('canvas');canvas.width=174;canvas.height=240;maskCanvases.set(card.id,canvas);}
-    if(paintOcclusionMask(canvas.getContext('2d'),inFront,card,canvas)){
-     const url='url("'+canvas.toDataURL('image/png')+'")';
-     face.style.maskImage=url;face.style.webkitMaskImage=url;
-     face.style.maskPosition='center';face.style.webkitMaskPosition='center';
-     face.style.maskSize='100% 100%';face.style.webkitMaskSize='100% 100%';
-     face.style.maskRepeat='no-repeat';face.style.webkitMaskRepeat='no-repeat';
+  // Update native vector clipping in the same frame as card projection.
+  // PNG mask generation was asynchronous and throttled to 85ms; the moving
+  // cards and stale PNGs used to flicker/stutter against trees and pillars.
+  camera.getWorldDirection(viewDirection);
+  const screenProject=(x,y,z)=>{
+   occlusionPoint.set(x,y,z).project(camera);
+   return {x:(occlusionPoint.x+1)*width*.5,y:(1-occlusionPoint.y)*height*.5};
+  };
+  const depthOf=(x,y,z)=>(x-camera.position.x)*viewDirection.x+(y-camera.position.y)*viewDirection.y+(z-camera.position.z)*viewDirection.z;
+  const shapes=cardRects.length&&occluders.length?projectOccluders(occluders,screenProject,depthOf):[];
+  for(const card of cardRects){
+   const face=card.el.querySelector('.lam-card');if(!face)continue;
+   const inFront=foregroundForCard(shapes,{...card,depth:depthOf(card.x,card.y,card.z)},occlusionHistory.get(card.id));
+   occlusionHistory.set(card.id,new Set(inFront.map(o=>o.id)));
+   if(cssClipSupported){
+    const clip=cardOcclusionClip(inFront,card);
+    if(clipCache.get(card.id)!==clip){
+     clipCache.set(card.id,clip);
+     face.style.clipPath=clip;
+     face.style.webkitClipPath=clip;
     }
+    // Masks from previous builds are never used in this path.
+    face.style.maskImage='';face.style.webkitMaskImage='';
+   }else{
+    // Older browsers: a short crossfade is more stable than rebuilding image
+    // masks on every pan frame. No flash or PNG decode is involved.
+    face.style.opacity=inFront.length?'.25':'1';
    }
   }
  }
@@ -525,12 +555,13 @@ export function createWorld(host,stage){
    target.lerpVectors(transition.fromTarget,transition.toTarget,ease);camera.lookAt(target);camera.updateMatrixWorld();
    projectionDirty=true;dirty=true;if(f>=1)transition=null;
   }
-  if(dirty||environmentMoving||transition){
+  const cinematicMoving=cinematicStep(t,dt);
+  if(dirty||environmentMoving||transition||cinematicMoving){
    if(projectionDirty){projectCards();projectionDirty=false;}
    renderer.render(scene,camera);dirty=false;
    if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
-  if(environmentMoving||transition)frame=requestAnimationFrame(tick);
+  if(environmentMoving||transition||cinematicEnabled)frame=requestAnimationFrame(tick);
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
@@ -539,11 +570,15 @@ export function createWorld(host,stage){
  resize();return {
   update:rebuild,setCards,
   resize(){resize();wake();},
-  orbit(y,p){yaw=y*Math.PI/180;pitch=p;cameraPose();wake();},
+  orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+10000;cameraPose();wake();},
   setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cameraPose(true);wake();return viewMode;},
   getView(){return viewMode;},
-  zoomTo(v){zoom=clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);cameraPose();wake();return zoom;},
+  getOrbit(){return {yaw:yaw*180/Math.PI,pitch};},
+  pauseCinematic(ms=10000){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);},
+  setCinematic(enabled,speed){updateCinematicSettings({cinematicPan:enabled,cinematicSpeed:speed});return cinematicEnabled;},
+  getCinematic(){return cinematicEnabled;},
+  zoomTo(v){cinematicPauseUntil=performance.now()+10000;zoom=clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
-  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;maskCanvases.clear();document.removeEventListener('visibilitychange',visibility);clearRoot();disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
+  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;clipCache.clear();occlusionHistory.clear();document.removeEventListener('visibilitychange',visibility);clearRoot();disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };
 }

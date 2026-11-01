@@ -8,9 +8,9 @@ export function makeOccluderSpecs(grouped, heightAt){
  const specs=[];
  for(const [kind,items] of Object.entries(grouped||{})){
   if(!['tree','rock','bush','log','pillar','ruin','grave','mound'].includes(kind))continue;
-  for(const p of items){
+  for(const [idx,p] of items.entries()){
    if(!Number.isFinite(p.x)||!Number.isFinite(p.z)||!Number.isFinite(p.s))continue;
-   specs.push({kind,x:p.x,z:p.z,s:p.s,y:heightAt(p.x,p.z)});
+   specs.push({id:`${kind}:${idx}`,kind,x:p.x,z:p.z,s:p.s,y:heightAt(p.x,p.z)});
   }
  }
  return specs;
@@ -69,12 +69,19 @@ export function projectOccluders(specs,project,depthOf){
   return {...spec,paths,minX,minY,maxX,maxY,depth:depthOf(spec.x,spec.y+spec.s*.8,spec.z)};
  }).filter(p=>Number.isFinite(p.minX)&&Number.isFinite(p.depth)&&p.depth>.1);
 }
-export function foregroundForCard(projected,card){
- // Depth is signed forward camera distance, not world z. That makes this work
- // for all orbit directions and Ground, Tactical and Top views.
+export function foregroundForCard(projected,card,previous){
+ // Signed camera distance works from Ground, Tactical and Overhead. A small
+ // Schmitt-trigger depth tolerance prevents props at the same depth as a card
+ // from rapidly toggling visibility during a slow automatic camera pan.
  const {left,top,right,bottom,depth}=card;
- return projected.filter(o=>o.depth<depth-.07&&o.maxX>left&&o.minX<right&&o.maxY>top&&o.minY<bottom);
+ return projected.filter(o=>{
+  const wasVisible=previous?.has(o.id);
+  const threshold=wasVisible?depth+.26:depth-.16;
+  const pad=wasVisible?2:0;
+  return o.depth<threshold&&o.maxX>left-pad&&o.minX<right+pad&&o.maxY>top-pad&&o.minY<bottom+pad;
+ });
 }
+
 export function paintOcclusionMask(ctx,foreground,card,canvas){
  ctx.clearRect(0,0,canvas.width,canvas.height);
  if(!foreground.length)return false;
@@ -88,4 +95,36 @@ export function paintOcclusionMask(ctx,foreground,card,canvas){
   ctx.closePath();ctx.fill();
  }
  ctx.restore();return true;
+}
+
+// Build native CSS clipping geometry directly from projected silhouettes.
+// Unlike a PNG/CSS-mask URL, clip-path has no asynchronous image decode and
+// can be updated on the same frame as the projected HTML card positions.
+// A small inset guards against flashing along the object boundaries.
+export function cardOcclusionClip(foreground,card,cardWidth=174,cardHeight=240){
+ if(!foreground?.length)return '';
+ const dx=Math.max(1e-5,card.right-card.left),dy=Math.max(1e-5,card.bottom-card.top);
+ const sx=cardWidth/dx,sy=cardHeight/dy;
+ const number=n=>Math.round(n*10)/10;
+ let paths=[`M 0 0 H ${cardWidth} V ${cardHeight} H 0 Z`];
+ let count=0;
+ for(const o of foreground){
+  if(count>=16)break;
+  for(const polygon of o.paths){
+   if(count>=16)break;
+   if(polygon.length<3)continue;
+   const coords=polygon.map(p=>[number(Math.max(-60,Math.min(cardWidth+60,(p.x-card.left)*sx))),number(Math.max(-60,Math.min(cardHeight+60,(p.y-card.top)*sy)))]);
+   // Skip degenerate projected polygons; those caused rapid appearance flips
+   // with near-edge or almost edge-on objects.
+   let signed=0;
+   for(let j=0;j<coords.length;j++){
+    const a=coords[j],b=coords[(j+1)%coords.length];signed+=a[0]*b[1]-b[0]*a[1];
+   }
+   if(Math.abs(signed)<3)continue;
+   paths.push(`M ${coords[0][0]} ${coords[0][1]} `+coords.slice(1).map(q=>`L ${q[0]} ${q[1]}`).join(' ')+' Z');
+   count++;
+  }
+ }
+ if(count===0)return '';
+ return `path(evenodd, "${paths.join(' ')}")`;
 }

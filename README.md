@@ -1,3 +1,21 @@
+# Project Grim 1.4.3 — Cinematic Camera & Card Occlusion
+
+DM Environment panel: toggle Auto cinematic pan and set speed. Stage: Auto pan toggle / C key. Manual camera movement pauses auto orbit briefly; no automatic zoom-out. 1.4.2 ambience sounds remain bundled.
+
+# Project Grim 1.4.2 — Ambience
+
+Adds **Environment → Ambience** to the existing Project Grim 1.4.1 website.
+
+**DM**: Select one of Wind, Thunderstorm, Desert wind, Blizzard, Gentle rain or Off. Set volume 0–100%. Use **Preview** for local audition without affecting the stage. Selecting the track and volume is broadcast over the existing campaign state, including Firebase when connected.
+
+**Stage**: Open the stage and click **Enable sound** once. This is required by modern browser autoplay policies; without it, the soundtrack will not play. The stage can then follow DM changes automatically. **Mute sound** only affects that viewer. The ambience loops until changed or turned off. Each audio file is requested only when selected, not on page load. Web browser audio errors are surfaced in the small audio panel.
+
+**Deployment**: Extract the ZIP, run `github.bat`, enter your existing Project-Grim GitHub repo folder, and confirm the copy/push. The `assets/audio/` MP3s are copied alongside the website. Deploy to Firebase Hosting separately if you use it. Confirm header **AMBIENCE 1.4.2**. Old campaign data remains supported.
+
+**Audio rights**: These are user-supplied tracks. Before making a public deployment, verify that your licenses cover public web distribution/hosting, including the redistribution of included MP3 assets.
+
+---
+
 # PROJECT GRIM 1.4 — WORLD POLISH & IMMERSION
 
 Based on 1.3 Living Atmosphere. Install as a complete website replacement: extract, run `github.bat`, select your existing Project-Grim Git repository path, approve copy and push. After deployment, verify **WORLD POLISH 1.4** in both page headers.
@@ -9,7 +27,7 @@ Based on 1.3 Living Atmosphere. Install as a complete website replacement: extra
 - Visual weather accumulation: puddles/wetness in rain, snow patches in blizzards and sand buildup in sandstorms. New **Ground accumulation** DM slider. The slider is stored/synced; precipitation supplements the setting.
 - Terrain material roughness/darkness, prop highlights, and fog wisps respond smoothly to weather without rebuilding terrain on each slider movement.
 - Reduced per-frame allocations, smoother card scaling across camera perspectives, and coalesced Firebase writes during quick DM changes (local changes remain immediate).
-- Cache-busted `assets/grim-141` active bundle; both HTML pages remain separate and anonymous authentication does not show a login.
+- Cache-busted `assets/grim-142` active bundle; both HTML pages remain separate and anonymous authentication does not show a login.
 
 ## Checks and limitations
 
@@ -58,7 +76,7 @@ This is the complete standalone site (DM page + player stage) based on 1.1.9.
   distance attenuation and fog, instead of evenly filling an empty black sky.
 - Existing live controls for **terrain width/depth, environment presets, weather,
   props and paths** remain synced across DM and stage.
-- The active source moved to `assets/grim-141/` to avoid caching older releases.
+- The active source moved to `assets/grim-142/` to avoid caching older releases.
 
 ## Install
 

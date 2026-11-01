@@ -1,3 +1,16 @@
+## Cinematic 1.4.3 — Pan and Stable Occlusion
+
+Automatic cinematic camera orbit and tilt; removes intermittent raster mask generation that caused card stutter when passing scenery.
+
+# Project Grim 1.4.2 — Environment Ambience
+
+- Five user-supplied MP3 ambience tracks: wind, thunderstorm, desert wind, blizzard, gentle rain, plus Off.
+- New compact Ambience panel in DM Environment with track choice, shared volume, and local preview.
+- Player stage follows selection and volume through existing local/Firebase campaign sync without uploading the audio files into database.
+- A visible Enable sound control respects browser autoplay restrictions; players/TVs can mute locally without changing DM selection.
+- Smooth ~850ms crossfades and continuous looping; tracks are lazy loaded only when selected and enabled.
+- Cache-safe `assets/grim-142` bundle and updated Windows GitHub uploader.
+
 ## Depth-Aware Cards 1.4.1 — Natural Prop Occlusion
 
 - Added camera-depth-aware masking to world-anchored HTML cards: nearer trees, rocks, bushes, ruins, pillars, logs, gravestones, and snow mounds can naturally hide portions of a card.
