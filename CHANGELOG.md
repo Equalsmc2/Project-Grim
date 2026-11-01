@@ -1,3 +1,12 @@
+# Project Grim 1.1.2 — Rectangle Fix
+
+- Corrected nonuniform terrain depth scale that made the 3D battlefield square.
+- Defined the missing terrain constants from the previous patch.
+- Set field dimensions to 35×19 world units; all surface details follow bounds.
+- Camera auto-fits the full rectangle without distorting 3D geometry.
+- Updated fallback CSS shape and versioned assets to bypass stale caches.
+- Existing DM/combat, Firebase, no-login, BAT uploader, terrain and weather remain.
+
 # Perspective 1.1 — November 1, 2026
 
 - Removed forced grayscale from all environment materials.

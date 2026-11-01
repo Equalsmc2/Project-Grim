@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\perspective-110\state.js" (
+if not exist "%SOURCE_ROOT%\assets\rectangle-112\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -167,7 +167,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Perspective 1.1 deployed to Firebase Hosting.
+echo [SUCCESS] Rectangle 1.1.2 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed
