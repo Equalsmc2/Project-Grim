@@ -1,5 +1,6 @@
 import {getState,subscribe,getScene,orderedCharacters,getOptions,escapeHtml,isEnemy} from './state.js';
 import {planFormation} from './formation.js';
+import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
@@ -56,7 +57,7 @@ function render(s){
 subscribe(render);
 window.addEventListener('resize',()=>{world?.resize();lastSignature='';render(getState());});
 function updateCamera(){world?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
-function changeZoom(next){zoom=clamp(Number(next)||1,.72,1.6);world?.zoomTo(zoom);if(world)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
+function changeZoom(next){zoom=clamp(Number(next)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);world?.zoomTo(zoom);if(world)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
@@ -77,8 +78,8 @@ window.addEventListener('keydown',e=>{
  if(e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
  if(key==='h')hudToggle();
  else if(key==='f')$('fullscreen').click();
- else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-40,yaw-6);updateCamera();}
- else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(40,yaw+6);updateCamera();}
+ else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-MAX_ORBIT_DEGREES,yaw-3);updateCamera();}
+ else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
  else if(e.key==='ArrowUp'){e.preventDefault();pitch=Math.max(-12,pitch-3);updateCamera();}
  else if(e.key==='ArrowDown'){e.preventDefault();pitch=Math.min(12,pitch+3);updateCamera();}
  else if(key==='0'){yaw=0;pitch=0;changeZoom(1);updateCamera();}
@@ -103,7 +104,7 @@ stage.addEventListener('pointermove',e=>{
   if(!cameraDrag||e.pointerId!==cameraDrag.id)return;
   const dx=e.clientX-cameraDrag.x,dy=e.clientY-cameraDrag.y;
   cameraDrag.x=e.clientX;cameraDrag.y=e.clientY;
-  yaw=clamp(yaw+dx*.18,-40,40);
+  yaw=clamp(yaw+dx*.07,-MAX_ORBIT_DEGREES,MAX_ORBIT_DEGREES);
   pitch=clamp(pitch-dy*.09,-12,12);
   updateCamera();
 });

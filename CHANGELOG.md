@@ -1,3 +1,12 @@
+# Project Grim 1.1.7 — No Orbit Zoom-Out
+
+- Removed the rotation-dependent auto-fit that increased camera distance and shrank the arena into a small diamond.
+- Fit the terrain for the neutral camera pose and reuse the distance while orbiting.
+- Limited extreme horizontal orbit to ±14° to keep the wide battlefield easy to read.
+- Clamped zoom to 100–150%: scroll-down and `-` no longer shrink below the default framing.
+- Preserved world-anchored card projection, fixed terrain geometry, all DM controls and campaign-state compatibility.
+- Added dedicated camera regression tests and a cache-distinct asset path `assets/framing-117`.
+
 # Project Grim 1.1.6 — Framing that fits the site
 
 - New `framing-116` active asset path so the browser cannot reuse an older camera stylesheet/module URL.

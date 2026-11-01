@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
-import {fitBattlefieldCamera} from './camera-frame.js';
+import {fitBattlefieldCamera, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM} from './camera-frame.js';
 // Everything in this module is world-space geometry. HTML cards project from
 // fixed world anchors and are composited above the canvas for guaranteed clarity.
 export function createWorld(host,stage){
@@ -165,7 +165,7 @@ export function createWorld(host,stage){
  document.addEventListener('visibilitychange',visibility);
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
  renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
- resize();cameraPose();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p*.3;cameraPose();wake();},zoomTo(factor){zoom=Math.max(.72,Math.min(1.6,Number(factor)||1));cameraPose();wake();return zoom;},getZoom(){return zoom;},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
+ resize();cameraPose();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p*.3;cameraPose();wake();},zoomTo(factor){zoom=Math.max(MIN_CAMERA_ZOOM,Math.min(MAX_CAMERA_ZOOM,Number(factor)||1));cameraPose();wake();return zoom;},getZoom(){return zoom;},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
 }
 
 

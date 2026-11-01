@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 set "PORT=4174"
 echo.
-echo   PROJECT GRIM - Framing 1.1.6 Launcher
+echo   PROJECT GRIM - Locked Camera 1.1.7 Launcher
 echo   =================================
 echo   Stage: http://localhost:4174/
 echo   DM:    http://localhost:4174/dm.html
