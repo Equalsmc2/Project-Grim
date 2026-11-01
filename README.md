@@ -1,16 +1,20 @@
+# Project Grim 1.1.3 — World-Anchored Cards
+
+Combat cards now use fixed 3D battlefield coordinates and follow camera orbit while staying upright. See `ANCHOR_1.1.3_CHANGELOG.md`.
+
 ## Rectangular battlefield fix (1.1.2)
 
 - **Fixed the actual cause of the square terrain:** the 1.1 world applied a 1.6× Z/depth scale to the whole terrain group, nearly cancelling its rectangular proportions. The ground is now one **35 × 19-unit rectangle** with no nonuniform world scaling.
 - Fixed a regression in the previous WIDTH_MATCH_FIX package: missing `FIELD_W`/`FIELD_D` constants caused a `ReferenceError` before WebGL terrain could load. This build defines those constants correctly.
 - Camera now adjusts distance rather than distorting terrain geometry, so the entire rectangular map stays framed at different desktop and mobile aspect ratios.
-- Grass, stone, dirt, snow, paths, scatter, weather, fog and props use the same world-space field bounds. Card positions / combat turn ordering are unchanged.
+- Grass, stone, dirt, snow, paths, scatter, weather, fog and props use the same world-space field bounds. The battlefield dimensions remain unchanged; combat cards now use real fixed X/Z anchors on that field.
 - The fallback pre-WebGL CSS ground also follows a wider rectangle.
-- Cache-safe active assets are in `assets/rectangle-112`. Look for **RECTANGLE 1.1.2** in both DM and stage headers.
+- Cache-safe active assets are in `assets/anchored-113`. Look for **ANCHORED 1.1.3** in both DM and stage headers.
 
-# Project Grim 1.1.2 — Correct Rectangular 3D Battlefield
+## Foundation — Rectangular 3D Battlefield (1.1.2)
 
 Updated from the completed Environment 1.0 build, itself built directly from Project-Grim_ARENA_0.9_FULL.zip. The new entry points use
-assets/rectangle-112/ and display RECTANGLE 1.1.2. All earlier asset folders
+assets/anchored-113/ and display ANCHORED 1.1.3. All earlier asset folders
 are retained for provenance; the website loads only the new active directory.
 
 ## Launch on Windows
@@ -49,7 +53,7 @@ the existing campaign state; Scene and Combat remain separate presentation modes
 - Regenerate seed changes the deterministic layout. Clear props sets prop
   density to zero; terrain scatter, path and weather remain independently set.
 
-Use arrow keys on the stage to orbit within a limited range; 0 resets the camera.
+Drag across the battlefield or use arrow keys to orbit the camera; press 0 to reset it.
 H hides the HUD and F toggles fullscreen. Cards stay front-facing, with readable
 HTML text above all 3D props/weather. Enemies occupy the far/upper bank; players
 occupy the near/lower bank. Global turn ranks are preserved, with descending
@@ -76,7 +80,7 @@ has no environment editor and may publish an older snapshot.
 
 The ARENA 0.9 Firebase connector, configuration and database rules are retained.
 Both stage and DM automatically authenticate anonymously; there is no login UI.
-Check assets/rectangle-112/firebase-config.js for your project configuration.
+Check assets/anchored-113/firebase-config.js for your project configuration.
 Enable Anonymous Authentication and Realtime Database in that project. In DM
 Connection & setup, choose the room, enable Firebase, copy that browser's DM
 rules and install them in Firebase. The permitted anonymous DM UID controls
@@ -106,7 +110,7 @@ rules. You can also deploy manually from your chosen repository using:
 Keep your project-specific configuration when installing into a customized repo;
 the uploader copies the package's matching website/configuration filenames.
 A GitHub push alone does not deploy Firebase Hosting. Reload until the header
-shows RECTANGLE 1.1.2. No deployment was performed during development.
+shows ANCHORED 1.1.3. No deployment was performed during development.
 
 ## Graphics, fallback and limits
 
@@ -133,7 +137,7 @@ physically simulated volumetric fog, embers or ash.
 
 ## Source and verification
 
-No bundler is needed. Full browser source is in assets/rectangle-112/.
+No bundler is needed. Full browser source is in assets/anchored-113/.
 The local server is server.js. See TEST_REPORT.md for evidence and limitations.
 Run campaign/state regression checks with:
 
@@ -152,4 +156,4 @@ Orange/red/gold ground and falling leaves use per-instance colors and actual
 flattened 3D leaf geometry. No image overlays replace the 3D world.
 
 Install the full ZIP with the same github.bat workflow. Existing saved data and
-Firebase paths are unchanged. Look for RECTANGLE 1.1.2 in the header.
+Firebase paths are unchanged. Look for ANCHORED 1.1.3 in the header.
