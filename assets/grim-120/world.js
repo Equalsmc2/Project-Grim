@@ -100,8 +100,11 @@ export function createWorld(host,stage){
   geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.rotateX(-Math.PI/2);geo.computeVertexNormals();
   const mesh=new T.Mesh(geo,material(0xffffff,{vertexColors:true,metalness:0}));mesh.receiveShadow=true;root.add(mesh);
   if(e.ground==='blank'||e.ground==='stone'){
-   const grid=new T.GridHelper(fieldWidth,Math.round(fieldWidth),0x676b71,0x44484b);
-   grid.scale.z=fieldDepth/fieldWidth;grid.position.y=.055;root.add(grid);
+   const gridSize=Math.max(tw,td);
+   const grid=new T.GridHelper(gridSize,Math.round(gridSize),0x676b71,0x44484b);
+   grid.scale.set(tw/gridSize,1,td/gridSize);
+   grid.position.y=.055;
+   root.add(grid);
   }
   return {tw,td};
  }
@@ -120,15 +123,16 @@ export function createWorld(host,stage){
   });
   if(mesh&&isLeaves){const cs=[0xa8512d,0xb77a37,0xd3a14c,0x724328];for(let i=0;i<n;i++)mesh.setColorAt(i,new T.Color(cs[i%cs.length]));mesh.instanceColor.needsUpdate=true;}
  }
- function addPaths(e,rnd){
+ function addPaths(e,rnd,terrain){
   if(!e.path)return;
+  const tw=terrain?.tw||fieldWidth,td=terrain?.td||fieldDepth;
   const a=e.pathAngle*Math.PI/180;
   const point=(x,z)=>[Math.cos(a)*x+Math.sin(a)*z+e.pathX,-Math.sin(a)*x+Math.cos(a)*z+e.pathZ];
   const positions=[];
-  for(let z=-fieldDepth*.65;z<=fieldDepth*.65;z+=.62){
+  for(let z=-td*.52;z<=td*.52;z+=.62){
    for(let x=-e.pathWidth/2+.25;x<e.pathWidth/2;x+=.61){
     const [xx,zz]=point(x+(rnd()-.5)*.1,z);
-    if(Math.abs(xx)>fieldWidth*.5-.5||Math.abs(zz)>fieldDepth*.5-.5)continue;
+    if(Math.abs(xx)>tw*.5-.6||Math.abs(zz)>td*.5-.6)continue;
     positions.push([xx,zz]);
    }
   }
@@ -136,9 +140,9 @@ export function createWorld(host,stage){
    const [x,z]=positions[i];placeOnTerrain(o,x,z,fieldWidth,fieldDepth,e,.075);o.rotation.y=a+(rnd()-.5)*.07;o.scale.y=.65+rnd()*.45;
   },{shadows:false});
   const loose=[];
-  for(let i=0;i<Math.round(110*e.pathEdge);i++){
-   const [x,z]=point((rnd()>.5?1:-1)*(e.pathWidth*.5+.15+rnd()*.48),(rnd()-.5)*fieldDepth*1.25);
-   if(Math.abs(x)<fieldWidth*.5&&Math.abs(z)<fieldDepth*.5)loose.push([x,z]);
+  for(let i=0;i<Math.round((td*2.2)*e.pathEdge);i++){
+   const [x,z]=point((rnd()>.5?1:-1)*(e.pathWidth*.5+.15+rnd()*.48),(rnd()-.5)*td*1.12);
+   if(Math.abs(x)<tw*.5-.4&&Math.abs(z)<td*.5-.4)loose.push([x,z]);
   }
   instanced(new T.IcosahedronGeometry(.11,0),material(0x77746a),loose.length,(o,i)=>{const [x,z]=loose[i];placeOnTerrain(o,x,z,fieldWidth,fieldDepth,e,.045);o.scale.y=.45;});
  }
@@ -234,7 +238,7 @@ export function createWorld(host,stage){
   fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
   clearRoot();weather=null;fogMeshes=[];particles=[];
   const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
-  makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);addWeather(env,rnd);
+  const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);addWeather(env,rnd);
   if(oldW!==fieldWidth||oldD!==fieldDepth)cameraPose();
   dirty=true;projectionDirty=true;wake();
  }

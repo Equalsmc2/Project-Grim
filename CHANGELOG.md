@@ -1,3 +1,9 @@
+## Continuous World 1.2.1 — Path and Grid Continuity Fix
+
+- Extended generated stone paths so they continue across the full continuous terrain instead of stopping near the encounter core.
+- Expanded stone/blank floor grid coverage to span the entire visible terrain surface, not only the inner combat rectangle.
+- Kept the continuous-world renderer, world-anchored cards, and Ground-default camera behavior unchanged.
+
 # Project Grim 1.2 — Continuous World & Presentation Pass
 
 - Replaced the standalone terrain slab with an extended height-mapped ground mesh

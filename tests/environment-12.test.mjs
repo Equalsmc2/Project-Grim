@@ -25,4 +25,9 @@ for(const word of ['makeTerrain(env,rnd,pal)','addProps(env,rnd,pal)','addWeathe
 assert(!world.includes('new T.BoxGeometry(fieldWidth,.35,fieldDepth)'),'No physical slab edge');
 assert(styles.includes('.webgl-ready .card-position::after{display:none!important}'),'No floating card support poles');
 assert(world.includes('weather.instanceMatrix.needsUpdate=true'),'Animated weather remains instanced');
+
+assert(world.includes("const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);addWeather(env,rnd);"),'Rebuild should pass terrain dimensions into path generation');
+assert(world.includes("const gridSize=Math.max(tw,td)"),'Stone/blank grids should span the full terrain surface');
+assert(world.includes("for(let z=-td*.52;z<=td*.52;z+=.62)"),'Paths should extend across the continuous terrain depth');
+
 console.log('PASS: 1.2 continuous landscape, 3D environment weather, default camera and ground-anchored cards.');
