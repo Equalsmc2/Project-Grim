@@ -1,10 +1,10 @@
 import {getState,subscribe,getScene,orderedCharacters,getOptions,escapeHtml,isEnemy} from './state.js';
 import {planFormation} from './formation.js';
-import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
+import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,DEFAULT_CAMERA_VIEW} from './camera-frame.js';
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
-let yaw=0,pitch=0,zoom=1,lastSignature='',world=null;
+let yaw=0,pitch=0,zoom=1,viewMode=DEFAULT_CAMERA_VIEW,lastSignature='',world=null;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeImg=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x)?x:'';
 
@@ -58,6 +58,21 @@ subscribe(render);
 window.addEventListener('resize',()=>{world?.resize();lastSignature='';render(getState());});
 function updateCamera(){world?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
 function changeZoom(next){zoom=clamp(Number(next)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);world?.zoomTo(zoom);if(world)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
+
+function selectCameraView(mode){
+ if(!['tactical','ground','overhead'].includes(mode))return;
+ viewMode=mode;yaw=0;pitch=0;zoom=1;
+ world?.setView(mode);
+ document.querySelectorAll('[data-camera-view]').forEach(btn=>{
+   const selected=btn.dataset.cameraView===mode;
+   btn.classList.toggle('active',selected);
+   btn.setAttribute('aria-pressed',String(selected));
+ });
+ const names={tactical:'TACTICAL',ground:'GROUND LEVEL',overhead:'OVERHEAD'};
+ if(world)$('worldStatus').textContent=`3D WORLD · ${names[mode]}`;
+}
+document.querySelectorAll('[data-camera-view]').forEach(btn=>btn.addEventListener('click',()=>selectCameraView(btn.dataset.cameraView)));
+
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
@@ -78,11 +93,12 @@ window.addEventListener('keydown',e=>{
  if(e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
  if(key==='h')hudToggle();
  else if(key==='f')$('fullscreen').click();
- else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-MAX_ORBIT_DEGREES,yaw-3);updateCamera();}
- else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
- else if(e.key==='ArrowUp'){e.preventDefault();pitch=Math.max(-12,pitch-3);updateCamera();}
- else if(e.key==='ArrowDown'){e.preventDefault();pitch=Math.min(12,pitch+3);updateCamera();}
- else if(key==='0'){yaw=0;pitch=0;changeZoom(1);updateCamera();}
+ else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-(viewMode==='ground'?20:MAX_ORBIT_DEGREES),yaw-3);updateCamera();}
+ else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(viewMode==='ground'?20:MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
+ else if(e.key==='ArrowUp'){e.preventDefault();pitch=Math.max(-10,pitch-3);updateCamera();}
+ else if(e.key==='ArrowDown'){e.preventDefault();pitch=Math.min(10,pitch+3);updateCamera();}
+ else if(['1','2','3'].includes(key)){selectCameraView(({1:'tactical',2:'ground',3:'overhead'})[key]);}
+ else if(key==='0'){selectCameraView(DEFAULT_CAMERA_VIEW);updateCamera();}
  else if(['+','='].includes(key)){e.preventDefault();changeZoom(zoom*1.09);}
  else if(['-','_'].includes(key)){e.preventDefault();changeZoom(zoom/1.09);}
 });
@@ -104,8 +120,9 @@ stage.addEventListener('pointermove',e=>{
   if(!cameraDrag||e.pointerId!==cameraDrag.id)return;
   const dx=e.clientX-cameraDrag.x,dy=e.clientY-cameraDrag.y;
   cameraDrag.x=e.clientX;cameraDrag.y=e.clientY;
-  yaw=clamp(yaw+dx*.07,-MAX_ORBIT_DEGREES,MAX_ORBIT_DEGREES);
-  pitch=clamp(pitch-dy*.09,-12,12);
+  const orbitLimit=viewMode==='ground'?20:viewMode==='overhead'?35:MAX_ORBIT_DEGREES;
+  yaw=clamp(yaw+dx*.095,-orbitLimit,orbitLimit);
+  pitch=clamp(pitch-dy*.085,-10,10);
   updateCamera();
 });
 const endDrag=e=>{if(cameraDrag&&e.pointerId===cameraDrag.id)cameraDrag=null;};
@@ -120,7 +137,7 @@ async function launchWorld(){
  try {
   if(new URLSearchParams(location.search).get('webgl')==='0')throw new Error('Fallback requested');
   const {createWorld}=await import('./world.js');world=createWorld($('worldCanvas'),stage);
-  app.classList.add('webgl-ready');changeZoom(zoom);render(getState());
+  app.classList.add('webgl-ready');selectCameraView(viewMode);render(getState());
  }catch(error){world?.dispose();world=null;app.classList.remove('webgl-ready');$('worldCanvas').replaceChildren();$('worldStatus').textContent='2D FALLBACK · 3D unavailable';console.warn('3D fallback:',error.message);}
 }
 launchWorld();

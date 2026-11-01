@@ -1,11 +1,11 @@
 // Run: node tests/world-anchor.test.mjs
 import assert from 'node:assert/strict';
-import * as THREE from '../assets/framing-117/vendor/three.module.js';
+import * as THREE from '../assets/battlefield-118/vendor/three.module.js';
 const storage=new Map();
 globalThis.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
 globalThis.window={addEventListener:()=>{}};
 globalThis.BroadcastChannel=class{postMessage(){}};
-const {planFormation}=await import('../assets/framing-117/formation.js');
+const {planFormation}=await import('../assets/battlefield-118/formation.js');
 const roster=[
  {id:'enemy2',name:'Enemy 2',faction:'enemy',initiative:9},
  {id:'pc4',name:'PC 4',faction:'player',initiative:10},
@@ -38,8 +38,8 @@ assert(Math.hypot(rotated[0]-initial[0],rotated[1]-initial[1])>30,'card follows 
 for(const [w,h] of [[1536,960],[1366,768],[1024,768],[390,844]]){
  const l=planFormation(state,roster,true,w,h).placements;
  for(const [id,p] of l){
-  assert(Math.abs(p.worldX)<17.5,`${id} marker within terrain width at ${w}`);
-  assert(Math.abs(p.worldZ)<9.5,`${id} marker within terrain depth at ${w}`);
+  assert(Math.abs(p.worldX)<15,`${id} marker within terrain width at ${w}`);
+  assert(Math.abs(p.worldZ)<12,`${id} marker within terrain depth at ${w}`);
  }
 }
 const extra=Array.from({length:12},(_,i)=>({id:'extra'+i,faction:'player',initiative:100-i}));

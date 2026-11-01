@@ -1,3 +1,47 @@
+# Project Grim 1.1.8 — Tactical Perspective Redesign
+
+This release is a **full replacement website**, based on **Locked Camera 1.1.7**. It redesigns the battlefield's physical proportions and camera views rather than patching only the zoom value. Your saved characters, combat data, environment settings, and Firebase state format have not been changed.
+
+## What's new
+
+- **30 × 24 world-unit rectangular battlefield** (previously 35 × 19): more depth so the ground reads naturally from an angled tactical camera. Terrain materials, stone paths, weather and prop scatter all follow the same geometry constants.
+- **Tactical** is the default three-quarter perspective at approximately **54° above the horizon**. It fills the stage with intentional slight edge cropping instead of zooming away to show every corner.
+- **Ground** switches to a **17° cinematic camera angle**; it is a separate viewer perspective, not the default. Because it is low, some close terrain may be cropped intentionally.
+- **Top** offers a **76° overhead perspective** for wider tactical context.
+- The three modes transition smoothly (approximately 720ms, or instantly when reduced motion is enabled). All cards stay upright, tied to their fixed world coordinates, and in initiative order within each side.
+- The player's stage includes a compact camera switch in the top-right of the battlefield. Its modes are viewer-local; changing camera mode does not overwrite shared campaign data.
+- New cache-distinct `assets/battlefield-118` bundle and **TACTICAL STAGE 1.1.8** header, to prevent previously cached camera behavior.
+
+**Camera controls:** `1` Tactical, `2` Ground, `3` Top, `0` reset to Tactical, mouse drag/arrows orbit gently, mouse wheel and `+`/`−` zoom, `H` hide stage HUD, `F` fullscreen. All camera controls remain on the player presentation page; DM controls work as before.
+
+## Installing with GitHub Desktop / GitHub Pages
+
+1. Extract this entire ZIP in Downloads, retaining the folder structure.
+2. Run **`github.bat`** and paste (or accept) `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`.
+3. Review the file-copy confirmation and Git changes; optionally let the uploader delete only known old Grim asset-version directories in the repository.
+4. Commit/push or let the uploader do so after its confirmation. Wait for the GitHub Pages deployment to update.
+5. Open `index.html` and `dm.html` and verify **TACTICAL STAGE 1.1.8** appears in the header. If it does not, you are viewing an old deployment.
+
+Local testing: run `RUN-GRIM.bat` from the actual Git repository, then open `http://localhost:4174/index.html` and `/dm.html`. No visible sign-in screen is required. Optional anonymous Firebase behavior and secure database rules are unchanged.
+
+## Verification
+
+The new camera test covers three viewpoints, five viewport sizes, stable camera distance during rotation, non-distorted rectangular geometry, and card-anchor persistence. Existing tests cover initiative ordering, state migration and renderer optimizations.
+
+```sh
+node tests/camera-modes.test.mjs
+node tests/world-anchor.test.mjs
+node tests/rectangle-projection.test.mjs
+node tests/optimization.test.mjs
+node --experimental-vm-modules tests/state.test.cjs
+```
+
+**Limitations:** the browser environment here blocks navigation to the local site, so we could verify projection geometry and JavaScript tests but not visually confirm live WebGL appearance or Firefox/Windows behavior. Test the three camera modes on your own display before a session.
+
+---
+
+## Previous release notes (historical)
+
 # Project Grim 1.1.7 — No More Automatic Zoom-Out
 
 **Update based on the latest full Framing 1.1.6 website.** It retains the same 3D battlefield, fixed ground markers, upright player/enemy cards, card ordering, terrain, weather, DM tools, and optional no-login Firebase synchronization. No campaign reset or changes to saved data structures are required.

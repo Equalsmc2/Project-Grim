@@ -1,13 +1,13 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
-import {fitBattlefieldCamera, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM} from './camera-frame.js';
+import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 // Everything in this module is world-space geometry. HTML cards project from
 // fixed world anchors and are composited above the canvas for guaranteed clarity.
 export function createWorld(host,stage){
- // The playable arena is a single wide 35 × 19 world-space rectangle.
+ // The playable arena is a 30 × 24 world-space tactical field.
  // IMPORTANT: never stretch the arena along Z in root.scale: that was the
  // reason the 1.1 grass/snow surfaces looked square despite wide geometry.
- const FIELD_W=35, FIELD_D=19;
+ const FIELD_W=FIELD_WIDTH, FIELD_D=FIELD_DEPTH;
  const HALF_W=FIELD_W/2, HALF_D=FIELD_D/2;
  const EDGE_MARGIN=.7, SURFACE_MARGIN=.2;
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
@@ -16,20 +16,28 @@ export function createWorld(host,stage){
  host.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','3D environment battlefield');
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(40,1,.1,140);
  scene.add(new T.HemisphereLight(0xe6e6e6,0x242424,2));
- const sun=new T.DirectionalLight(0xffffff,2.4);sun.position.set(-7,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-21,right:21,top:21,bottom:-21});sun.shadow.bias=-.001;scene.add(sun);
+ const sun=new T.DirectionalLight(0xffffff,2.4);sun.position.set(-7,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-22,right:22,top:22,bottom:-22});sun.shadow.bias=-.001;scene.add(sun);
  const spotlight=new T.SpotLight(0xffffff,35,35,.38,.7,1);spotlight.position.set(0,10,0);scene.add(spotlight,spotlight.target);
  let root=new T.Group();scene.add(root);
- let zoom=1;
+ let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null;
  // Marker meshes live outside environment root so changing the weather or
  // ground material never relocates units.
  let markerGroup=new T.Group();scene.add(markerGroup);
  let markerSignature='';let weather=null,fogMesh=null,particles=[],env=normalizeEnvironment(),signature='',width=1,height=1,yaw=0,pitch=0,anchors=[],frame=0,last=0,dirty=true,disposed=false,lost=false;
  const dummy=new T.Object3D(),project=new T.Vector3(),footProject=new T.Vector3(),cardPosition=new T.Vector3();
  const cardElements=new Map();let projectionDirty=true,lastStatsAt=0;
+ const lookTarget=new T.Vector3();
  const mat=(color,extra={})=>{return new T.MeshStandardMaterial({color,roughness:.88,...extra});};
  const randomFactory=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- function cameraPose(){
-   fitBattlefieldCamera(camera, {width,height,yaw,pitch,zoom,fieldWidth:FIELD_W,fieldDepth:FIELD_D});
+ function cameraPose(animate=false){
+   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth:FIELD_W,fieldDepth:FIELD_D});
+   if(animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+     // Preserve the current position/FOV to blend gently into the next view.
+     transition={start:performance.now(),duration:720,fromPos:camera.position.clone(),toPos:pose.position.clone(),fromFov:camera.fov,toFov:pose.fov,fromTarget:lookTarget.clone(),toTarget:pose.target.clone(),aspect:pose.aspect};
+     wake();
+   }else{
+     transition=null;applyCameraPose(camera,pose);lookTarget.copy(pose.target);
+   }
    dirty=true;projectionDirty=true;
  }
  function resize(){
@@ -62,7 +70,7 @@ export function createWorld(host,stage){
  instance(new T.BoxGeometry(.58,.12,.59),mat(0x777773),stones.length,(o,i)=>{o.position.set(stones[i][0],.09,stones[i][1]);o.rotation.y=angle+(rnd()-.5)*.12;o.scale.y=.6+rnd()*.5;});
  const edge=[];for(let i=0;i<150*env.pathEdge;i++){const [x,z]=point((rnd()>.5?1:-1)*(env.pathWidth/2+rnd()*.45),(rnd()-.5)*(FIELD_D*1.6));if(Math.abs(x)<HALF_W-(EDGE_MARGIN-.1)&&Math.abs(z)<HALF_D-(EDGE_MARGIN-.1))edge.push([x,z]);}
  instance(new T.DodecahedronGeometry(.11,0),mat(0x555550),edge.length,(o,i)=>{o.position.set(edge[i][0],.04,edge[i][1]);o.scale.set(1,.5,1);});}
- const count=Math.round(env.density*65),spots=Array.from({length:count},()=>{let x,z;do{x=(rnd()-.5)*(FIELD_W-1.5);z=(rnd()-.5)*(FIELD_D-1.5);}while(Math.abs(x)<7&&Math.abs(z)<5.4);return [x,z,.65+rnd()*.65];});
+ const count=Math.round(env.density*65),spots=Array.from({length:count},()=>{let x,z;do{x=(rnd()-.5)*(FIELD_W-1.5);z=(rnd()-.5)*(FIELD_D-1.5);}while(Math.abs(x)<6.5&&Math.abs(z)<5.0);return [x,z,.65+rnd()*.65];});
  const kinds={forest:['tree','bush','log','grass','rock'],rocks:['rock'],ruins:['pillar','ruin','grave','rock'],snow:['mound','rock','tree'],grass:['grass'],bushes:['bush'],logs:['log'],graves:['grave'],mixed:['tree','bush','log','grass','rock','pillar','ruin','grave','mound']}[env.props];
  const definitions={rock:[new T.DodecahedronGeometry(.6,0),0x626262,[1,.7,1],.35],bush:[new T.IcosahedronGeometry(.65,0),0x426c27,[1,.7,1],.4],tree:[new T.ConeGeometry(.8,2.3,7),(env.ground==='leaves'?0xcd621e:0x285b2a),[1,1,1],1.7],log:[new T.CylinderGeometry(.2,.24,1.7,7),0x694125,[1,1,1],.24],grass:[new T.ConeGeometry(.25,.7,4),0x699b32,[1,1,1],.35],pillar:[new T.CylinderGeometry(.34,.4,2.4,8),0x777777,[1,1,1],1.2],ruin:[new T.BoxGeometry(1.4,1,.6),0x616161,[1,1,1],.5],grave:[new T.BoxGeometry(.55,1,.18),0x777777,[1,1,1],.5],mound:[new T.IcosahedronGeometry(.8,1),0xb2b6b9,[1,.45,1],.15]};
  for(const [k,kind]of kinds.entries()){const selected=spots.filter((_,i)=>i%kinds.length===k),[geo,color,scale,y]=definitions[kind];instance(geo,mat(color),selected.length,(o,i)=>{const [x,z,s]=selected[i];o.position.set(x,y*s,z);o.scale.set(scale[0]*s,scale[1]*s,scale[2]*s);o.rotation.y=rnd()*6.28;if(kind==='log')o.rotation.z=Math.PI/2;});if(kind==='tree')instance(new T.CylinderGeometry(.12,.18,1,6),mat(0x4b443c),selected.length,(o,i)=>{o.position.set(selected[i][0],.5,selected[i][1]);});}
@@ -129,9 +137,10 @@ export function createWorld(host,stage){
      const distance=camera.position.distanceTo(cardPosition.set(a.x,.96,a.z));
      // Physical perspective: closer markers are slightly larger. The DM's
      // card-size slider still works, with responsive limits on small screens.
-     const responsive=width<520?.38:width<800?.44:width<1100?.49:.53;
-     const perspective=Math.max(.72,Math.min(1.15,referenceDistance/Math.max(distance,1)));
-     const scale=Math.max(.28,Math.min(.68,responsive*(a.layout.scale/.78)*perspective));
+     const responsive=width<520?.42:width<800?.51:width<1100?.57:.62;
+     const perspective=Math.max(.82,Math.min(1.16,referenceDistance/Math.max(distance,1)));
+     const modeScale=viewMode==='ground'?1.04:1;
+     const scale=Math.max(.36,Math.min(.78,responsive*(a.layout.scale/.78)*perspective*modeScale));
      const CARD_H=240;
      const topY=bottomY-CARD_H*scale;
      const el=cardElements.get(a.id);
@@ -152,6 +161,18 @@ export function createWorld(host,stage){
  function tick(t){frame=0;if(disposed||lost||document.hidden)return;const dt=Math.min((t-last)/1000||0,.05);last=t;const moving=!!weather||!!fogMesh;
  if(weather){const angle=env.windAngle*Math.PI/180;const wrapX=HALF_W+1,wrapZ=HALF_D+1.5;particles.forEach((p,i)=>{p.x+=Math.cos(angle)*env.windSpeed*dt;p.z+=Math.sin(angle)*env.windSpeed*dt;p.y-=(env.weather==='rain'?9:env.weather==='snow'?.65:env.weather==='leaves'?1:.05)*dt;if(p.y<0)p.y=env.weather==='dust'?1.2:10;if(p.x>wrapX)p.x=-wrapX;if(p.x< -wrapX)p.x=wrapX;if(p.z>wrapZ)p.z=-wrapZ;if(p.z< -wrapZ)p.z=wrapZ;dummy.position.set(p.x,p.y,p.z);dummy.scale.set(1,1,1);dummy.rotation.set(env.weather==='leaves'?t*.001+p.phase:0,p.phase,env.weather==='leaves'?t*.002:0);dummy.updateMatrix();weather.setMatrixAt(i,dummy.matrix);});weather.instanceMatrix.needsUpdate=true;}
  if(fogMesh)fogMesh.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
+ if(transition){
+   const fraction=Math.min(1,Math.max(0,(t-transition.start)/transition.duration));
+   const ease=fraction*fraction*(3-2*fraction);
+   camera.position.lerpVectors(transition.fromPos,transition.toPos,ease);
+   camera.fov=transition.fromFov+(transition.toFov-transition.fromFov)*ease;
+   camera.aspect=transition.aspect;
+   camera.updateProjectionMatrix();
+   lookTarget.lerpVectors(transition.fromTarget,transition.toTarget,ease);
+   camera.lookAt(lookTarget);camera.updateMatrixWorld();
+   projectionDirty=true;dirty=true;
+   if(fraction>=1)transition=null;
+ }
  if(dirty||moving){
    // HTML card anchors only change when the camera or roster changes. Weather
    // animates exclusively on the GPU scene and must not trigger DOM layout.
@@ -159,13 +180,13 @@ export function createWorld(host,stage){
    renderer.render(scene,camera);dirty=false;
    if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:particles.length,geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio()};}
  }
- if(moving)frame=requestAnimationFrame(tick);}
+ if(moving||transition)frame=requestAnimationFrame(tick);}
  function wake(){if(!frame&&!document.hidden&&!disposed&&!lost)frame=requestAnimationFrame(tick);}
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
  renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
- resize();cameraPose();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p*.3;cameraPose();wake();},zoomTo(factor){zoom=Math.max(MIN_CAMERA_ZOOM,Math.min(MAX_CAMERA_ZOOM,Number(factor)||1));cameraPose();wake();return zoom;},getZoom(){return zoom;},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
+ resize();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p;cameraPose();wake();},setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cameraPose(true);wake();return viewMode;},getView(){return viewMode;},zoomTo(factor){zoom=Math.max(MIN_CAMERA_ZOOM,Math.min(MAX_CAMERA_ZOOM,Number(factor)||1));cameraPose();wake();return zoom;},getZoom(){return zoom;},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
 }
 
 

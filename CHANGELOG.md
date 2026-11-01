@@ -1,3 +1,12 @@
+# Project Grim 1.1.8 — Tactical Perspective Redesign
+
+- Redesigned battlefield to **30 × 24** world units, with no nonuniform terrain scaling.
+- Added camera presets Tactical (54°), Ground (17°) and Top (76°) with a compact stage switch and smooth transitions.
+- Replaced rotation-driven frame fitting with neutral-camera framing; small edge cropping is intentional.
+- Adapted PC/enemy positions to the deeper arena without altering initiative ordering or world anchoring.
+- Updated world-space ground, props, weather distribution and terrain bounds to shared field dimensions.
+- Retained local/Firebase state compatibility, compact DM interface, Windows GitHub uploader, and hidden-tab rendering optimizations.
+
 # Project Grim 1.1.7 — No Orbit Zoom-Out
 
 - Removed the rotation-dependent auto-fit that increased camera distance and shrank the arena into a small diamond.

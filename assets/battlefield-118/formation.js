@@ -11,12 +11,12 @@ export function planFormation(s,visible,combat,w,h){
   const placements=new Map();
   const userScale=clamp(Number(s.presentation?.cardScale)||1,.5,1.25);
   const maxPerRow=w<520?2:w<800?3:7;
-  const playerZ=hasBoth?5.4:1.8, enemyZ=hasBoth?-5.5:-1.8;
+  const playerZ=hasBoth?7.0:2.4, enemyZ=hasBoth?-7.0:-2.4;
   function placeTeam(team,side){
     if(!team.length)return;
     const rows=Math.ceil(team.length/maxPerRow);
     const perRow=Math.ceil(team.length/rows);
-    const worldStep=perRow<=1?0:Math.min(7.5,26/(perRow-1));
+    const worldStep=perRow<=1?0:Math.min(6.5,22/(perRow-1));
     const fallbackScale=clamp(Math.min((rows>1?.59:.78)*userScale, w/(Math.max(1,perRow)*245)),.43,.88);
     const screenStep=perRow>1?Math.min(235*fallbackScale,(w-28-188*fallbackScale)/(perRow-1)):0;
     team.forEach((c,i)=>{
@@ -26,7 +26,7 @@ export function planFormation(s,visible,combat,w,h){
       // Extra ranks stay on their own side in staggered rows, all on terrain.
       // For large rosters, stagger extra rows within the same side of the
       // battlefield; their physical positions stay deterministic.
-      const rowBase=rows>1?(side==='enemy'?-3.6:3.6):(side==='enemy'?enemyZ:playerZ);
+      const rowBase=rows>1?(side==='enemy'?-4.1:4.1):(side==='enemy'?enemyZ:playerZ);
       const z=rowBase+(side==='enemy'?-row:row)*3.9;
       const fallbackX=w/2+(col-(rowCount-1)/2)*screenStep;
       const fallbackY=(side==='enemy'?h*.36:h*.72)+(row-(rows-1)/2)*135;
@@ -34,7 +34,7 @@ export function planFormation(s,visible,combat,w,h){
       placements.set(c.id,{
         x:fallbackX,y:fallbackY,scale:fallbackScale,
         // Fixed physical coordinates independent of camera and active turn.
-        worldX:x,worldZ:clamp(z,-8.0,8.0),
+        worldX:x,worldZ:clamp(z,-10.3,10.3),
         side,active,rank:ranks.get(c.id),index:i,row
       });
     });

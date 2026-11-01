@@ -983,3 +983,23 @@ html,body{height:100%}
 /* Grim 1.1.6: readable reduced-scale world billboards and uncluttered camera frame. */
 .webgl-ready .card-position .card-conditions{font-size:10px}
 .webgl-ready #worldCanvas{inset:0}
+
+/* Project Grim 1.1.8 — three-quarter encounter stage / cinematic camera modes. */
+.view-controls{position:absolute;z-index:22;top:42px;right:18px;display:flex;align-items:center;gap:3px;padding:4px;border:1px solid #454545;background:#090909db;border-radius:5px;box-shadow:0 8px 22px #0009;pointer-events:auto}
+.view-button{background:transparent;color:#c8c8c8;border:1px solid transparent;border-radius:3px;cursor:pointer;min-height:30px;padding:5px 10px;font:700 10px var(--mono);letter-spacing:.04em;white-space:nowrap}
+.view-button:hover{background:#292929;color:#fff}.view-button.active{background:#eeeeee;color:#101010;border-color:#eeeeee}
+.view-button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.stage-app.ui-hidden .view-controls{opacity:0;pointer-events:none}
+/* When WebGL is unavailable, preserve a finite, deeper fallback battlefield. */
+.stage-app .room-3d{width:min(1220px,88vw);height:min(960px,98vh)}
+@media(max-width:730px){.view-controls{right:7px;top:29px;padding:3px;gap:1px}.view-button{font-size:9px;min-height:29px;padding:5px 6px}.stage-app .room-3d{width:90vw;height:80vh}}
+@media(max-width:520px){
+ .stage-top{padding:0 8px;gap:6px}
+ .stage-top .brand{gap:6px;min-width:0}
+ .stage-top .brand-mark{width:27px;height:27px;min-width:27px;font-size:12px}
+ .stage-top .brand-main{font-size:13px}
+ .stage-top .brand-main small{font-size:6px;letter-spacing:0}
+ .stage-actions{gap:3px;flex-shrink:0}
+ .stage-actions .build-chip{font-size:7px;padding:4px 5px}
+ .stage-actions .icon-button{width:29px;min-width:29px;height:29px;min-height:29px;font-size:15px;padding:0}
+}
