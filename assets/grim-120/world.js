@@ -6,6 +6,7 @@ import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAME
 // Unit anchors are fixed in world coordinates. The cards are sharp camera-facing
 // HTML billboards; only their projected screen positions change on camera orbit.
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const hillScale=(h='mid')=>({flat:0,small:.45,mid:1,mountains:1.9}[h]??1);
 const palettes={
  blank:{ground:0x25292b,low:0x191e20,horizon:0x222d31,sky:0x0c1117,foliage:0x344a40},
  grass:{ground:0x3e6942,low:0x253f31,horizon:0x405b50,sky:0x101b22,foliage:0x31523e},
@@ -15,18 +16,20 @@ const palettes={
  snow:{ground:0xb2c3cd,low:0x647f8d,horizon:0x829ba9,sky:0x151e2a,foliage:0x314f43},
  leaves:{ground:0x845a3b,low:0x4c392f,horizon:0x775e4b,sky:0x191822,foliage:0x755231}
 };
-export function landscapeHeight(x,z,w,d,seed=7301,variation=.35){
+export function landscapeHeight(x,z,w,d,seed=7301,variation=.35,hills='mid'){
   // Playable region stays level for unit markers. Only the distant environment
   // rises into soft hills; no geometry seams or separate floating platform.
+  const hs=hillScale(hills);
   const rim=clamp(Math.max((Math.abs(x)-w*.45)/(w*.65),(Math.abs(z)-d*.44)/(d*.95),0),0,1);
   const roll=Math.sin(x*.135+seed*.0013)*.55+Math.cos(z*.17+seed*.00031)*.45+
              Math.sin(x*.085+z*.07)*.28;
-  return rim*rim*(.55+Math.max(0,roll+1)*1.15)+
-         (Math.sin(x*.9+z*.3)*Math.cos(z*.75-x*.22))*.035*variation;
+  const macro=hs<=0?0:rim*rim*(.55+Math.max(0,roll+1)*1.15)*hs;
+  const micro=(Math.sin(x*.9+z*.3)*Math.cos(z*.75-x*.22))*.035*variation*(hs===0?.15:1);
+  return macro+micro;
 }
 const rngFactory=(seed)=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 const material=(color,opts={})=>new T.MeshStandardMaterial({color,roughness:.95,...opts});
-const placeOnTerrain=(o,x,z,w,d,e,offset=0)=>o.position.set(x,landscapeHeight(x,z,w,d,e.seed,e.variation)+offset,z);
+const placeOnTerrain=(o,x,z,w,d,e,offset=0)=>o.position.set(x,landscapeHeight(x,z,w,d,e.seed,e.variation,e.hills)+offset,z);
 function shadowTexture(){
  const c=document.createElement('canvas');c.width=c.height=64;
  const ctx=c.getContext('2d');const g=ctx.createRadialGradient(32,32,3,32,32,32);
@@ -34,6 +37,20 @@ function shadowTexture(){
  ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
  const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
+
+function gridTexture(line=0x5d6368,bg='rgba(0,0,0,0)'){
+ const c=document.createElement('canvas');c.width=c.height=128;
+ const ctx=c.getContext('2d');
+ ctx.clearRect(0,0,128,128);
+ ctx.fillStyle=bg;ctx.fillRect(0,0,128,128);
+ ctx.strokeStyle='#'+line.toString(16).padStart(6,'0');
+ ctx.globalAlpha=.9;ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(128,0);ctx.lineTo(128,128);ctx.stroke();
+ ctx.globalAlpha=.42;ctx.lineWidth=1;
+ ctx.beginPath();ctx.moveTo(64,0);ctx.lineTo(64,128);ctx.moveTo(0,64);ctx.lineTo(128,64);ctx.stroke();
+ const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=4;return tex;
+}
+
 function createSky(pal){
  const sky=new T.Mesh(new T.SphereGeometry(155,24,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{top:{value:new T.Color(pal.sky)},bottom:{value:new T.Color(pal.horizon)}},vertexShader:`varying float vY; void main(){vec4 p=modelMatrix*vec4(position,1.);vY=normalize(position).y;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`uniform vec3 top;uniform vec3 bottom;varying float vY;void main(){float t=smoothstep(-.10,.46,vY);gl_FragColor=vec4(mix(bottom,top,t),1.);}` }));
  sky.frustumCulled=false;return sky;
@@ -92,7 +109,7 @@ export function createWorld(host,stage){
   const c=new T.Color();
   for(let i=0;i<attr.count;i++){
     const x=attr.getX(i),z=attr.getY(i),dist=Math.max(Math.abs(x)/(tw*.5),Math.abs(z)/(td*.5));
-    attr.setZ(i,landscapeHeight(x,z,fieldWidth,fieldDepth,e.seed,e.variation));
+    attr.setZ(i,landscapeHeight(x,z,fieldWidth,fieldDepth,e.seed,e.variation,e.hills));
     const n=.055*Math.sin(x*.85+z*.36)+.045*Math.sin(z*1.27-x*.51);
     c.copy(base).lerp(low,clamp(dist*.46+n,.02,.52)).lerp(outer,clamp((dist-.65)*.85,0,.3));
     colors.push(c.r,c.g,c.b);
@@ -100,11 +117,13 @@ export function createWorld(host,stage){
   geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.rotateX(-Math.PI/2);geo.computeVertexNormals();
   const mesh=new T.Mesh(geo,material(0xffffff,{vertexColors:true,metalness:0}));mesh.receiveShadow=true;root.add(mesh);
   if(e.ground==='blank'||e.ground==='stone'){
-   const gridSize=Math.max(tw,td);
-   const grid=new T.GridHelper(gridSize,Math.round(gridSize),0x676b71,0x44484b);
-   grid.scale.set(tw/gridSize,1,td/gridSize);
-   grid.position.y=.055;
-   root.add(grid);
+   const gridGeo=geo.clone();
+   const gridTex=gridTexture(e.ground==='stone'?0x586067:0x60666b);
+   gridTex.repeat.set(Math.max(18,Math.round(tw*.42)),Math.max(18,Math.round(td*.42)));
+   const gridMat=new T.MeshBasicMaterial({map:gridTex,transparent:true,opacity:e.ground==='stone'?.62:.52,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+   const gridMesh=new T.Mesh(gridGeo,gridMat);
+   gridMesh.renderOrder=5;
+   root.add(gridMesh);
   }
   return {tw,td};
  }
@@ -255,7 +274,7 @@ export function createWorld(host,stage){
   if(nextSig!==markerSignature){
    markerSignature=nextSig;disposeObject(markerGroup);markerGroup.clear();
    for(const a of anchors){
-    const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation);
+    const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
     const shadow=new T.Mesh(new T.PlaneGeometry(2.7,1.48),new T.MeshBasicMaterial({map:groundShadow,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,opacity:a.active?.94:.74}));
     shadow.rotation.x=-Math.PI/2;shadow.position.set(a.x,y+.085,a.z);markerGroup.add(shadow);
     const ring=new T.Mesh(new T.TorusGeometry(a.active?.76:.58,a.active?.043:.022,5,36),new T.MeshBasicMaterial({color:a.active?0xe8eded:a.layout.side==='enemy'?0xb3b5b9:0xd5dbd5,transparent:true,opacity:a.active?.86:.33,depthWrite:false}));
@@ -267,7 +286,7 @@ export function createWorld(host,stage){
  function projectCards(){
   camera.updateMatrixWorld();let active=false;
   for(const a of anchors){
-   const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation);
+   const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
    const hover=a.active?1.45:1.1;
    foot.set(a.x,y+.02,a.z).project(camera);proj.set(a.x,y+hover,a.z).project(camera);
    const px=(proj.x+1)*width*.5,groundY=(1-foot.y)*height*.5,bottomY=(1-proj.y)*height*.5;
@@ -299,7 +318,7 @@ export function createWorld(host,stage){
     p.x+=Math.cos(wind)*env.windSpeed*dt*(rain?.48:1);
     p.z+=Math.sin(wind)*env.windSpeed*dt;
     p.y-=fall*dt*(.65+p.weight*.4);
-    if(p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation))){p.y=dust?1.4:10.7;}
+    if(p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills))){p.y=dust?1.4:10.7;}
     if(p.x>halfX)p.x=-halfX;if(p.x< -halfX)p.x=halfX;
     if(p.z>halfZ)p.z=-halfZ;if(p.z< -halfZ)p.z=halfZ;
     const far=clamp((Math.abs(p.z)-fieldDepth*.35)/(fieldDepth*1.5),0,1);

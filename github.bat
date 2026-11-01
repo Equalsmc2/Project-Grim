@@ -110,7 +110,7 @@ rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
 if not exist "%REPO%\assets\grim-120\state.js" (
-    echo [ERROR] Continuous World 1.2 is not installed, refusing to remove old bundles.
+    echo [ERROR] Continuous World 1.2.2 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
@@ -202,7 +202,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Continuous World 1.2 deployed to Firebase Hosting.
+echo [SUCCESS] Continuous World 1.2.2 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

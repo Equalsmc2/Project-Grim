@@ -1,3 +1,9 @@
+## Continuous World 1.2.2 — Terrain Grid + Hill Profiles
+
+- Replaced the center-limited grid helper with a terrain-following grid overlay so blank and stone floors read as a full-surface grid across the whole continuous landscape.
+- Added **Hill profile** environment options: **flat**, **small**, **mid**, and **mountains**.
+- Presets now choose sensible default hill profiles while still allowing manual override in the DM environment editor.
+
 ## Continuous World 1.2.1 — Path and Grid Continuity Fix
 
 - Extended generated stone paths so they continue across the full continuous terrain instead of stopping near the encounter core.
