@@ -1,3 +1,23 @@
+# Project Grim 1.3 — Living Atmosphere
+
+Latest complete release. See [`RELEASE_NOTES_1.3.md`](RELEASE_NOTES_1.3.md) for the sky, sun/moon, cloud, fog, storm, day/night, DM controls and verification checklist.
+
+**How to install:** Extract the full ZIP. Run `github.bat`, enter your existing `Project-Grim` repository path, review copied files, and confirm the Git commit/push. The stage (`index.html`) and DM page (`dm.html`) should both say **LIVING ATMOSPHERE 1.3**. Your saved campaign and Firebase configuration do **not** need resetting.
+
+**Local run:** use `RUN-GRIM.bat` or `node server.js`, then open the stage and DM URLs shown by the launcher.
+
+**Automated tests:**
+```sh
+node tests/atmosphere-13.test.mjs
+node tests/environment-12.test.mjs
+node tests/world-anchor.test.mjs
+node tests/camera-modes.test.mjs
+node tests/optimization.test.mjs
+node --experimental-vm-modules tests/state.test.cjs
+```
+
+---
+
 # Project Grim 1.2 — Continuous 3D Battlefield
 
 This is the complete standalone site (DM page + player stage) based on 1.1.9.
@@ -19,7 +39,7 @@ This is the complete standalone site (DM page + player stage) based on 1.1.9.
   distance attenuation and fog, instead of evenly filling an empty black sky.
 - Existing live controls for **terrain width/depth, environment presets, weather,
   props and paths** remain synced across DM and stage.
-- The active source moved to `assets/grim-120/` to avoid caching older releases.
+- The active source moved to `assets/grim-130/` to avoid caching older releases.
 
 ## Install
 
@@ -27,7 +47,7 @@ This is the complete standalone site (DM page + player stage) based on 1.1.9.
 2. Run `github.bat` and enter the Git repository path prompted (or Enter for the default).
 3. Review the changes, confirm the commit and push, and deploy Firebase Hosting
    separately if that is how you host the site. GitHub Pages needs its normal deploy.
-4. Check both pages display **CONTINUOUS WORLD 1.2.2** in their header.
+4. Check both pages display **LIVING ATMOSPHERE 1.3** in their header.
 
 **Preservation:** the state key, Firebase paths, player/enemy data, initiative,
 no-login workflow, DM controls and Windows launcher are unchanged. Do not reset
@@ -64,7 +84,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 - **Top** offers a **76° overhead perspective** for wider tactical context.
 - The three modes transition smoothly (approximately 720ms, or instantly when reduced motion is enabled). All cards stay upright, tied to their fixed world coordinates, and in initiative order within each side.
 - The player's stage includes a compact camera switch in the top-right of the battlefield. Its modes are viewer-local; changing camera mode does not overwrite shared campaign data.
-- New cache-distinct `assets/grim-120` bundle and **CONTINUOUS WORLD 1.2.2** header, to prevent previously cached camera behavior.
+- New cache-distinct `assets/grim-130` bundle and **LIVING ATMOSPHERE 1.3** header, to prevent previously cached camera behavior.
 
 **Camera controls:** `1` Tactical, `2` Ground, `3` Top, `0` reset to Tactical, mouse drag/arrows orbit gently, mouse wheel and `+`/`−` zoom, `H` hide stage HUD, `F` fullscreen. All camera controls remain on the player presentation page; DM controls work as before.
 
@@ -74,7 +94,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 2. Run **`github.bat`** and paste (or accept) `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`.
 3. Review the file-copy confirmation and Git changes; optionally let the uploader delete only known old Grim asset-version directories in the repository.
 4. Commit/push or let the uploader do so after its confirmation. Wait for the GitHub Pages deployment to update.
-5. Open `index.html` and `dm.html` and verify **CONTINUOUS WORLD 1.2.2** appears in the header. If it does not, you are viewing an old deployment.
+5. Open `index.html` and `dm.html` and verify **LIVING ATMOSPHERE 1.3** appears in the header. If it does not, you are viewing an old deployment.
 
 Local testing: run `RUN-GRIM.bat` from the actual Git repository, then open `http://localhost:4174/index.html` and `/dm.html`. No visible sign-in screen is required. Optional anonymous Firebase behavior and secure database rules are unchanged.
 

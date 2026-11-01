@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-120/vendor/three.module.js';
-import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,calculateCameraPose,applyCameraPose} from '../assets/grim-120/camera-frame.js';
+import * as T from '../assets/grim-130/vendor/three.module.js';
+import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,calculateCameraPose,applyCameraPose} from '../assets/grim-130/camera-frame.js';
 assert.equal(FIELD_WIDTH,32);
 assert.equal(FIELD_DEPTH,20);
 assert.equal(DEFAULT_CAMERA_VIEW,'ground');

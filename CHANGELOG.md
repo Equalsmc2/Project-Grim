@@ -1,3 +1,11 @@
+## Living Atmosphere 1.3 — Sky, Sun/Moon, Clouds and Storms
+
+- New dynamic sky and celestial lighting with optional day/night clock.
+- Instanced 3D clouds, nighttime stars, real sunlight/moonlight, and smooth atmosphere transitions.
+- Blizzard, sandstorm, thunderstorm, denser fog, storm-colored haze and wet-ground shading.
+- Compact DM atmosphere controls, presets and persistent Firebase/local sync state.
+- Cache-distinct active assets in `assets/grim-130`, full GitHub uploader retained.
+
 ## Continuous World 1.2.2 — Terrain Grid + Hill Profiles
 
 - Replaced the center-limited grid helper with a terrain-following grid overlay so blank and stone floors read as a full-surface grid across the whole continuous landscape.
@@ -21,7 +29,7 @@
 - Added layered low-poly tree shapes, distant scenery, terrain-following scatter.
 - Improved weather 3D volumes with bounded distribution, fading and better fog.
 - Preserved the existing DM editor, Firebase/no-login sync, and GitHub BAT uploader.
-- Cache-safe `assets/grim-120` version.
+- Cache-safe `assets/grim-130` version.
 
 # Project Grim 1.1.9 — Tactical Perspective Redesign
 

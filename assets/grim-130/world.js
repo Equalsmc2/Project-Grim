@@ -1,5 +1,6 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
+import {effectiveTime,lightAt,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
@@ -52,8 +53,8 @@ function gridTexture(line=0x5d6368,bg='rgba(0,0,0,0)'){
 }
 
 function createSky(pal){
- const sky=new T.Mesh(new T.SphereGeometry(155,24,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{top:{value:new T.Color(pal.sky)},bottom:{value:new T.Color(pal.horizon)}},vertexShader:`varying float vY; void main(){vec4 p=modelMatrix*vec4(position,1.);vY=normalize(position).y;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`uniform vec3 top;uniform vec3 bottom;varying float vY;void main(){float t=smoothstep(-.10,.46,vY);gl_FragColor=vec4(mix(bottom,top,t),1.);}` }));
- sky.frustumCulled=false;return sky;
+ const sky=new T.Mesh(new T.SphereGeometry(155,32,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{top:{value:new T.Color(pal.sky)},bottom:{value:new T.Color(pal.horizon)}},vertexShader:`varying float vY;void main(){vec4 p=modelMatrix*vec4(position,1.);vY=normalize(position).y;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`uniform vec3 top;uniform vec3 bottom;varying float vY;void main(){float t=smoothstep(-.18,.50,vY);gl_FragColor=vec4(mix(bottom,top,t),1.);}` }));
+ sky.frustumCulled=false;sky.renderOrder=-100;return sky;
 }
 export function createWorld(host,stage){
  let fieldWidth=FIELD_WIDTH,fieldDepth=FIELD_DEPTH;
@@ -71,9 +72,12 @@ export function createWorld(host,stage){
  const markerGroup=new T.Group();scene.add(markerGroup);
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null;
- let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',weather=null,fogMeshes=[],particles=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null;
+ let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0,windPhase=0;
+ const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),proj=new T.Vector3(),foot=new T.Vector3(),cardPoint=new T.Vector3(),target=new T.Vector3();
- const cardElements=new Map(),baseElements=new Map();
+ const cardElements=new Map();
  function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
  function cameraPose(animate=false){
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
@@ -115,7 +119,8 @@ export function createWorld(host,stage){
     colors.push(c.r,c.g,c.b);
   }
   geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.rotateX(-Math.PI/2);geo.computeVertexNormals();
-  const mesh=new T.Mesh(geo,material(0xffffff,{vertexColors:true,metalness:0}));mesh.receiveShadow=true;root.add(mesh);
+  terrainMaterial=material(0xffffff,{vertexColors:true,metalness:0});
+  const mesh=new T.Mesh(geo,terrainMaterial);mesh.receiveShadow=true;root.add(mesh);
   if(e.ground==='blank'||e.ground==='stone'){
    const gridGeo=geo.clone();
    const gridTex=gridTexture(e.ground==='stone'?0x586067:0x60666b);
@@ -214,40 +219,166 @@ export function createWorld(host,stage){
   each('grave',new T.BoxGeometry(.58,1,.2),0x6e7070,(o,p)=>{placeOnTerrain(o,p.x,p.z,fieldWidth,fieldDepth,e,.45*p.s);o.scale.setScalar(p.s);});
   each('mound',new T.IcosahedronGeometry(.75,1),e.ground==='snow'?0xc1d0d9:0x9c9483,(o,p)=>{placeOnTerrain(o,p.x,p.z,fieldWidth,fieldDepth,e,.22*p.s);o.scale.set(p.s,.35*p.s,p.s);});
  }
+ function glowTexture(){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=128;
+  const ctx=canvas.getContext('2d');const gradient=ctx.createRadialGradient(64,64,6,64,64,64);
+  gradient.addColorStop(0,'rgba(255,255,255,.66)');gradient.addColorStop(.28,'rgba(255,255,255,.25)');gradient.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);
+  return new T.CanvasTexture(canvas);
+ }
+ function makeClouds(e,rnd){
+  clouds=Array.from({length:68},()=>({x:(rnd()-.5)*170,z:-17-rnd()*115,y:16+rnd()*24,s:2+rnd()*3.2,offset:rnd()*6.28}));
+  const geometry=new T.IcosahedronGeometry(1,1);
+  const matCloud=new T.MeshLambertMaterial({color:0xe3e6e6,transparent:true,opacity:.64,depthWrite:false,fog:true,flatShading:true});
+  cloudMesh=new T.InstancedMesh(geometry,matCloud,clouds.length);cloudMesh.frustumCulled=false;root.add(cloudMesh);
+  const shadeMat=new T.MeshBasicMaterial({color:0x152029,transparent:true,opacity:.07,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
+  cloudShadowMesh=new T.InstancedMesh(new T.PlaneGeometry(1,1),shadeMat,clouds.length);
+  cloudShadowMesh.frustumCulled=false;cloudShadowMesh.renderOrder=3;root.add(cloudShadowMesh);
+ }
  function addAtmosphere(e,rnd,pal){
   scene.background=new T.Color(pal.sky);
-  // Real fog fades far geometry and weather together, rather than screen-space
-  // particles floating in a pure black void.
   scene.fog=new T.FogExp2(pal.horizon,.011+e.fog*.022);
-  ambient.color.setHex(e.ground==='snow'?0xe4ecf6:0xdce9df);
-  const sky=createSky(pal);root.add(sky);
-  if(e.fog>0){
-   // Low wisps sit in world space and track terrain relief, not camera pixels.
-   const count=Math.min(24,Math.round(8+e.fog*16));
-   const fogMat=new T.MeshBasicMaterial({color:pal.horizon,transparent:true,opacity:e.fog*.035,depthWrite:false,fog:true});
-   const mesh=instanced(new T.SphereGeometry(1,10,6),fogMat,count,(o)=>{
-    const x=(rnd()-.5)*fieldWidth*2.4,z=(rnd()-.5)*fieldDepth*2.2;
-    placeOnTerrain(o,x,z,fieldWidth,fieldDepth,e,.22);o.scale.set(2.8+rnd()*3,.16+rnd()*.16,2+rnd()*2);
-   });if(mesh){mesh.castShadow=false;mesh.frustumCulled=false;fogMeshes.push(mesh);}
+  skyMesh=createSky(pal);root.add(skyMesh);
+  const discGeo=new T.SphereGeometry(1,16,12);
+  sunBody=new T.Mesh(discGeo,new T.MeshBasicMaterial({color:0xfff1d1,fog:false,toneMapped:false}));
+  sunBody.scale.setScalar(3.6);sunBody.renderOrder=0;root.add(sunBody);
+  moonBody=new T.Mesh(discGeo.clone(),new T.MeshBasicMaterial({color:0xc5d9f3,fog:false,toneMapped:false}));
+  moonBody.scale.setScalar(2.6);moonBody.renderOrder=0;root.add(moonBody);
+  const glow=glowTexture();
+  sunHalo=new T.Sprite(new T.SpriteMaterial({map:glow,color:0xffb765,transparent:true,opacity:.38,depthWrite:false,fog:false}));
+  sunHalo.scale.set(22,22,1);root.add(sunHalo);
+  moonHalo=new T.Sprite(new T.SpriteMaterial({map:glow.clone(),color:0x8da9d4,transparent:true,opacity:.21,depthWrite:false,fog:false}));
+  moonHalo.scale.set(13,13,1);root.add(moonHalo);
+  const stars=[];
+  for(let i=0;i<250;i++){
+   const az=rnd()*Math.PI*2,elev=.08+rnd()*1.33;
+   stars.push(Math.sin(az)*Math.cos(elev)*145,Math.sin(elev)*145,-Math.cos(az)*Math.cos(elev)*145);
+  }
+  const pointsGeo=new T.BufferGeometry();pointsGeo.setAttribute('position',new T.Float32BufferAttribute(stars,3));
+  starMesh=new T.Points(pointsGeo,new T.PointsMaterial({color:0xbacde1,size:1.4,sizeAttenuation:false,transparent:true,opacity:0,depthWrite:false,fog:false}));
+  starMesh.frustumCulled=false;root.add(starMesh);
+  makeClouds(e,rnd);
+  const count=24;
+  const fogMat=new T.MeshBasicMaterial({color:pal.horizon,transparent:true,opacity:0,depthWrite:false,fog:true});
+  const mesh=instanced(new T.SphereGeometry(1,10,6),fogMat,count,(o)=>{
+   const x=(rnd()-.5)*fieldWidth*2.4,z=(rnd()-.5)*fieldDepth*2.2;
+   placeOnTerrain(o,x,z,fieldWidth,fieldDepth,e,.22);o.scale.set(2.8+rnd()*3,.16+rnd()*.16,2+rnd()*2);
+  });if(mesh){mesh.castShadow=false;mesh.frustumCulled=false;fogMeshes.push(mesh);}
+ }
+ function makeWeatherSystem(type,seed){
+  if(!type||type==='none')return null;
+  const rnd=rngFactory(seed+type.length*701);
+  const rain=type==='rain'||type==='thunderstorm',snow=type==='snow'||type==='blizzard',sand=type==='dust'||type==='sandstorm',leaf=type==='leaves';
+  const count=rain?750:snow?550:sand?440:320;
+  const geo=rain?new T.BoxGeometry(.025,.46,.025):leaf?new T.PlaneGeometry(.17,.1):sand?new T.IcosahedronGeometry(.042,0):new T.IcosahedronGeometry(.066,0);
+  const mat=material(leaf?0xffb36a:sand?0xc8a77a:rain?0xa9c5e6:0xeef4fa,{side:T.DoubleSide,transparent:true,opacity:0,depthWrite:false,fog:true});
+  const wx=Math.max(26,fieldWidth*.9),wz=Math.max(26,fieldDepth*1.35);
+  const points=Array.from({length:count},()=>({x:(rnd()-.5)*wx*2,z:(rnd()-.5)*wz*2,y:.6+rnd()*(sand?2.8:12),phase:rnd()*6.28,weight:.5+rnd()*.7}));
+  const mesh=instanced(geo,mat,count,(o,i)=>{const p=points[i];o.position.set(p.x,p.y,p.z);o.scale.setScalar(p.weight);});
+  if(!mesh)return null;
+  mesh.frustumCulled=false;mesh.castShadow=false;
+  if(leaf){const colors=[0xe9a64f,0xc87343,0xb45d33,0xd7b36a];for(let i=0;i<count;i++)mesh.setColorAt(i,new T.Color(colors[i%4]));mesh.instanceColor.needsUpdate=true;}
+  return {type,mesh,points,rain,snow,sand,leaf,opacity:0,targetOpacity:0,particleCount:count};
+ }
+ function updateWeatherTarget(){
+  const type=env.weather;
+  for(const item of weatherSystems)item.targetOpacity=item.type===type?Math.max(0,env.intensity):0;
+  if(isPrecipitation(env)&&!weatherSystems.some(s=>s.type===type)){
+   const system=makeWeatherSystem(type,env.seed);if(system){system.targetOpacity=env.intensity;weatherSystems.push(system);}
+  }
+  dirty=true;wake();
+ }
+ function weatherTick(t,dt){
+  const wind=env.windAngle*Math.PI/180;
+  for(let n=weatherSystems.length-1;n>=0;n--){
+   const sys=weatherSystems[n];
+   sys.opacity=smoothValue(sys.opacity,sys.targetOpacity,dt,2);
+   sys.mesh.material.opacity=sys.opacity*(sys.rain?.54:sys.sand?.52:.76);
+   const halfX=Math.max(26,fieldWidth*.9),halfZ=Math.max(26,fieldDepth*1.35);
+   const fall=sys.rain?11:sys.snow?(sys.type==='blizzard'?1.35:.75):sys.leaf?1.35:.08;
+   for(let i=0;i<sys.points.length;i++){
+    const p=sys.points[i];
+    p.x+=Math.cos(wind)*env.windSpeed*dt*(sys.rain?.52:sys.type==='blizzard'?1.8:sys.type==='sandstorm'?2.8:1);
+    p.z+=Math.sin(wind)*env.windSpeed*dt*(sys.type==='blizzard'?1.8:1);
+    p.y-=fall*dt*(.65+p.weight*.4);
+    if(p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills)))p.y=sys.sand?2.4:12.7;
+    if(p.x>halfX)p.x=-halfX;if(p.x< -halfX)p.x=halfX;
+    if(p.z>halfZ)p.z=-halfZ;if(p.z< -halfZ)p.z=halfZ;
+    const far=clamp((Math.abs(p.z)-fieldDepth*.35)/(fieldDepth*1.5),0,1);
+    const scale=(1-far*.6)*p.weight;
+    dummy.position.set(p.x,p.y,p.z);dummy.scale.setScalar(scale);
+    dummy.rotation.set(sys.leaf?t*.001+p.phase:sys.type==='blizzard'?.4:0,p.phase,sys.leaf?t*.0007:0);
+    dummy.updateMatrix();sys.mesh.setMatrixAt(i,dummy.matrix);
+   }
+   sys.mesh.instanceMatrix.needsUpdate=true;
+   if(sys.targetOpacity===0&&sys.opacity<.005){
+    root.remove(sys.mesh);disposeObject(sys.mesh);weatherSystems.splice(n,1);
+   }
   }
  }
- function addWeather(e,rnd){
-  weather=null;particles=[];
-  if(e.weather==='none'||e.intensity<=0)return;
-  const isRain=e.weather==='rain',isLeaf=e.weather==='leaves',isDust=e.weather==='dust';
-  const count=Math.round(e.intensity*(isRain?750:isLeaf?280:isDust?320:430));
-  const geo=isRain?new T.BoxGeometry(.018,.36,.018):isLeaf?new T.PlaneGeometry(.16,.09):isDust?new T.IcosahedronGeometry(.027,0):new T.IcosahedronGeometry(.055,0);
-  const mat=material(isLeaf?0xffffff:isDust?0xc7b08a:isRain?0xa1bac5:0xe6e9ee,{side:T.DoubleSide,transparent:true,opacity:isRain?.50:isDust?.52:.73,depthWrite:false,fog:true});
-  const volumeX=Math.max(26,fieldWidth*.9),volumeZ=Math.max(26,fieldDepth*1.35);
-  particles=Array.from({length:count},()=>({x:(rnd()-.5)*volumeX*2,z:(rnd()-.5)*volumeZ*2,y:.5+rnd()*(isDust?1.25:10),phase:rnd()*Math.PI*2,weight:.5+rnd()*.7}));
-  weather=instanced(geo,mat,count,(o,i)=>{
-   const p=particles[i];o.position.set(p.x,p.y,p.z);
-   // Weather becomes quieter with distance, and never stars the whole sky.
-   const far=clamp((Math.abs(p.z)-fieldDepth*.35)/(fieldDepth*1.5),0,1);
-   o.scale.setScalar((1-far*.55)*p.weight);if(isLeaf)o.rotation.set(-.5,p.phase,.5);
-  },{shadows:false});
-  if(weather){weather.frustumCulled=false;weather.receiveShadow=false;}
-  if(isLeaf){const colors=[0xe9a64f,0xc87343,0xb45d33,0xd7b36a];for(let i=0;i<count;i++)weather.setColorAt(i,new T.Color(colors[i%4]));weather.instanceColor.needsUpdate=true;}
+ function cloudTick(dt,now){
+  if(!cloudMesh)return;
+  const coverage=currentCloud,wind=env.windAngle*Math.PI/180;
+  cloudClock+=(dt||0)*env.windSpeed*.14;
+  if(now-cloudUpdated<100)return;
+  cloudUpdated=now;
+  for(let i=0;i<clouds.length;i++){
+   const c=clouds[i],fill=clamp((coverage*clouds.length-i)/9,0,1);
+   const x=((c.x+cloudClock*Math.cos(wind)+87)%174+174)%174-87;
+   const z=((c.z+cloudClock*Math.sin(wind)+134)%134+134)%134-134;
+   cloudDummy.position.set(x,c.y+Math.sin(c.offset+now*.00005)*.35,z);
+   cloudDummy.scale.set(c.s*1.9*fill,c.s*.4*fill,c.s*1.3*fill);
+   cloudDummy.rotation.set(0,c.offset,0);cloudDummy.updateMatrix();cloudMesh.setMatrixAt(i,cloudDummy.matrix);
+   if(cloudShadowMesh){cloudDummy.position.set(x+.9,.12,z);cloudDummy.rotation.set(-Math.PI/2,0,0);cloudDummy.scale.set(c.s*4*fill,c.s*2.6*fill,1);cloudDummy.updateMatrix();cloudShadowMesh.setMatrixAt(i,cloudDummy.matrix);}
+  }
+  cloudMesh.instanceMatrix.needsUpdate=true;if(cloudShadowMesh)cloudShadowMesh.instanceMatrix.needsUpdate=true;
+ }
+ function updateLighting(dt,now){
+  const targetTime=effectiveTime(env,Date.now());
+  const diff=((targetTime-currentHour+36)%24)-12;
+  currentHour=(currentHour+diff*(1-Math.exp(-dt*2))+24)%24;
+  currentCloud=smoothValue(currentCloud,env.cloudCover,dt,2.5);
+  currentFog=smoothValue(currentFog,env.fog,dt,2.5);
+  currentStormIntensity=smoothValue(currentStormIntensity,env.intensity,dt,2.5);
+  const sky=skyAt(currentHour,currentCloud,env.weather,currentStormIntensity),light=sky.light;
+  const colorBlend=1-Math.exp(-dt*1.4);
+  fogTint.setRGB(...sky.top);skyTop.lerp(fogTint,colorBlend);
+  fogTint.setRGB(...sky.horizon);skyBottom.lerp(fogTint,colorBlend);
+  if(skyMesh){skyMesh.material.uniforms.top.value.copy(skyTop);skyMesh.material.uniforms.bottom.value.copy(skyBottom);}
+  scene.background.copy(skyTop);
+  const sunA=Math.PI*(currentHour-6)/12;
+  const sunDir=new T.Vector3(Math.cos(sunA)*.35,Math.sin(sunA),-Math.cos(sunA)*.93).normalize();
+  const moonA=sunA+Math.PI;
+  const moonDir=new T.Vector3(Math.cos(moonA)*.35,Math.sin(moonA),-Math.cos(moonA)*.93).normalize();
+  if(sunBody){sunBody.position.copy(sunDir).multiplyScalar(115);sunBody.visible=light.solar>-.04;sunHalo.position.copy(sunBody.position);sunHalo.material.opacity=light.daylight*.34*(1-currentCloud*.45);sunHalo.visible=sunBody.visible;}
+  if(moonBody){moonBody.position.copy(moonDir).multiplyScalar(115);moonBody.visible=light.solar<.04;moonHalo.position.copy(moonBody.position);moonHalo.material.opacity=moonBody.visible?.25:0;moonHalo.visible=moonBody.visible;}
+  if(starMesh)starMesh.material.opacity=Math.pow(1-light.daylight,2)*(1-currentCloud*.9);
+  if(cloudMesh){const storm=light.storm;cloudTint.setRGB(...(env.weather==='sandstorm'?[.53,.40,.28]:[.86,.88,.90]));cloudTint.lerp(new T.Color(.27,.30,.35),Math.min(.75,storm*.57+currentCloud*.22));cloudMesh.material.color.copy(cloudTint);cloudMesh.material.opacity=.48+.3*currentCloud;}
+  if(cloudShadowMesh)cloudShadowMesh.material.opacity=.045+currentCloud*.10;
+  ambient.intensity=smoothValue(ambient.intensity,light.ambient,dt,2);
+  ambient.color.setRGB(.55+.35*light.daylight,.63+.31*light.daylight,.78+.18*light.daylight);
+  sun.intensity=smoothValue(sun.intensity,light.direct+light.moon,dt,2);
+  fogTint.setHex(light.solar>=0?(light.twilight>.15?0xffb782:0xfff3df):0x9bbce5);sun.color.lerp(fogTint,colorBlend);
+  sun.position.copy(light.solar>=0?sunDir:moonDir).multiplyScalar(55);
+  if(scene.fog){
+   const storm=env.weather==='sandstorm'||env.weather==='blizzard'||env.weather==='thunderstorm'?currentStormIntensity:0;
+   fogTint.copy(skyBottom).lerp(skyTop,.22);scene.fog.color.lerp(fogTint,colorBlend);
+   scene.fog.density=smoothValue(scene.fog.density,.006+currentFog*.05+storm*.038,dt,2);
+  }
+  if(fogMeshes.length)for(const m of fogMeshes)m.material.opacity=currentFog*.055;
+  if(terrainMaterial){
+   const wet=['rain','thunderstorm'].includes(env.weather)?currentStormIntensity*.31:0;
+   const snowstorm=env.weather==='blizzard'?currentStormIntensity*.13:0;
+   const sandstorm=env.weather==='sandstorm'?currentStormIntensity*.15:0;
+   terrainMaterial.color.setRGB(1-wet-sandstorm*.4,1-wet-sandstorm*.25,1-wet+snowstorm*.09-sandstorm);
+  }
+  // Rare brief flashes cast real light on terrain and props during lightning.
+  if(env.weather==='thunderstorm'&&currentStormIntensity>.35){
+   const spike=Math.max(0,Math.sin(now*.00044*18)*Math.sin(now*.00031*17));
+   const flash=spike>.988?(spike-.988)*110*currentStormIntensity:0;
+   ambient.intensity+=flash*.7;sun.intensity+=flash*1.8;
+  }
+  return Math.abs(diff)>.015||Math.abs(currentCloud-env.cloudCover)>.01||Math.abs(currentFog-env.fog)>.01||Math.abs(currentStormIntensity-env.intensity)>.01||Math.abs(skyTop.r-sky.top[0])>.004||Math.abs(skyTop.g-sky.top[1])>.004||Math.abs(skyTop.b-sky.top[2])>.004;
  }
  function rebuild(value){
   const nextEnv=normalizeEnvironment(value);
@@ -255,10 +386,16 @@ export function createWorld(host,stage){
   const oldW=fieldWidth,oldD=fieldDepth;
   env=nextEnv;signature=next;
   fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
-  clearRoot();weather=null;fogMeshes=[];particles=[];
-  const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
-  const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);addWeather(env,rnd);
-  if(oldW!==fieldWidth||oldD!==fieldDepth)cameraPose();
+  const stable=JSON.stringify([env.ground,env.hills,env.variation,env.path,env.pathX,env.pathZ,env.pathAngle,env.pathWidth,env.pathEdge,env.props,env.density,env.seed,fieldWidth,fieldDepth]);
+  if(stable!==terrainSignature){
+   terrainSignature=stable;markerSignature='';clearRoot();weatherSystems=[];fogMeshes=[];
+   skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=null;
+   cloudClock=cloudUpdated=0;
+   const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
+   const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);
+   if(oldW!==fieldWidth||oldD!==fieldDepth)cameraPose();
+  }
+  updateWeatherTarget();
   dirty=true;projectionDirty=true;wake();
  }
  function setCards(placements){
@@ -308,27 +445,10 @@ export function createWorld(host,stage){
  function tick(t){
   frame=0;if(disposed||lost||document.hidden)return;
   const dt=Math.min((t-last)/1000||0,.05);last=t;
-  const moving=!!weather||!!fogMeshes.length;
-  if(weather){
-   const wind=env.windAngle*Math.PI/180,halfX=Math.max(26,fieldWidth*.9),halfZ=Math.max(26,fieldDepth*1.35);
-   const rain=env.weather==='rain',snow=env.weather==='snow',leaf=env.weather==='leaves',dust=env.weather==='dust';
-   const fall=rain?10.5:snow?.85:leaf?1.45:.08;
-   for(let i=0;i<particles.length;i++){
-    const p=particles[i];
-    p.x+=Math.cos(wind)*env.windSpeed*dt*(rain?.48:1);
-    p.z+=Math.sin(wind)*env.windSpeed*dt;
-    p.y-=fall*dt*(.65+p.weight*.4);
-    if(p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills))){p.y=dust?1.4:10.7;}
-    if(p.x>halfX)p.x=-halfX;if(p.x< -halfX)p.x=halfX;
-    if(p.z>halfZ)p.z=-halfZ;if(p.z< -halfZ)p.z=halfZ;
-    const far=clamp((Math.abs(p.z)-fieldDepth*.35)/(fieldDepth*1.5),0,1);
-    const s=(1-far*.55)*p.weight;
-    dummy.position.set(p.x,p.y,p.z);dummy.scale.setScalar(s);
-    dummy.rotation.set(leaf?t*.001+p.phase:0,p.phase,leaf?t*.0007:0);
-    dummy.updateMatrix();weather.setMatrixAt(i,dummy.matrix);
-   }
-   weather.instanceMatrix.needsUpdate=true;
-  }
+  const transitionMoving=updateLighting(dt,t);
+  const environmentMoving=weatherSystems.length>0||currentCloud>.015||env.cycleEnabled||transitionMoving;
+  if(weatherSystems.length)weatherTick(t,dt);
+  if(cloudMesh && (currentCloud>.015||transitionMoving))cloudTick(dt,t);
   if(fogMeshes.length)for(const m of fogMeshes)m.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
   if(transition){
    const f=clamp((t-transition.start)/transition.duration,0,1),ease=f*f*(3-2*f);
@@ -337,17 +457,17 @@ export function createWorld(host,stage){
    target.lerpVectors(transition.fromTarget,transition.toTarget,ease);camera.lookAt(target);camera.updateMatrixWorld();
    projectionDirty=true;dirty=true;if(f>=1)transition=null;
   }
-  if(dirty||moving){
+  if(dirty||environmentMoving||transition){
    if(projectionDirty){projectCards();projectionDirty=false;}
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:particles.length,geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio()};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud};}
   }
-  if(moving||transition)frame=requestAnimationFrame(tick);
+  if(environmentMoving||transition)frame=requestAnimationFrame(tick);
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);frame=0;host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
- renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
+ renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';terrainSignature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
  resize();return {
   update:rebuild,setCards,
   resize(){resize();wake();},

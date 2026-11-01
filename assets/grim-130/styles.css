@@ -1010,3 +1010,16 @@ html,body{height:100%}
 .webgl-ready .lam-card.active{filter:drop-shadow(0 9px 15px rgba(238,238,238,.19)) drop-shadow(0 12px 12px rgba(0,0,0,.65))!important}
 /* In WebGL mode the real landscape fills the frame. The CSS board is fallback only. */
 .webgl-ready .three-world,.webgl-ready .stage-background::after{display:none!important}
+/* 1.3 Living Atmosphere: compact controls inside the existing DM editor */
+.grim-atmosphere-panel{border:1px solid rgba(255,255,255,.16);background:#111416;border-radius:8px;padding:14px;margin:12px 0 14px}
+.grim-atmosphere-panel .panel-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.grim-atmosphere-panel .panel-header h3{margin:2px 0;font-size:16px}
+.atmosphere-clock{font:600 15px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.1em;border:1px solid #5b6064;padding:8px 10px;border-radius:4px}
+.atmosphere-presets{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.atmosphere-presets .button{padding:7px 9px;font-size:11px;min-height:30px}
+.atmosphere-presets .selected{background:#e9e9e9!important;color:#151515!important}
+.atmosphere-controls{padding:4px 0}
+.grim-environment-details{border:1px solid #34383b;background:#101112;border-radius:6px;padding:11px 13px}
+.grim-environment-details summary{font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.grim-environment-details .environment-grid{padding:5px 0}
+@media(max-width:760px){.grim-atmosphere-panel{padding:10px}.atmosphere-presets .button{padding:6px 7px}}
