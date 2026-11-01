@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\rectangle-112\state.js" (
+if not exist "%SOURCE_ROOT%\assets\optimized-114\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -100,10 +100,42 @@ if errorlevel 8 goto :copy_failed
 if exist "%SOURCE_ROOT%\tests" robocopy "%SOURCE_ROOT%\tests" "%REPO%\tests" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 echo [OK] Website files copied to: "%REPO%"
-goto :review_git
+goto :cleanup_legacy
 
 :already_in_repo
 echo [OK] BAT is already in the Git repository. Nothing needs copying.
+goto :cleanup_legacy
+
+rem Optional removal of old, inactive bundles after the new files are copied.
+rem Only these known Project Grim version folders are eligible for deletion.
+:cleanup_legacy
+if not exist "%REPO%\assets\optimized-114\state.js" (
+    echo [ERROR] Optimized 1.1.4 is not installed, refusing to remove old bundles.
+    goto :done
+)
+echo.
+echo Cleanup option: remove inactive older Grim asset versions from this repository?
+echo The current optimized-114 assets, campaign data and Git history are untouched.
+choice /c YN /n /m "Remove old version asset directories? [Y/N] "
+if errorlevel 2 goto :review_git
+if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
+if exist "%REPO%\assets\layout-050\" rmdir /S /Q "%REPO%\assets\layout-050"
+if exist "%REPO%\assets\encounter-060\" rmdir /S /Q "%REPO%\assets\encounter-060"
+if exist "%REPO%\assets\formation-070\" rmdir /S /Q "%REPO%\assets\formation-070"
+if exist "%REPO%\assets\tactical-080\" rmdir /S /Q "%REPO%\assets\tactical-080"
+if exist "%REPO%\assets\arena-090\" rmdir /S /Q "%REPO%\assets\arena-090"
+if exist "%REPO%\assets\environment-100\" rmdir /S /Q "%REPO%\assets\environment-100"
+if exist "%REPO%\assets\perspective-110\" rmdir /S /Q "%REPO%\assets\perspective-110"
+if exist "%REPO%\assets\rectangle-112\" rmdir /S /Q "%REPO%\assets\rectangle-112"
+if exist "%REPO%\assets\anchored-113\" rmdir /S /Q "%REPO%\assets\anchored-113"
+if exist "%REPO%\assets\stage.js" del /Q "%REPO%\assets\stage.js"
+if exist "%REPO%\assets\state.js" del /Q "%REPO%\assets\state.js"
+if exist "%REPO%\assets\styles.css" del /Q "%REPO%\assets\styles.css"
+if exist "%REPO%\assets\dm.js" del /Q "%REPO%\assets\dm.js"
+if exist "%REPO%\assets\firebase-sync.js" del /Q "%REPO%\assets\firebase-sync.js"
+if exist "%REPO%\assets\firebase-config.js" del /Q "%REPO%\assets\firebase-config.js"
+echo [OK] Old bundled assets cleaned.
+goto :review_git
 
 :review_git
 echo.
@@ -167,7 +199,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Rectangle 1.1.2 deployed to Firebase Hosting.
+echo [SUCCESS] Optimized 1.1.4 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

@@ -1,3 +1,42 @@
+# Project Grim 1.1.4 — Optimization & Cleanup
+
+**Stable release based on the uploaded World-Anchored 1.1.3 full website.** It retains the same 3D battlefield, fixed ground markers, upright player/enemy cards, card ordering, terrain, weather, DM tools, and optional no-login Firebase synchronization. No campaign reset or changes to saved data structures are required.
+
+## What's improved
+
+- Removed all **10 inactive historical asset folders** and unused root-level legacy assets from the *downloaded package*. Only `assets/optimized-114` is loaded. Documentation and current tests are retained.
+- Updated the Windows `github.bat` uploader to verify the **current** active asset directory and optionally remove only explicitly named older Grim asset folders from your existing GitHub repository. **It asks before deleting.** It never deletes `.git` or user-created folders.
+- Three.js weather continues rendering when active, but it does **not recalculate/rewrite all HTML card positions on every animation frame** unless the camera or cards actually change. Player/enemy card positions remain world-anchored.
+- Reused the renderer's temporary card-position vector and cached the current card HTML nodes, reducing garbage generation and DOM lookups during camera movement.
+- Limited pointer-driven card tilt changes to one animation frame, instead of repeating a full card-style update for every mouse event.
+- Reduced 3D performance-stat collection to once per second. Hidden-tab pausing, procedural instancing, context loss handling, GPU resource disposal, and rectangular geometry are preserved.
+- Prevented test files and historic report/changelog markdown from being uploaded to Firebase Hosting. Source/tests are still present in the ZIP.
+
+## Windows update (same workflow)
+
+1. Extract the ZIP, leaving all files and folders intact.
+2. Double-click **`github.bat`**. Paste or accept the existing `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim` repository path.
+3. Confirm copying the files, then optionally choose **Yes** to remove older inactive Grim asset folders in your Git repository. These are known versioned copies only; no user art or campaign data are targeted.
+4. Review the Git changes before committing/pushing. GitHub Pages deploys when your configured Pages workflow completes. Firebase Hosting is a separate optional upload offered by the BAT.
+5. For local use, launch **`RUN-GRIM.bat`** in the repository and open `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
+6. Check both pages say **OPTIMIZED 1.1.4**. If not, the browser is still serving an earlier deployment or cache.
+
+**Test in your Windows browser before a live session.** The anonymous Firebase UID and secure rules have not been touched. This is a maintenance update, not a new campaign setup.
+
+## Local regression commands
+
+```sh
+node tests/world-anchor.test.mjs
+node tests/rectangle-projection.test.mjs
+node --experimental-vm-modules tests/state.test.cjs
+```
+
+See `OPTIMIZATION_REPORT_1.1.4.md` for exact changes and verification limitations.
+
+---
+
+## Prior feature documentation
+
 # Project Grim 1.1.3 — World-Anchored Cards
 
 Combat cards now use fixed 3D battlefield coordinates and follow camera orbit while staying upright. See `ANCHOR_1.1.3_CHANGELOG.md`.

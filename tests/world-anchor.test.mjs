@@ -1,11 +1,11 @@
 // Run: node tests/world-anchor.test.mjs
 import assert from 'node:assert/strict';
-import * as THREE from '../assets/anchored-113/vendor/three.module.js';
+import * as THREE from '../assets/optimized-114/vendor/three.module.js';
 const storage=new Map();
 globalThis.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
 globalThis.window={addEventListener:()=>{}};
 globalThis.BroadcastChannel=class{postMessage(){}};
-const {planFormation}=await import('../assets/anchored-113/formation.js');
+const {planFormation}=await import('../assets/optimized-114/formation.js');
 const roster=[
  {id:'enemy2',name:'Enemy 2',faction:'enemy',initiative:9},
  {id:'pc4',name:'PC 4',faction:'player',initiative:10},
