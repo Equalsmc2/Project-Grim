@@ -1,4 +1,4 @@
-# Project Grim 1.1.8 — Tactical Perspective Redesign
+# Project Grim 1.1.9 — Tactical Perspective Redesign
 
 This release is a **full replacement website**, based on **Locked Camera 1.1.7**. It redesigns the battlefield's physical proportions and camera views rather than patching only the zoom value. Your saved characters, combat data, environment settings, and Firebase state format have not been changed.
 
@@ -10,7 +10,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 - **Top** offers a **76° overhead perspective** for wider tactical context.
 - The three modes transition smoothly (approximately 720ms, or instantly when reduced motion is enabled). All cards stay upright, tied to their fixed world coordinates, and in initiative order within each side.
 - The player's stage includes a compact camera switch in the top-right of the battlefield. Its modes are viewer-local; changing camera mode does not overwrite shared campaign data.
-- New cache-distinct `assets/battlefield-118` bundle and **TACTICAL STAGE 1.1.8** header, to prevent previously cached camera behavior.
+- New cache-distinct `assets/battlefield-118` bundle and **TACTICAL STAGE 1.1.9** header, to prevent previously cached camera behavior.
 
 **Camera controls:** `1` Tactical, `2` Ground, `3` Top, `0` reset to Tactical, mouse drag/arrows orbit gently, mouse wheel and `+`/`−` zoom, `H` hide stage HUD, `F` fullscreen. All camera controls remain on the player presentation page; DM controls work as before.
 
@@ -20,7 +20,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 2. Run **`github.bat`** and paste (or accept) `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`.
 3. Review the file-copy confirmation and Git changes; optionally let the uploader delete only known old Grim asset-version directories in the repository.
 4. Commit/push or let the uploader do so after its confirmation. Wait for the GitHub Pages deployment to update.
-5. Open `index.html` and `dm.html` and verify **TACTICAL STAGE 1.1.8** appears in the header. If it does not, you are viewing an old deployment.
+5. Open `index.html` and `dm.html` and verify **TACTICAL STAGE 1.1.9** appears in the header. If it does not, you are viewing an old deployment.
 
 Local testing: run `RUN-GRIM.bat` from the actual Git repository, then open `http://localhost:4174/index.html` and `/dm.html`. No visible sign-in screen is required. Optional anonymous Firebase behavior and secure database rules are unchanged.
 

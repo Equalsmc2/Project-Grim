@@ -1,19 +1,19 @@
 import * as THREE from './vendor/three.module.js';
 
-// Every perspective uses the SAME 30 × 24 world. No view alters its geometry.
-// Camera distance is defined from a stable neutral view, never from rotating
-// corners; optional edge cropping is intentional and is not a zoom-out bug.
-export const FIELD_WIDTH = 30;
-export const FIELD_DEPTH = 24;
+// Every perspective uses the SAME battlefield geometry. The default ratio is
+// now 32 × 20, which reads better in the preferred ground-level view while
+// still supporting tactical and overhead inspection.
+export const FIELD_WIDTH = 32;
+export const FIELD_DEPTH = 20;
 export const CAMERA_VIEWS = Object.freeze({
-  tactical: Object.freeze({elevation: 54, distance: 31.5, fov: 42, targetY: 0, targetZ: 0, limit: 30}),
-  ground: Object.freeze({elevation: 17, distance: 29, fov: 42, targetY: 1.3, targetZ: -2.5, limit: 20}),
-  overhead: Object.freeze({elevation: 76, distance: 39, fov: 43, targetY: 0, targetZ: 0, limit: 35}),
+  tactical: Object.freeze({elevation: 38, distance: 27.5, fov: 40, targetY: .35, targetZ: -.4, limit: 24}),
+  ground: Object.freeze({elevation: 18, distance: 23.6, fov: 40, targetY: 1.1, targetZ: -1.15, limit: 20}),
+  overhead: Object.freeze({elevation: 74, distance: 29.8, fov: 42, targetY: 0, targetZ: 0, limit: 28}),
 });
-export const DEFAULT_CAMERA_VIEW = 'tactical';
-export const MAX_ORBIT_DEGREES = 30;
-export const MIN_CAMERA_ZOOM = 1;
-export const MAX_CAMERA_ZOOM = 1.6;
+export const DEFAULT_CAMERA_VIEW = 'ground';
+export const MAX_ORBIT_DEGREES = 24;
+export const MIN_CAMERA_ZOOM = .9;
+export const MAX_CAMERA_ZOOM = 1.45;
 const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
 const tmp = new THREE.Vector3();
 
@@ -25,10 +25,11 @@ export function calculateCameraPose({width=1536,height=864,yaw=0,pitch=0,zoom=1,
   const angle=clamp((preset.elevation + clamp(pitch,-11,11))*Math.PI/180, 9*Math.PI/180, 87*Math.PI/180);
   // Portrait view uses more distance because the horizontal field of view is
   // smaller. Desktop views never use the old rotating-corner auto-zoom.
-  let dist=preset.distance*Math.max(1,1.18/aspect);
+  let dist=preset.distance*Math.max(1,1.14/aspect);
   const target=new THREE.Vector3(0,preset.targetY,preset.targetZ);
   // Fitting from yaw=0 only, for desktop viewport variations. Ground view is
-  // deliberately cinematic: its near edge may crop rather than zooming away.
+  // the default and intentionally cinematic: its near edge may crop rather
+  // than zooming away just to show every corner of the terrain.
   if(mode!=='ground') {
     const cam=new THREE.PerspectiveCamera(fov,aspect,.1,180);
     cam.position.set(0,target.y+Math.sin(angle)*dist,target.z+Math.cos(angle)*dist);
@@ -38,7 +39,7 @@ export function calculateCameraPose({width=1536,height=864,yaw=0,pitch=0,zoom=1,
       tmp.set(x,0,z).project(cam);maxX=Math.max(maxX,Math.abs(tmp.x));maxY=Math.max(maxY,Math.abs(tmp.y));
     }
     // Light crop of the near corners is allowed to prioritize the encounter.
-    const factor=mode==='tactical'?Math.max(1,maxX/1.06,maxY/1.15):Math.max(1,maxX/1.01,maxY/1.02);
+    const factor=mode==='tactical'?Math.max(1,maxX/1.11,maxY/1.13):Math.max(1,maxX/1.03,maxY/1.04);
     dist*=factor;
   }
   dist/=clamp(Number(zoom)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);

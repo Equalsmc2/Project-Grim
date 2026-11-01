@@ -1,4 +1,4 @@
-# Project Grim 1.1.8 — Tactical Perspective Redesign
+# Project Grim 1.1.9 — Tactical Perspective Redesign
 
 - Redesigned battlefield to **30 × 24** world units, with no nonuniform terrain scaling.
 - Added camera presets Tactical (54°), Ground (17°) and Top (76°) with a compact stage switch and smooth transitions.

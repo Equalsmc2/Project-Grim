@@ -4,11 +4,11 @@ import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAME
 // Everything in this module is world-space geometry. HTML cards project from
 // fixed world anchors and are composited above the canvas for guaranteed clarity.
 export function createWorld(host,stage){
- // The playable arena is a 30 × 24 world-space tactical field.
- // IMPORTANT: never stretch the arena along Z in root.scale: that was the
- // reason the 1.1 grass/snow surfaces looked square despite wide geometry.
- const FIELD_W=FIELD_WIDTH, FIELD_D=FIELD_DEPTH;
- const HALF_W=FIELD_W/2, HALF_D=FIELD_D/2;
+ // The playable arena defaults to 32 × 20 and can be adjusted live by the DM.
+ // IMPORTANT: never stretch the arena along Z in root.scale: change the
+ // generated geometry instead so the visible ground matches the real field.
+ let fieldWidth=FIELD_WIDTH, fieldDepth=FIELD_DEPTH;
+ const halfW=()=>fieldWidth/2, halfD=()=>fieldDepth/2;
  const EDGE_MARGIN=.7, SURFACE_MARGIN=.2;
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setClearColor(0x050505);
@@ -30,7 +30,7 @@ export function createWorld(host,stage){
  const mat=(color,extra={})=>{return new T.MeshStandardMaterial({color,roughness:.88,...extra});};
  const randomFactory=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  function cameraPose(animate=false){
-   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth:FIELD_W,fieldDepth:FIELD_D});
+   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
    if(animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
      // Preserve the current position/FOV to blend gently into the next view.
      transition={start:performance.now(),duration:720,fromPos:camera.position.clone(),toPos:pose.position.clone(),fromFov:camera.fov,toFov:pose.fov,fromTarget:lookTarget.clone(),toTarget:pose.target.clone(),aspect:pose.aspect};
@@ -57,20 +57,22 @@ export function createWorld(host,stage){
  function instance(geometry,material,count,place){const mesh=new T.InstancedMesh(geometry,material,count);for(let i=0;i<count;i++){dummy.position.set(0,0,0);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);place(dummy,i);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);return mesh;}
  function rebuild(value){env=normalizeEnvironment(value);const next=JSON.stringify(env);if(next===signature)return;signature=next;disposeRoot();weather=null;fogMesh=null;particles=[];
  const rnd=randomFactory(env.seed),gray={blank:0x171717,grass:0x32651e,stone:0x606773,dirt:0x69472c,sand:0xc8a45f,snow:0xd4e4ef,leaves:0x714022};
- const groundGeo=new T.PlaneGeometry(FIELD_W,FIELD_D,72,48),positions=groundGeo.attributes.position;
+ fieldWidth=Math.max(18,Math.min(48,Number(env.terrainWidth)||FIELD_WIDTH));
+ fieldDepth=Math.max(12,Math.min(36,Number(env.terrainDepth)||FIELD_DEPTH));
+ const groundGeo=new T.PlaneGeometry(fieldWidth,fieldDepth,72,48),positions=groundGeo.attributes.position;
  for(let i=0;i<positions.count;i++)positions.setZ(i,env.ground==='blank'?0:(rnd()-.5)*env.variation*(env.ground==='sand'?.5:.2));groundGeo.rotateX(-Math.PI/2);groundGeo.computeVertexNormals();
  const ground=new T.Mesh(groundGeo,mat(gray[env.ground]));ground.receiveShadow=true;root.add(ground);
- const base=new T.Mesh(new T.BoxGeometry(FIELD_W,.35,FIELD_D),mat(0x141414));base.position.y=-.25;root.add(base);
- if(env.ground==='blank'||env.ground==='stone'){const grid=new T.GridHelper(FIELD_W,Math.round(FIELD_W),0x666666,0x333333);grid.scale.z=FIELD_D/FIELD_W;grid.position.y=.025;root.add(grid);}
+ const base=new T.Mesh(new T.BoxGeometry(fieldWidth,.35,fieldDepth),mat(0x141414));base.position.y=-.25;root.add(base);
+ if(env.ground==='blank'||env.ground==='stone'){const grid=new T.GridHelper(fieldWidth,Math.round(fieldWidth),0x666666,0x333333);grid.scale.z=fieldDepth/fieldWidth;grid.position.y=.025;root.add(grid);}
  if(['grass','leaves','snow','sand','dirt','stone'].includes(env.ground)){
  const grass=env.ground==='grass',leaves=env.ground==='leaves';
- const scatter=instance(grass?new T.ConeGeometry(.055,.32,3):new T.DodecahedronGeometry(1,0),mat(grass?0x74a63a:leaves?0xffffff:gray[env.ground]),Math.round(350+env.variation*750),(o)=>{o.position.set((rnd()-.5)*(FIELD_W-SURFACE_MARGIN),.06,(rnd()-.5)*(FIELD_D-SURFACE_MARGIN));o.rotation.y=rnd()*6.28;if(!grass)o.scale.set(.03+rnd()*.12,leaves?.014:.02+rnd()*.045,.03+rnd()*.16);});if(leaves){const colors=[0xef8b21,0xc94e1c,0xf6bb3c,0x97411b];for(let i=0;i<scatter.count;i++)scatter.setColorAt(i,new T.Color(colors[i%colors.length]));}}
+ const scatter=instance(grass?new T.ConeGeometry(.055,.32,3):new T.DodecahedronGeometry(1,0),mat(grass?0x74a63a:leaves?0xffffff:gray[env.ground]),Math.round(350+env.variation*750),(o)=>{o.position.set((rnd()-.5)*(fieldWidth-SURFACE_MARGIN),.06,(rnd()-.5)*(fieldDepth-SURFACE_MARGIN));o.rotation.y=rnd()*6.28;if(!grass)o.scale.set(.03+rnd()*.12,leaves?.014:.02+rnd()*.045,.03+rnd()*.16);});if(leaves){const colors=[0xef8b21,0xc94e1c,0xf6bb3c,0x97411b];for(let i=0;i<scatter.count;i++)scatter.setColorAt(i,new T.Color(colors[i%colors.length]));}}
  if(env.path){const angle=env.pathAngle*Math.PI/180;const point=(x,z)=>[Math.cos(angle)*x+Math.sin(angle)*z+env.pathX,-Math.sin(angle)*x+Math.cos(angle)*z+env.pathZ];
- const stones=[];for(let z=-HALF_D;z<=HALF_D;z+=.66)for(let x=-env.pathWidth/2+.2;x<env.pathWidth/2;x+=.65){const [px,pz]=point(x+(rnd()-.5)*.12,z);if(Math.abs(px)<HALF_W-EDGE_MARGIN&&Math.abs(pz)<HALF_D-EDGE_MARGIN)stones.push([px,pz]);}
+ const stones=[];for(let z=-halfD();z<=halfD();z+=.66)for(let x=-env.pathWidth/2+.2;x<env.pathWidth/2;x+=.65){const [px,pz]=point(x+(rnd()-.5)*.12,z);if(Math.abs(px)<halfW()-EDGE_MARGIN&&Math.abs(pz)<halfD()-EDGE_MARGIN)stones.push([px,pz]);}
  instance(new T.BoxGeometry(.58,.12,.59),mat(0x777773),stones.length,(o,i)=>{o.position.set(stones[i][0],.09,stones[i][1]);o.rotation.y=angle+(rnd()-.5)*.12;o.scale.y=.6+rnd()*.5;});
- const edge=[];for(let i=0;i<150*env.pathEdge;i++){const [x,z]=point((rnd()>.5?1:-1)*(env.pathWidth/2+rnd()*.45),(rnd()-.5)*(FIELD_D*1.6));if(Math.abs(x)<HALF_W-(EDGE_MARGIN-.1)&&Math.abs(z)<HALF_D-(EDGE_MARGIN-.1))edge.push([x,z]);}
+ const edge=[];for(let i=0;i<150*env.pathEdge;i++){const [x,z]=point((rnd()>.5?1:-1)*(env.pathWidth/2+rnd()*.45),(rnd()-.5)*(fieldDepth*1.6));if(Math.abs(x)<halfW()-(EDGE_MARGIN-.1)&&Math.abs(z)<halfD()-(EDGE_MARGIN-.1))edge.push([x,z]);}
  instance(new T.DodecahedronGeometry(.11,0),mat(0x555550),edge.length,(o,i)=>{o.position.set(edge[i][0],.04,edge[i][1]);o.scale.set(1,.5,1);});}
- const count=Math.round(env.density*65),spots=Array.from({length:count},()=>{let x,z;do{x=(rnd()-.5)*(FIELD_W-1.5);z=(rnd()-.5)*(FIELD_D-1.5);}while(Math.abs(x)<6.5&&Math.abs(z)<5.0);return [x,z,.65+rnd()*.65];});
+ const count=Math.round(env.density*65),spots=Array.from({length:count},()=>{let x,z;do{x=(rnd()-.5)*(fieldWidth-1.5);z=(rnd()-.5)*(fieldDepth-1.5);}while(Math.abs(x)<6.5&&Math.abs(z)<5.0);return [x,z,.65+rnd()*.65];});
  const kinds={forest:['tree','bush','log','grass','rock'],rocks:['rock'],ruins:['pillar','ruin','grave','rock'],snow:['mound','rock','tree'],grass:['grass'],bushes:['bush'],logs:['log'],graves:['grave'],mixed:['tree','bush','log','grass','rock','pillar','ruin','grave','mound']}[env.props];
  const definitions={rock:[new T.DodecahedronGeometry(.6,0),0x626262,[1,.7,1],.35],bush:[new T.IcosahedronGeometry(.65,0),0x426c27,[1,.7,1],.4],tree:[new T.ConeGeometry(.8,2.3,7),(env.ground==='leaves'?0xcd621e:0x285b2a),[1,1,1],1.7],log:[new T.CylinderGeometry(.2,.24,1.7,7),0x694125,[1,1,1],.24],grass:[new T.ConeGeometry(.25,.7,4),0x699b32,[1,1,1],.35],pillar:[new T.CylinderGeometry(.34,.4,2.4,8),0x777777,[1,1,1],1.2],ruin:[new T.BoxGeometry(1.4,1,.6),0x616161,[1,1,1],.5],grave:[new T.BoxGeometry(.55,1,.18),0x777777,[1,1,1],.5],mound:[new T.IcosahedronGeometry(.8,1),0xb2b6b9,[1,.45,1],.15]};
  for(const [k,kind]of kinds.entries()){const selected=spots.filter((_,i)=>i%kinds.length===k),[geo,color,scale,y]=definitions[kind];instance(geo,mat(color),selected.length,(o,i)=>{const [x,z,s]=selected[i];o.position.set(x,y*s,z);o.scale.set(scale[0]*s,scale[1]*s,scale[2]*s);o.rotation.y=rnd()*6.28;if(kind==='log')o.rotation.z=Math.PI/2;});if(kind==='tree')instance(new T.CylinderGeometry(.12,.18,1,6),mat(0x4b443c),selected.length,(o,i)=>{o.position.set(selected[i][0],.5,selected[i][1]);});}
@@ -78,8 +80,8 @@ export function createWorld(host,stage){
  for(const [kind,[geo]]of Object.entries(definitions))if(!kinds.includes(kind))geo.dispose();
  if(env.weather!=='none'&&env.intensity>0){const n=Math.round(env.intensity*(env.weather==='rain'?1000:500));const rain=env.weather==='rain',leaf=env.weather==='leaves';
  weather=instance(rain?new T.BoxGeometry(.015,.4,.015):leaf?new T.SphereGeometry(.12,4,2).scale(1,.13,1.7):new T.IcosahedronGeometry(env.weather==='dust'?.025:.045,0),mat(leaf?0xffffff:env.weather==='dust'?0xd6af6c:env.weather==='rain'?0x9fc8e8:0xe7f3ff,{transparent:true,opacity:rain?.45:.9}),n,()=>{});weather.castShadow=false;weather.receiveShadow=false;weather.frustumCulled=false;if(leaf){const colors=[0xf4a229,0xd95516,0xf2c244,0xb9431c];for(let i=0;i<n;i++)weather.setColorAt(i,new T.Color(colors[i%4]));}
- particles=Array.from({length:n},()=>({x:(rnd()-.5)*(FIELD_W+2),y:rnd()*(env.weather==='dust'?1.2:10),z:(rnd()-.5)*(FIELD_D+3),phase:rnd()*6.28}));}
- if(env.fog>0){fogMesh=instance(new T.SphereGeometry(1,12,6),new T.MeshBasicMaterial({color:0xb4b8ba,transparent:true,opacity:env.fog*.055,depthWrite:false}),18,(o)=>{o.position.set((rnd()-.5)*FIELD_W,.1+rnd()*.2,(rnd()-.5)*FIELD_D);o.scale.set(2+rnd()*2,.18+rnd()*.2,1.3+rnd());});fogMesh.castShadow=false;fogMesh.receiveShadow=false;}
+ particles=Array.from({length:n},()=>({x:(rnd()-.5)*(fieldWidth+2),y:rnd()*(env.weather==='dust'?1.2:10),z:(rnd()-.5)*(fieldDepth+3),phase:rnd()*6.28}));}
+ if(env.fog>0){fogMesh=instance(new T.SphereGeometry(1,12,6),new T.MeshBasicMaterial({color:0xb4b8ba,transparent:true,opacity:env.fog*.055,depthWrite:false}),18,(o)=>{o.position.set((rnd()-.5)*fieldWidth,.1+rnd()*.2,(rnd()-.5)*fieldDepth);o.scale.set(2+rnd()*2,.18+rnd()*.2,1.3+rnd());});fogMesh.castShadow=false;fogMesh.receiveShadow=false;}
  dirty=true;wake();}
  // These ground positions are authoritative for the card overlays and
  // their small 3D bases. Camera movement projects them; it never rewrites them.
@@ -88,8 +90,8 @@ export function createWorld(host,stage){
    anchors=[];
    cardElements.clear();
    for(const [id,p] of placements){
-     const x=Math.max(-HALF_W+1,Math.min(HALF_W-1,Number(p.worldX)||0));
-     const z=Math.max(-HALF_D+1,Math.min(HALF_D-1,Number(p.worldZ)||0));
+     const x=Math.max(-halfW()+1,Math.min(halfW()-1,Number(p.worldX)||0));
+     const z=Math.max(-halfD()+1,Math.min(halfD()-1,Number(p.worldZ)||0));
      anchors.push({id,x,z,active:p.active,layout:p});
      const el=document.querySelector(`[data-combatant-id="${CSS.escape(id)}"]`);
      if(el)cardElements.set(id,el);
@@ -137,10 +139,10 @@ export function createWorld(host,stage){
      const distance=camera.position.distanceTo(cardPosition.set(a.x,.96,a.z));
      // Physical perspective: closer markers are slightly larger. The DM's
      // card-size slider still works, with responsive limits on small screens.
-     const responsive=width<520?.42:width<800?.51:width<1100?.57:.62;
-     const perspective=Math.max(.82,Math.min(1.16,referenceDistance/Math.max(distance,1)));
-     const modeScale=viewMode==='ground'?1.04:1;
-     const scale=Math.max(.36,Math.min(.78,responsive*(a.layout.scale/.78)*perspective*modeScale));
+     const responsive=width<520?.40:width<800?.48:width<1100?.54:.58;
+     const perspective=Math.max(.84,Math.min(1.12,referenceDistance/Math.max(distance,1)));
+     const modeScale=viewMode==='ground'?1.01:.97;
+     const scale=Math.max(.34,Math.min(.72,responsive*(a.layout.scale/.72)*perspective*modeScale));
      const CARD_H=240;
      const topY=bottomY-CARD_H*scale;
      const el=cardElements.get(a.id);
@@ -159,7 +161,7 @@ export function createWorld(host,stage){
    spotlight.visible=anyActive;
  }
  function tick(t){frame=0;if(disposed||lost||document.hidden)return;const dt=Math.min((t-last)/1000||0,.05);last=t;const moving=!!weather||!!fogMesh;
- if(weather){const angle=env.windAngle*Math.PI/180;const wrapX=HALF_W+1,wrapZ=HALF_D+1.5;particles.forEach((p,i)=>{p.x+=Math.cos(angle)*env.windSpeed*dt;p.z+=Math.sin(angle)*env.windSpeed*dt;p.y-=(env.weather==='rain'?9:env.weather==='snow'?.65:env.weather==='leaves'?1:.05)*dt;if(p.y<0)p.y=env.weather==='dust'?1.2:10;if(p.x>wrapX)p.x=-wrapX;if(p.x< -wrapX)p.x=wrapX;if(p.z>wrapZ)p.z=-wrapZ;if(p.z< -wrapZ)p.z=wrapZ;dummy.position.set(p.x,p.y,p.z);dummy.scale.set(1,1,1);dummy.rotation.set(env.weather==='leaves'?t*.001+p.phase:0,p.phase,env.weather==='leaves'?t*.002:0);dummy.updateMatrix();weather.setMatrixAt(i,dummy.matrix);});weather.instanceMatrix.needsUpdate=true;}
+ if(weather){const angle=env.windAngle*Math.PI/180;const wrapX=halfW()+1,wrapZ=halfD()+1.5;particles.forEach((p,i)=>{p.x+=Math.cos(angle)*env.windSpeed*dt;p.z+=Math.sin(angle)*env.windSpeed*dt;p.y-=(env.weather==='rain'?9:env.weather==='snow'?.65:env.weather==='leaves'?1:.05)*dt;if(p.y<0)p.y=env.weather==='dust'?1.2:10;if(p.x>wrapX)p.x=-wrapX;if(p.x< -wrapX)p.x=wrapX;if(p.z>wrapZ)p.z=-wrapZ;if(p.z< -wrapZ)p.z=wrapZ;dummy.position.set(p.x,p.y,p.z);dummy.scale.set(1,1,1);dummy.rotation.set(env.weather==='leaves'?t*.001+p.phase:0,p.phase,env.weather==='leaves'?t*.002:0);dummy.updateMatrix();weather.setMatrixAt(i,dummy.matrix);});weather.instanceMatrix.needsUpdate=true;}
  if(fogMesh)fogMesh.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
  if(transition){
    const fraction=Math.min(1,Math.max(0,(t-transition.start)/transition.duration));

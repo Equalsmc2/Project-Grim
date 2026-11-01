@@ -28,7 +28,7 @@ function cardHTML(c,s,p){
 function render(s){
   const scene=getScene(s),combat=s.mode==='combat';
   app.dataset.palette=scene.palette;
-  $('chapterLabel').textContent=combat?'BATTLEFIELD / TACTICAL VIEW':scene.kicker;
+  $('chapterLabel').textContent=combat?`BATTLEFIELD / ${viewMode==='ground'?'GROUND VIEW':viewMode==='overhead'?'OVERHEAD VIEW':'TACTICAL VIEW'}`:scene.kicker;
   $('stageModeLabel').textContent=combat?'COMBAT MODE':'SCENE MODE';
   $('sceneTitle').textContent=scene.name;
   $('sceneDescription').textContent=scene.description;
@@ -68,7 +68,7 @@ function selectCameraView(mode){
    btn.classList.toggle('active',selected);
    btn.setAttribute('aria-pressed',String(selected));
  });
- const names={tactical:'TACTICAL',ground:'GROUND LEVEL',overhead:'OVERHEAD'};
+ const names={tactical:'TACTICAL',ground:'GROUND VIEW',overhead:'OVERHEAD'};
  if(world)$('worldStatus').textContent=`3D WORLD · ${names[mode]}`;
 }
 document.querySelectorAll('[data-camera-view]').forEach(btn=>btn.addEventListener('click',()=>selectCameraView(btn.dataset.cameraView)));
