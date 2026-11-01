@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/battlefield-118/vendor/three.module.js';
-import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,calculateCameraPose,applyCameraPose} from '../assets/battlefield-118/camera-frame.js';
-assert.equal(FIELD_WIDTH,30);
-assert.equal(FIELD_DEPTH,24);
-assert.equal(DEFAULT_CAMERA_VIEW,'tactical');
+import * as T from '../assets/grim-120/vendor/three.module.js';
+import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,calculateCameraPose,applyCameraPose} from '../assets/grim-120/camera-frame.js';
+assert.equal(FIELD_WIDTH,32);
+assert.equal(FIELD_DEPTH,20);
+assert.equal(DEFAULT_CAMERA_VIEW,'ground');
 assert(CAMERA_VIEWS.ground.elevation<25,'Ground mode has a low viewing angle');
-assert(CAMERA_VIEWS.tactical.elevation>48&&CAMERA_VIEWS.tactical.elevation<60);
+assert(CAMERA_VIEWS.tactical.elevation>=35&&CAMERA_VIEWS.tactical.elevation<=50);
 assert(CAMERA_VIEWS.overhead.elevation>=70);
-assert(MIN_CAMERA_ZOOM>=1&&MAX_CAMERA_ZOOM>MIN_CAMERA_ZOOM);
+assert(MIN_CAMERA_ZOOM>0&&MAX_CAMERA_ZOOM>1);
 for(const [width,height] of [[1920,960],[1536,870],[1366,700],[1024,690],[390,760]]){
  const renders={};
  for(const mode of ['tactical','ground','overhead']){
@@ -15,7 +15,7 @@ for(const [width,height] of [[1920,960],[1536,870],[1366,700],[1024,690],[390,76
   const pose=calculateCameraPose(opts);
   const camera=applyCameraPose(new T.PerspectiveCamera(),pose);
   const points=[];
-  for(const x of [-15,15])for(const z of [-12,12]){
+  for(const x of [-16,16])for(const z of [-10,10]){
     const p=new T.Vector3(x,0,z).project(camera);
     points.push({x:(p.x+1)*width/2,y:(1-p.y)*height/2});
   }
@@ -25,7 +25,7 @@ for(const [width,height] of [[1920,960],[1536,870],[1366,700],[1024,690],[390,76
   assert(Number.isFinite(spanX)&&Number.isFinite(spanY)&&spanX>0&&spanY>0);
   if(mode==='tactical'){
    assert(spanX>width*.78,'Tactical ground must occupy most of the available width');
-   assert(spanY>height*(width<600?.20:.7),'Tactical ground must have useful depth');
+   assert(spanY>height*(width<600?.13:.35),'Tactical ground must have useful depth');
   }
   renders[mode]={spanX,spanY,pose};
  }

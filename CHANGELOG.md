@@ -1,3 +1,16 @@
+# Project Grim 1.2 — Continuous World & Presentation Pass
+
+- Replaced the standalone terrain slab with an extended height-mapped ground mesh
+  and distant rolling hills; no abrupt floating-board edge.
+- Added atmosphere sky dome and environment-matched depth fog.
+- Tuned Ground/Tactical camera composition around the actual encounter.
+- Removed card support poles; added diffuse terrain contact shadows and subtle
+  animated-turn highlighting. Anchors remain world-fixed, cards remain readable.
+- Added layered low-poly tree shapes, distant scenery, terrain-following scatter.
+- Improved weather 3D volumes with bounded distribution, fading and better fog.
+- Preserved the existing DM editor, Firebase/no-login sync, and GitHub BAT uploader.
+- Cache-safe `assets/grim-120` version.
+
 # Project Grim 1.1.9 — Tactical Perspective Redesign
 
 - Redesigned battlefield to **30 × 24** world units, with no nonuniform terrain scaling.

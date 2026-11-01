@@ -1,3 +1,57 @@
+# Project Grim 1.2 — Continuous 3D Battlefield
+
+This is the complete standalone site (DM page + player stage) based on 1.1.9.
+
+## New in 1.2
+
+- The **32 × 20 combat field remains the gameplay footprint**, but now sits within
+  a much larger continuous 3D landscape. Terrain and distant hills extend beyond
+  the encounter, with a dark horizon gradient and genuine 3D distance fog.
+- **Ground is still the default camera**, reframed slightly to prioritize the
+  combatants. Tactical and Top remain available with animated transitions;
+  orbiting never automatically zooms out.
+- Floating laminated cards are still **anchored to real 3D ground points**, but
+  have no support poles. A diffuse world-space shadow and a subtle ground ring
+  reveal their exact locations; the active unit receives a clearer highlight.
+- Simplified procedural art has improved **layered trees, embedded stones,
+  rolling distant hills, terrain scatter and environment-aware palettes**.
+- Rain, snow, leaves and dust occupy a **bounded 3D weather volume** with
+  distance attenuation and fog, instead of evenly filling an empty black sky.
+- Existing live controls for **terrain width/depth, environment presets, weather,
+  props and paths** remain synced across DM and stage.
+- The active source moved to `assets/grim-120/` to avoid caching older releases.
+
+## Install
+
+1. Extract the ZIP completely.
+2. Run `github.bat` and enter the Git repository path prompted (or Enter for the default).
+3. Review the changes, confirm the commit and push, and deploy Firebase Hosting
+   separately if that is how you host the site. GitHub Pages needs its normal deploy.
+4. Check both pages display **CONTINUOUS WORLD 1.2** in their header.
+
+**Preservation:** the state key, Firebase paths, player/enemy data, initiative,
+no-login workflow, DM controls and Windows launcher are unchanged. Do not reset
+campaign data when upgrading.
+
+## Verification
+
+Run all checks using Node:
+
+```
+node tests/camera-modes.test.mjs
+node tests/rectangle-projection.test.mjs
+node tests/world-anchor.test.mjs
+node tests/optimization.test.mjs
+node tests/environment-12.test.mjs
+node --experimental-vm-modules tests/state.test.cjs
+```
+
+The sandbox Chromium browser cannot allocate a WebGL context; visual rendering
+must be verified on a WebGL-capable browser. These tests validate geometry,
+state, camera projection and source structure but **do not establish real GPU FPS**.
+
+---
+
 # Project Grim 1.1.9 — Tactical Perspective Redesign
 
 This release is a **full replacement website**, based on **Locked Camera 1.1.7**. It redesigns the battlefield's physical proportions and camera views rather than patching only the zoom value. Your saved characters, combat data, environment settings, and Firebase state format have not been changed.
@@ -10,7 +64,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 - **Top** offers a **76° overhead perspective** for wider tactical context.
 - The three modes transition smoothly (approximately 720ms, or instantly when reduced motion is enabled). All cards stay upright, tied to their fixed world coordinates, and in initiative order within each side.
 - The player's stage includes a compact camera switch in the top-right of the battlefield. Its modes are viewer-local; changing camera mode does not overwrite shared campaign data.
-- New cache-distinct `assets/battlefield-118` bundle and **TACTICAL STAGE 1.1.9** header, to prevent previously cached camera behavior.
+- New cache-distinct `assets/grim-120` bundle and **CONTINUOUS WORLD 1.2** header, to prevent previously cached camera behavior.
 
 **Camera controls:** `1` Tactical, `2` Ground, `3` Top, `0` reset to Tactical, mouse drag/arrows orbit gently, mouse wheel and `+`/`−` zoom, `H` hide stage HUD, `F` fullscreen. All camera controls remain on the player presentation page; DM controls work as before.
 
@@ -20,7 +74,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 2. Run **`github.bat`** and paste (or accept) `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim`.
 3. Review the file-copy confirmation and Git changes; optionally let the uploader delete only known old Grim asset-version directories in the repository.
 4. Commit/push or let the uploader do so after its confirmation. Wait for the GitHub Pages deployment to update.
-5. Open `index.html` and `dm.html` and verify **TACTICAL STAGE 1.1.9** appears in the header. If it does not, you are viewing an old deployment.
+5. Open `index.html` and `dm.html` and verify **CONTINUOUS WORLD 1.2** appears in the header. If it does not, you are viewing an old deployment.
 
 Local testing: run `RUN-GRIM.bat` from the actual Git repository, then open `http://localhost:4174/index.html` and `/dm.html`. No visible sign-in screen is required. Optional anonymous Firebase behavior and secure database rules are unchanged.
 

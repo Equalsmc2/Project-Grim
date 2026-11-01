@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\battlefield-118\state.js" (
+if not exist "%SOURCE_ROOT%\assets\grim-120\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -109,13 +109,13 @@ goto :cleanup_legacy
 rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
-if not exist "%REPO%\assets\battlefield-118\state.js" (
-    echo [ERROR] Tactical Stage 1.1.8 is not installed, refusing to remove old bundles.
+if not exist "%REPO%\assets\grim-120\state.js" (
+    echo [ERROR] Continuous World 1.2 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
 echo Cleanup option: remove inactive older Grim asset versions from this repository?
-echo The current battlefield-118 assets, campaign data and Git history are untouched.
+echo The current grim-120 assets, campaign data and Git history are untouched.
 choice /c YN /n /m "Remove old version asset directories? [Y/N] "
 if errorlevel 2 goto :review_git
 if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
@@ -202,7 +202,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Tactical Stage 1.1.8 deployed to Firebase Hosting.
+echo [SUCCESS] Continuous World 1.2 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed
