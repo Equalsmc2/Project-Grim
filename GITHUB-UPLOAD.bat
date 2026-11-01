@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\state.js" (
+if not exist "%SOURCE_ROOT%\assets\environment-100\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -91,11 +91,13 @@ if errorlevel 2 goto :done
 echo.
 echo Copying Project Grim site files...
 rem Copy only known site root files. Never copy the .git folder or all Downloads.
-robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\assets" "%REPO%\assets" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\docs" "%REPO%\docs" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+if errorlevel 8 goto :copy_failed
+if exist "%SOURCE_ROOT%\tests" robocopy "%SOURCE_ROOT%\tests" "%REPO%\tests" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 echo [OK] Website files copied to: "%REPO%"
 goto :review_git
@@ -165,7 +167,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Formation 0.7 deployed to Firebase Hosting.
+echo [SUCCESS] Environment 1.0 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

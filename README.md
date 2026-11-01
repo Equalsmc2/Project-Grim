@@ -1,97 +1,133 @@
-# Project Grim — Arena 0.9 (Tactical Battlefield Layout)
+# Project Grim 1.0 — 3D Environment Foundation
 
-This build makes the dark UI a **one-screen DM application** where practical. The global page avoids scrolling on a standard desktop; the encounter list, roster, card editor and online settings have their own scroll areas only when their content exceeds the viewport. Black-and-white wireframe styling is retained.
+Built directly from Project-Grim_ARENA_0.9_FULL.zip. The new entry points use
+assets/environment-100/ and display ENVIRONMENT 1.0. All earlier asset folders
+are retained for provenance; the website loads only the new active directory.
 
-## New in 0.9 — battlefield composition and initiative order
+## Launch on Windows
 
-- **Enemy cards always appear in the upper/far line**, and **player cards in the lower/near line**, like opposing teams on a fighting-game stage.
-- Combat battlefield is now a finite rectangular tactical grid with consistent margins, a restrained perspective, and upright floating cards.
-- Players and enemies now have independent stable formations; within each row, **highest initiative is leftmost and lowest is rightmost**, with a global initiative-rank label on each card. The VS badge was removed.
-- Card sizes and spacing are responsive and no longer inherit the ground transform; the active card gets a highlight without changing its initiative position.
-- HUD is compact and pinned above the battle, and hiding it now frees its header space instead of leaving a black strip.
-- The two groups are independently centered and spaced; initiative changes never mix or rearrange them.
-- Cards keep their front faces readable, with a subtle opposing 3D tilt and monochrome **VS** separator. The active combatant still comes forward.
-- Responsive scaling keeps typical encounters inside one screen; oversized groups wrap within their own side.
-- This only changes presentation. All existing enemy/player data, encounter management, Firebase sync, and no-login behavior remain unchanged.
+1. Extract the entire ZIP, keeping the Project-Grim folder together.
+2. Run RUN-GRIM.bat. Install Node.js if neither Node nor Python is available.
+3. The launcher opens the DM console and TV stage on localhost:4174.
+4. Keep the server window open. Use dm.html for controls and index.html on the TV.
 
-### Turn-order placement details
+The launcher retains the 0.9 Node/Python workflow and port; only its release
+label changed. File-double-click mode cannot reliably load ES modules: use the
+local server. Three.js r170 is included locally with its MIT license, so local
+3D does not require a CDN. Firebase still requires internet access.
 
-Enemies stay on the **far/upper** side and player characters on the **near/lower** side. Within each side, the highest initiative is on the left and the lowest on the right. Every card also shows its number in the **global** initiative list so cross-side order remains unambiguous. Active-turn focus does not move the card out of its slot.
+## Environment controls
 
-The battlefield is a finite, perspective rectangular grid with a subtle center mark, no VS marker, and cards rendered upright separately from the ground transform. Larger rosters reflow into extra rows. No external art or 3D packages are needed.
+Choose Environment in the DM sidebar. All controls publish immediately through
+the existing campaign state; Scene and Combat remain separate presentation modes.
 
-## Previous 0.6 functionality — enemy cards
+- Presets: Blank test stage, Forest, Snowfield, Desert, Stone Road / Path,
+  Ruins, Autumn Field. Presets replace environment settings, not combatants.
+- Ground: blank grid, grass, stone, dirt, sand, snow, or dead leaves. Surface
+  variation changes geometric relief and procedural scatter.
+- Path: enable a raised stone path, move X/Z, rotate, change width and edge
+  scatter. Grass plus path is the mixed-ground option. Edge blending uses small
+  scattered stones, not an external texture or terrain-painting system.
+- Weather: none, rain, drifting snow, tumbling leaves, or blowing dust/sand.
+  Intensity controls count; wind direction and speed control horizontal drift.
+  Each weather system occupies real 3D space behind the card overlays.
+- Ground fog: shallow translucent 3D volumes with gentle wind drift. This is
+  lightweight stylized fog, not a physically based volumetric simulation.
+- Props: mixed, forest, rocks, ruins, snow, grass, bushes, logs, or graves.
+  Density controls sparse peripheral placement; the central combat area stays
+  clear. Forest includes trees, bushes, logs, grass and rocks; ruins include
+  pillars, wall blocks, gravestones and rocks. Snow includes mounds.
+- Regenerate seed changes the deterministic layout. Clear props sets prop
+  density to zero; terrain scatter, path and weather remain independently set.
 
-- **Combat control → + Add enemy:** instantly adds an NPC enemy to the current initiative roster and switches to Combat presentation if you were in Scene mode. Add multiple enemies as needed.
-- **Combatant cards → + Add enemy / + Add player:** create either type in the same single-screen editor. The editable **Combatant type** field switches an existing character between Player and Enemy.
-- **Enemy cards** have a cut-corner double border, contrasting light heading, diagonal neutral placeholders, and explicit **◆ ENEMY** labels. Players retain the simpler matte **● PLAYER** card style.
-- **Both types share one initiative order** and can take damage, heal, receive conditions, be spotlighted, have their initiative rolled, be hidden from the stage, and be removed. Use the **Edit** button beside any combatant to jump to its card editor.
-- **Old campaigns are preserved:** a saved card from 0.5 without a type is treated as a Player; no migration/reset is needed. The same local storage and optional Firebase room are used.
-- **Low-scroll design retained:** combatants stay in a compact scrollable panel at desktop resolutions; phone layouts scroll only to keep controls usable.
+Use arrow keys on the stage to orbit within a limited range; 0 resets the camera.
+H hides the HUD and F toggles fullscreen. Cards stay front-facing, with readable
+HTML text above all 3D props/weather. Enemies occupy the far/upper bank; players
+occupy the near/lower bank. Global turn ranks are preserved, with descending
+initiative left to right within each faction (row-major when multiple rows fit).
+HP, temporary HP, conditions, portraits, active turn, scene captions, card scale,
+and the original combat/character editing workflows remain available.
 
-## UX changes
+## Campaign compatibility and synchronization
 
-- **Overview:** equal-height content panels and compact summary metrics, without unused empty areas.
-- **Scene director:** stage presets (2×2) alongside live scene inputs instead of two stacked full-width panels.
-- **Combat control:** round/turn toolbar above a compact, internally scrollable initiative roster.
-- **Combatant cards:** selectable roster at left, three-column editor at right on wide screens; portrait & fields are compact.
-- **Connection & setup:** evenly spaced view/online setup columns, concise security reminder.
-- **Navigation:** fixed DM header and sidebar; no page-level scrolling on desktop where content fits.
-- **Responsive:** icon sidebar at medium widths, single-column and natural scrolling on phones where necessary for legibility.
-- **Stage:** Scene and Combat behaviors, laminated card effect and no-login operation remain; the stage now distinguishes players from enemies.
+The storage key remains grim:campaign:v1 and version remains 1. Old campaigns
+receive a blank environment with no props. Characters, combat, scene overrides,
+presentation settings and additional campaign fields are retained. No local
+campaign data is bundled in this ZIP. Use the same browser profile, hostname and
+port as before to keep browser-local saved data. A different origin has separate
+browser storage. Keep the old ZIP as a rollback copy.
 
-## Installing from Downloads
+Environment is an additive top-level object normalized and bounded on load,
+local updates and incoming cloud snapshots. LocalStorage, storage events,
+BroadcastChannel and Firebase carry the same complete campaign state. Avoid
+editing the same cloud room simultaneously with an older 0.9 DM build, which
+has no environment editor and may publish an older snapshot.
 
-1. Extract the full ZIP (keep folders). Run **`github.bat`**.
-2. Paste `C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim` or your actual repository location.
-3. Confirm copy and GitHub upload. The BAT can optionally deploy Firebase Hosting if Firebase CLI is installed and signed in. **Pushing to GitHub alone does not deploy Firebase Hosting.**
-4. For local testing, open `RUN-GRIM.bat` inside the repo, then visit `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
-5. Verify the top bar says **ARENA 0.9**.
+## Firebase (optional, no visible login)
 
-Custom scene, character and combat data are preserved. Reset to test data only if you want to discard edits. Firebase anonymous authentication and DM-browser rules are the same as in 0.4.
+The ARENA 0.9 Firebase connector, configuration and database rules are retained.
+Both stage and DM automatically authenticate anonymously; there is no login UI.
+Check assets/environment-100/firebase-config.js for your project configuration.
+Enable Anonymous Authentication and Realtime Database in that project. In DM
+Connection & setup, choose the room, enable Firebase, copy that browser's DM
+rules and install them in Firebase. The permitted anonymous DM UID controls
+writes; viewers only read. Keep that browser profile to retain its identity.
+Use the generated online stage URL for remote displays. Publish to Firebase
+sends the campaign including environment; it does not deploy website files.
+Live Firebase access and real cross-device synchronization were not tested in
+this release session. Local synchronization and cloud-state ingestion were tested.
 
-## Scope and limits
+## Copy into GitHub repository / optional Hosting deploy
 
-This remains a UI prototype with CSS 3D cards, not true WebGL terrain or Pathfinder rules automation. Check the BAT and Firebase connection on your Windows machine; the packaged app does not change live Firebase rules.
+Run github.bat (GITHUB-UPLOAD.bat is the identical alias). It prompts for the
+repository root, defaulting to:
+C:\Users\deste\OneDrive\Documents\GitHub\Project-Grim
 
-## Try the UX
+That destination's existence was verified during development. The release was
+prepared separately; no existing repository files were overwritten or pushed.
+The uploader checks the new asset path, asks before copying, preserves .git and
+unrelated files, then offers the original review/commit/push workflow. Review all
+listed changes: the inherited commit step stages ALL repository changes.
+After a successful push it offers Firebase Hosting-only deployment, using the
+existing project-grim-ef4f0 project. It never force-pushes or deploys database
+rules. You can also deploy manually from your chosen repository using:
 
-1. Open DM and Stage in two tabs **of the same browser profile**. Local changes sync automatically.
-2. In DM, click **Combat** in the top right. You should see four plain plastic-like cards on the grid, the round, active turn, and initiative strip.
-3. Open **Combat control**. Try `−5`, `+5`, conditions, spotlight and **Next turn**.
-4. Open **Scene director**, select another grayscale stage, change the title, and click **Present scene**.
-5. Open **Combatant cards** to edit names/classes/stats, hide a card, upload a portrait, or add another card.
-6. **Connection & setup** controls card scale, stage labels and whether Scene mode shows character cards.
+    firebase deploy --only hosting --project project-grim-ef4f0
 
-### Keyboard
+Keep your project-specific configuration when installing into a customized repo;
+the uploader copies the package's matching website/configuration filenames.
+A GitHub push alone does not deploy Firebase Hosting. Reload until the header
+shows ENVIRONMENT 1.0. No deployment was performed during development.
 
-Stage: **arrow keys** orbit camera, **0** reset, **H** toggle HUD, **F** fullscreen, mouse motion tilts the cards. DM: **S** = Scene, **C** = Combat, **N** = Next turn (when not typing).
+## Graphics, fallback and limits
 
-## No login / Firebase
+The stage uses Three.js WebGL, an elevated orthographic camera, geometric floor,
+hemisphere/directional lighting, shadow maps and active-turn illumination. HTML
+cards project from world positions while remaining above the graphics canvas.
+The mobile map becomes narrower/longer to fit portrait screens. The styling is
+monochrome, deliberately sparse, and uses procedural placeholder art.
 
-There is **no user login screen**. For a two-tab local demo, Firebase is not needed. Across devices, enable Firebase Anonymous Authentication and register your DM browser as the only writer using **Connection & setup → Copy secure rules**. All anonymous viewers with the room link can read player-facing state, so do not store GM secrets there. The previous temporary open database rules from your screenshots are unsafe.
+Rain is capped at 1,000 instances; other weather at 500; props at 65 placements;
+terrain scatter at 1,100; fog at 18 volumes; pixel ratio at 1.5. Rebuilds dispose
+old geometry/materials. Static scenes render on demand; animated scenes pause
+when the document is hidden and resume without large simulation jumps.
 
-See [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md) for details. **GitHub upload and Firebase Hosting deployment are separate actions.** No Firebase connection was tested live in this package.
+If WebGL or the local library cannot initialize, the 0.9-style 2D floor/cards,
+HUD and sync remain usable with a visible fallback label. Test it using
+index.html?webgl=0. Context-loss handling also exposes the fallback floor while
+waiting for restoration. Actual hardware context loss was not induced in QA.
+Large encounters still compact their cards; very large rosters and extreme
+camera angles are not guaranteed legible on phones. This foundation does not
+include manual per-prop placement, sculpting, collisions, asset imports,
+physically simulated volumetric fog, embers or ash.
 
-## Design principle
+## Source and verification
 
-Use **black / white / gray only**, easy-to-read buttons, plain typography, visible spacing, CSS grid geometry and a single 3D card component. Art direction will be applied in a later project phase. Design rationale and UX checklist: [`docs/UI_TEST_NOTES.md`](docs/UI_TEST_NOTES.md).
+No bundler is needed. Full browser source is in assets/environment-100/.
+The local server is server.js. See TEST_REPORT.md for evidence and limitations.
+Run campaign/state regression checks with:
 
-## Limitations
+    node --experimental-vm-modules tests/state.test.cjs
 
-- CSS 3D card perspective, not WebGL/free-roam 3D or a map editor.
-- Not a Pathfinder rule engine or live VTT integration.
-- No private GM-only data layer; the cloud room stores only player-facing state.
-- `github.bat` requires an existing local Git repository with an origin remote; you can publish through GitHub Desktop first.
-- The browser sandbox used during verification disallowed direct localhost navigation. Inline browser checks of the new interface and interactions passed, but live deployment and Firebase were not tested.
-
-## Verify the fix
-
-1. Open the **new local URL**: `http://localhost:4174/dm.html` (old builds used 4173).
-2. Confirm both the DM and Stage headers show **ARENA 0.9**.
-3. Confirm the DM content area and stage are black/charcoal, with thin gray grid lines and no gold or fantasy typefaces.
-4. In the browser's Network tab, the CSS URL must contain **`/assets/arena-090/styles.css`**. If you see `assets/styles.css`, the browser is serving an old HTML page. Confirm the uploader copied into the exact Git repository from GitHub Desktop.
-5. For a public Firebase site, uploading to **GitHub alone does not guarantee deployment**. Run the optional Firebase Hosting deploy from the uploader (requires Firebase CLI), or manually run `firebase deploy --only hosting --project project-grim-ef4f0` inside the repo. If your actual host is Render, use its deployment process instead.
-6. Browser refresh: Ctrl+Shift+R; if a service worker or external CDN is caching the old deployment, remove its cache according to that hosting setup.
-
-No automatic deletion of custom data occurs.
+Historical 0.9 documentation is in docs/ARENA-0.9-README.md; use this README for
+1.0 instructions. Three.js documentation: https://threejs.org/docs/
