@@ -1,3 +1,14 @@
+# Perspective 1.1 — November 1, 2026
+
+- Removed forced grayscale from all environment materials.
+- Green grass/foliage, brown wood/soil, tan sand, cool snow and orange/red/gold autumn leaves.
+- Added multicolored instanced leaves with flattened tumbling geometry.
+- Replaced orthographic projection with a real perspective camera and deeper map proportions.
+- Increased card spacing; projection clearance and screen bounds protect readability during orbit.
+- Added camera pullback during orbit to keep more of the battlefield in view.
+- Retained campaign state, sync, DM controls, fallback and launch/upload workflows.
+- New cache-distinct assets/perspective-110 directory and PERSPECTIVE 1.1 label.
+
 # Changes in Environment 1.0
 
 - Uses the exact ARENA 0.9 FULL archive as its foundation, with new cache-distinct assets/environment-100 entry points.

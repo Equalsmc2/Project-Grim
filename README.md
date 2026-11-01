@@ -1,7 +1,7 @@
-# Project Grim 1.0 — 3D Environment Foundation
+# Project Grim 1.1 — Color & Perspective
 
-Built directly from Project-Grim_ARENA_0.9_FULL.zip. The new entry points use
-assets/environment-100/ and display ENVIRONMENT 1.0. All earlier asset folders
+Updated from the completed Environment 1.0 build, itself built directly from Project-Grim_ARENA_0.9_FULL.zip. The new entry points use
+assets/perspective-110/ and display PERSPECTIVE 1.1. All earlier asset folders
 are retained for provenance; the website loads only the new active directory.
 
 ## Launch on Windows
@@ -67,7 +67,7 @@ has no environment editor and may publish an older snapshot.
 
 The ARENA 0.9 Firebase connector, configuration and database rules are retained.
 Both stage and DM automatically authenticate anonymously; there is no login UI.
-Check assets/environment-100/firebase-config.js for your project configuration.
+Check assets/perspective-110/firebase-config.js for your project configuration.
 Enable Anonymous Authentication and Realtime Database in that project. In DM
 Connection & setup, choose the room, enable Firebase, copy that browser's DM
 rules and install them in Firebase. The permitted anonymous DM UID controls
@@ -97,15 +97,16 @@ rules. You can also deploy manually from your chosen repository using:
 Keep your project-specific configuration when installing into a customized repo;
 the uploader copies the package's matching website/configuration filenames.
 A GitHub push alone does not deploy Firebase Hosting. Reload until the header
-shows ENVIRONMENT 1.0. No deployment was performed during development.
+shows PERSPECTIVE 1.1. No deployment was performed during development.
 
 ## Graphics, fallback and limits
 
-The stage uses Three.js WebGL, an elevated orthographic camera, geometric floor,
+The stage uses Three.js WebGL, an elevated perspective camera, geometric floor,
 hemisphere/directional lighting, shadow maps and active-turn illumination. HTML
 cards project from world positions while remaining above the graphics canvas.
-The mobile map becomes narrower/longer to fit portrait screens. The styling is
-monochrome, deliberately sparse, and uses procedural placeholder art.
+The mobile map becomes narrower/longer to fit portrait screens. The interface and cards stay dark; terrain and weather use natural colors.
+Grass is green, autumn leaves vary orange/red/gold, sand is tan, and wood is brown.
+The stage uses procedural placeholder art.
 
 Rain is capped at 1,000 instances; other weather at 500; props at 65 placements;
 terrain scatter at 1,100; fog at 18 volumes; pixel ratio at 1.5. Rebuilds dispose
@@ -123,11 +124,23 @@ physically simulated volumetric fog, embers or ash.
 
 ## Source and verification
 
-No bundler is needed. Full browser source is in assets/environment-100/.
+No bundler is needed. Full browser source is in assets/perspective-110/.
 The local server is server.js. See TEST_REPORT.md for evidence and limitations.
 Run campaign/state regression checks with:
 
     node --experimental-vm-modules tests/state.test.cjs
 
 Historical 0.9 documentation is in docs/ARENA-0.9-README.md; use this README for
-1.0 instructions. Three.js documentation: https://threejs.org/docs/
+1.1 instructions. Three.js documentation: https://threejs.org/docs/
+
+## New in 1.1
+
+A real perspective camera makes the far side recede and the near side widen.
+The battlefield is deeper, with an orbit framing adjustment. Cards have wider
+spacing and screen-space clearance constraints applied after 3D projection,
+so readable HTML faces do not overlap during orbit. Card faces stay upright.
+Orange/red/gold ground and falling leaves use per-instance colors and actual
+flattened 3D leaf geometry. No image overlays replace the 3D world.
+
+Install the full ZIP with the same github.bat workflow. Existing saved data and
+Firebase paths are unchanged. Look for PERSPECTIVE 1.1 in the header.
