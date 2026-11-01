@@ -1023,3 +1023,11 @@ html,body{height:100%}
 .grim-environment-details summary{font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px}
 .grim-environment-details .environment-grid{padding:5px 0}
 @media(max-width:760px){.grim-atmosphere-panel{padding:10px}.atmosphere-presets .button{padding:6px 7px}}
+
+/* GRIM 1.4 — World-anchored cards remain readable at night and gently
+   hover without moving their projected ground location. */
+@keyframes grimHovered{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.stage-app.webgl-ready .lam-card.active{animation:grimHovered 2.6s ease-in-out infinite}
+.stage-app.webgl-ready.grim-night .lam-card{filter:drop-shadow(0 10px 12px rgba(0,0,0,.83)) drop-shadow(0 0 5px rgba(220,236,246,.18))!important}
+.stage-app.webgl-ready.grim-night .lam-card.active{filter:drop-shadow(0 8px 14px rgba(0,0,0,.84)) drop-shadow(0 0 9px rgba(232,246,255,.43))!important}
+@media(prefers-reduced-motion:reduce){.stage-app.webgl-ready .lam-card.active{animation:none!important}}

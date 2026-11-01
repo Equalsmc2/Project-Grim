@@ -27,7 +27,7 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
 
   const safeRoom=String(room).toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,60)||'grim-demo';
   const roomRef=ref(db,`grim/rooms/${safeRoom}`);
-  let alive=true,pending=null,writing=false;
+  let alive=true,pending=null,writing=false,writeTimer=null;
   const canWrite=()=>alive&&dm&&!!auth.currentUser;
   const readyText=dm?`DM device connected · ${safeRoom}`:`Viewer connected · ${safeRoom}`;
   status(readyText);
@@ -35,6 +35,7 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
   // Only DM-side local edits go to Firebase. Viewer pages can never push updates
   // through the application, and Firebase rules independently enforce writer UID.
   async function publish(){
+    if(writeTimer!==null){clearTimeout(writeTimer);writeTimer=null;}
     if(!canWrite()){status('Firebase connection unavailable');return false;}
     if(!pending)pending=getState();
     if(writing)return true;
@@ -59,8 +60,15 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
     }finally{writing=false;}
     return success;
   }
+  // Changes appear in local tabs immediately. Coalesce fast slider drags into
+  // one cloud snapshot after a short idle window, rather than writing every
+  // mouse movement. Explicit Publish still bypasses this delay.
   const unsubscribeLocal=subscribe((next,source)=>{
-    if(source==='local'&&canWrite()){pending=next;void publish();}
+    if(source==='local'&&canWrite()){
+      pending=next;
+      if(writeTimer!==null)clearTimeout(writeTimer);
+      writeTimer=setTimeout(()=>{writeTimer=null;void publish();},190);
+    }
   });
   let initialSnapshot=true;
   const unsubscribeData=onValue(roomRef,snapshot=>{
@@ -77,6 +85,6 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
   return {
     getUid:()=>user.uid,
     publish:()=>{pending=getState();return publish();},
-    disconnect:()=>{alive=false;pending=null;unsubscribeLocal();unsubscribeData();}
+    disconnect:()=>{alive=false;pending=null;if(writeTimer!==null)clearTimeout(writeTimer);writeTimer=null;unsubscribeLocal();unsubscribeData();}
   };
 }

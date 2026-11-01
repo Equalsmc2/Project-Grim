@@ -1,6 +1,7 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
 import {effectiveTime,lightAt,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
+import {clusteredProps,accumulationTarget,pathDistance} from './world-polish.js';
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
@@ -66,18 +67,20 @@ export function createWorld(host,stage){
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(40,1,.1,210);
  const ambient=new T.HemisphereLight(0xe3eaf2,0x293331,1.75);scene.add(ambient);
  const sun=new T.DirectionalLight(0xfff3df,2.15);sun.position.set(-13,25,5);sun.castShadow=true;
- sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-34,right:34,top:34,bottom:-34});sun.shadow.bias=-.0005;sun.shadow.normalBias=.02;scene.add(sun);
+ sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:125});sun.shadow.bias=-.00045;sun.shadow.normalBias=.025;sun.shadow.radius=2;sun.shadow.camera.updateProjectionMatrix();scene.add(sun);
  const spotlight=new T.SpotLight(0xffffff,26,30,.43,.7,1);scene.add(spotlight,spotlight.target);
  let root=new T.Group();scene.add(root);
  const markerGroup=new T.Group();scene.add(markerGroup);
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null;
  let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
- let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null;
+ let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
+ let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
+ const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
  let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0,windPhase=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),proj=new T.Vector3(),foot=new T.Vector3(),cardPoint=new T.Vector3(),target=new T.Vector3();
- const cardElements=new Map();
+ const cardElements=new Map();const stageShell=document.getElementById('stageApp');
  function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
  function cameraPose(animate=false){
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
@@ -132,6 +135,27 @@ export function createWorld(host,stage){
   }
   return {tw,td};
  }
+ function makeWeatherGround(e,rnd){
+  // Instanced ground features survive weather changes; opacity and material
+  // properties update without rebuilding the landscape or restarting cards.
+  const make=(kind,count,geo,color,scaleXY)=>{
+   const m=instanced(geo,new T.MeshBasicMaterial({color,transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3}),count,(o)=>{
+    let x=0,z=0;
+    for(let tries=0;tries<12;tries++){
+     x=(rnd()-.5)*fieldWidth*1.65;z=(rnd()-.5)*fieldDepth*1.55;
+     if(pathDistance(x,z,e)>e.pathWidth*.5+.9)break;
+    }
+    const y=landscapeHeight(x,z,fieldWidth,fieldDepth,e.seed,e.variation,e.hills);
+    o.position.set(x,y+.1+(kind==='wet'?.004:0),z);o.rotation.set(-Math.PI/2,0,rnd()*6.28);
+    const v=.5+rnd();o.scale.set(scaleXY[0]*v,scaleXY[1]*v,1);
+   });
+   if(m){m.renderOrder=4;m.frustumCulled=false;}
+   return m;
+  };
+  wetPatches=make('wet',85,new T.CircleGeometry(1,16),0x243f4a,[1.25,.58]);
+  snowPatches=make('snow',135,new T.CircleGeometry(1,12),0xdceaf1,[1.16,.75]);
+  sandPatches=make('sand',95,new T.CircleGeometry(1,12),0xb69c6b,[1.12,.58]);
+ }
  function addSurface(e,rnd,pal){
   if(e.ground==='blank')return;
   const n=Math.min(1300,Math.round(420+e.variation*690));
@@ -173,29 +197,11 @@ export function createWorld(host,stage){
  function addProps(e,rnd,pal){
   if(e.density<=0)return;
   const types={forest:['tree','bush','log','tuft','rock'],rocks:['rock'],ruins:['pillar','ruin','grave','rock'],snow:['mound','rock','tree'],grass:['tuft'],bushes:['bush'],logs:['log'],graves:['grave'],mixed:['tree','bush','log','tuft','rock','pillar','ruin','grave','mound']}[e.props]||['rock'];
-  const spots=[];
-  const within=Math.round(e.density*85);
-  for(let i=0;i<within;i++){
-   let x=0,z=0;
-   for(let tries=0;tries<15;tries++){
-    x=(rnd()-.5)*(fieldWidth-2);z=(rnd()-.5)*(fieldDepth-2);
-    if(Math.abs(x)>fieldWidth*.27||Math.abs(z)>fieldDepth*.34)break;
-   }
-   spots.push({x,z,s:.65+rnd()*.65,far:false});
-  }
-  // Scenery continues beyond the playable rectangle. At low camera angles
-  // this creates genuine depth and a natural horizon instead of hard edges.
-  const distant=Math.round(e.density*150);
-  for(let i=0;i<distant;i++){
-   const z=-(fieldDepth*.55+rnd()*fieldDepth*1.9);
-   const x=(rnd()-.5)*fieldWidth*3.4;
-   spots.push({x,z,s:.85+rnd()*.9,far:true});
-  }
-  const grouped=Object.fromEntries(types.map(k=>[k,[]]));
-  for(let i=0;i<spots.length;i++)grouped[types[i%types.length]].push(spots[i]);
+  const grouped=clusteredProps(e,rnd,fieldWidth,fieldDepth);
   const each=(name,geo,color,fn,{shadows=true}={})=>{
    const all=grouped[name]||[];
-   instanced(geo,material(color),all.length,(o,i)=>fn(o,all[i],i),{shadows});
+   const mat=material(color);if(all.length)scenicMaterials.push({mat,base:mat.color.clone(),name});
+   instanced(geo,mat,all.length,(o,i)=>fn(o,all[i],i),{shadows});
   };
   // Multi-layer trees: 3D trunk + two tapered foliage tiers sharing exact
   // instance positions. Real silhouette depth at low poly cost.
@@ -258,11 +264,16 @@ export function createWorld(host,stage){
   starMesh=new T.Points(pointsGeo,new T.PointsMaterial({color:0xbacde1,size:1.4,sizeAttenuation:false,transparent:true,opacity:0,depthWrite:false,fog:false}));
   starMesh.frustumCulled=false;root.add(starMesh);
   makeClouds(e,rnd);
-  const count=24;
+  const count=28;
   const fogMat=new T.MeshBasicMaterial({color:pal.horizon,transparent:true,opacity:0,depthWrite:false,fog:true});
   const mesh=instanced(new T.SphereGeometry(1,10,6),fogMat,count,(o)=>{
-   const x=(rnd()-.5)*fieldWidth*2.4,z=(rnd()-.5)*fieldDepth*2.2;
-   placeOnTerrain(o,x,z,fieldWidth,fieldDepth,e,.22);o.scale.set(2.8+rnd()*3,.16+rnd()*.16,2+rnd()*2);
+   let bestX=0,bestZ=0,bestY=Infinity;
+   for(let attempt=0;attempt<4;attempt++){
+    const x=(rnd()-.5)*fieldWidth*2.4,z=(rnd()-.5)*fieldDepth*2.6;
+    const y=landscapeHeight(x,z,fieldWidth,fieldDepth,e.seed,e.variation,e.hills);
+    if(y<bestY){bestX=x;bestZ=z;bestY=y;}
+   }
+   o.position.set(bestX,bestY+.15,bestZ);o.scale.set(3+rnd()*4,.12+rnd()*.16,2.4+rnd()*2.8);
   });if(mesh){mesh.castShadow=false;mesh.frustumCulled=false;fogMeshes.push(mesh);}
  }
  function makeWeatherSystem(type,seed){
@@ -347,13 +358,13 @@ export function createWorld(host,stage){
   if(skyMesh){skyMesh.material.uniforms.top.value.copy(skyTop);skyMesh.material.uniforms.bottom.value.copy(skyBottom);}
   scene.background.copy(skyTop);
   const sunA=Math.PI*(currentHour-6)/12;
-  const sunDir=new T.Vector3(Math.cos(sunA)*.35,Math.sin(sunA),-Math.cos(sunA)*.93).normalize();
+  sunDir.set(Math.cos(sunA)*.35,Math.sin(sunA),-Math.cos(sunA)*.93).normalize();
   const moonA=sunA+Math.PI;
-  const moonDir=new T.Vector3(Math.cos(moonA)*.35,Math.sin(moonA),-Math.cos(moonA)*.93).normalize();
+  moonDir.set(Math.cos(moonA)*.35,Math.sin(moonA),-Math.cos(moonA)*.93).normalize();
   if(sunBody){sunBody.position.copy(sunDir).multiplyScalar(115);sunBody.visible=light.solar>-.04;sunHalo.position.copy(sunBody.position);sunHalo.material.opacity=light.daylight*.34*(1-currentCloud*.45);sunHalo.visible=sunBody.visible;}
   if(moonBody){moonBody.position.copy(moonDir).multiplyScalar(115);moonBody.visible=light.solar<.04;moonHalo.position.copy(moonBody.position);moonHalo.material.opacity=moonBody.visible?.25:0;moonHalo.visible=moonBody.visible;}
   if(starMesh)starMesh.material.opacity=Math.pow(1-light.daylight,2)*(1-currentCloud*.9);
-  if(cloudMesh){const storm=light.storm;cloudTint.setRGB(...(env.weather==='sandstorm'?[.53,.40,.28]:[.86,.88,.90]));cloudTint.lerp(new T.Color(.27,.30,.35),Math.min(.75,storm*.57+currentCloud*.22));cloudMesh.material.color.copy(cloudTint);cloudMesh.material.opacity=.48+.3*currentCloud;}
+  if(cloudMesh){const storm=light.storm;cloudTint.setRGB(...(env.weather==='sandstorm'?[.53,.40,.28]:[.86,.88,.90]));cloudTint.lerp(stormTint.setRGB(.27,.30,.35),Math.min(.75,storm*.57+currentCloud*.22));cloudMesh.material.color.copy(cloudTint);cloudMesh.material.opacity=.48+.3*currentCloud;}
   if(cloudShadowMesh)cloudShadowMesh.material.opacity=.045+currentCloud*.10;
   ambient.intensity=smoothValue(ambient.intensity,light.ambient,dt,2);
   ambient.color.setRGB(.55+.35*light.daylight,.63+.31*light.daylight,.78+.18*light.daylight);
@@ -365,13 +376,32 @@ export function createWorld(host,stage){
    fogTint.copy(skyBottom).lerp(skyTop,.22);scene.fog.color.lerp(fogTint,colorBlend);
    scene.fog.density=smoothValue(scene.fog.density,.006+currentFog*.05+storm*.038,dt,2);
   }
-  if(fogMeshes.length)for(const m of fogMeshes)m.material.opacity=currentFog*.055;
+  if(fogMeshes.length)for(const m of fogMeshes){m.material.opacity=currentFog*.046;m.material.color.copy(skyBottom);}
+  const accTarget=accumulationTarget(env,currentStormIntensity);
+  accumulation.wet=smoothValue(accumulation.wet,accTarget.wet,dt,3.2);
+  accumulation.snow=smoothValue(accumulation.snow,accTarget.snow,dt,4.2);
+  accumulation.sand=smoothValue(accumulation.sand,accTarget.sand,dt,4);
   if(terrainMaterial){
-   const wet=['rain','thunderstorm'].includes(env.weather)?currentStormIntensity*.31:0;
-   const snowstorm=env.weather==='blizzard'?currentStormIntensity*.13:0;
-   const sandstorm=env.weather==='sandstorm'?currentStormIntensity*.15:0;
-   terrainMaterial.color.setRGB(1-wet-sandstorm*.4,1-wet-sandstorm*.25,1-wet+snowstorm*.09-sandstorm);
+   const wet=accumulation.wet*.26,snowCover=accumulation.snow*.12,sandCover=accumulation.sand*.12;
+   terrainMaterial.color.setRGB(1-wet+snowCover,1-wet*.9+snowCover*.97,1-wet*.78+snowCover*.94-sandCover*.6);
+   terrainMaterial.roughness=clamp(.95-accumulation.wet*.36,.48,.95);
   }
+  if(wetPatches)wetPatches.material.opacity=accumulation.wet*.47;
+  if(snowPatches)snowPatches.material.opacity=accumulation.snow*.83;
+  if(sandPatches)sandPatches.material.opacity=accumulation.sand*.38;
+  if(scenicMaterials.length){
+   for(const m of scenicMaterials){
+    m.mat.color.copy(m.base);
+    if(accumulation.snow>.01&&['tree','rock','bush','mound','ruin','pillar'].includes(m.name))m.mat.color.lerp(fogTarget.setHex(0xd7e3ea),accumulation.snow*.32);
+    m.mat.roughness=.95-accumulation.wet*.18;
+   }
+  }
+  // Soft shadow contrast: cloud-heavy skies don't create impossibly sharp
+  // direct shadows, and moonlight retains weaker but readable form.
+  sun.castShadow=light.direct+light.moon>.13;
+  const night=light.daylight<.18;
+  if(night!==nightStage){nightStage=night;stageShell?.classList.toggle('grim-night',night);}
+  sun.shadow.bias=-.00045;
   // Rare brief flashes cast real light on terrain and props during lightning.
   if(env.weather==='thunderstorm'&&currentStormIntensity>.35){
    const spike=Math.max(0,Math.sin(now*.00044*18)*Math.sin(now*.00031*17));
@@ -389,10 +419,10 @@ export function createWorld(host,stage){
   const stable=JSON.stringify([env.ground,env.hills,env.variation,env.path,env.pathX,env.pathZ,env.pathAngle,env.pathWidth,env.pathEdge,env.props,env.density,env.seed,fieldWidth,fieldDepth]);
   if(stable!==terrainSignature){
    terrainSignature=stable;markerSignature='';clearRoot();weatherSystems=[];fogMeshes=[];
-   skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=null;
+   skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=wetPatches=snowPatches=sandPatches=null;scenicMaterials=[];
    cloudClock=cloudUpdated=0;
    const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
-   const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);addAtmosphere(env,rnd,pal);
+   const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);makeWeatherGround(env,rnd);addAtmosphere(env,rnd,pal);
    if(oldW!==fieldWidth||oldD!==fieldDepth)cameraPose();
   }
   updateWeatherTarget();
@@ -429,7 +459,7 @@ export function createWorld(host,stage){
    const px=(proj.x+1)*width*.5,groundY=(1-foot.y)*height*.5,bottomY=(1-proj.y)*height*.5;
    const distance=camera.position.distanceTo(cardPoint.set(a.x,y+hover,a.z));
    const responsive=width<520?.39:width<800?.47:width<1100?.53:.60;
-   const perspective=clamp(31/Math.max(distance,1),.81,1.1);
+   const perspective=clamp(Math.pow(30/Math.max(distance,1),.20),.92,1.06);
    const scale=clamp(responsive*(a.layout.scale/.72)*perspective,.32,.76);
    const el=cardElements.get(a.id);if(!el)continue;
    // Keep the HTML laminated card hovering exactly over the 3D ground shadow.
@@ -446,7 +476,8 @@ export function createWorld(host,stage){
   frame=0;if(disposed||lost||document.hidden)return;
   const dt=Math.min((t-last)/1000||0,.05);last=t;
   const transitionMoving=updateLighting(dt,t);
-  const environmentMoving=weatherSystems.length>0||currentCloud>.015||env.cycleEnabled||transitionMoving;
+  const accMoving=Object.entries(accumulationTarget(env,currentStormIntensity)).some(([key,value])=>Math.abs(accumulation[key]-value)>.008);
+  const environmentMoving=weatherSystems.length>0||currentCloud>.015||env.cycleEnabled||transitionMoving||accMoving;
   if(weatherSystems.length)weatherTick(t,dt);
   if(cloudMesh && (currentCloud>.015||transitionMoving))cloudTick(dt,t);
   if(fogMeshes.length)for(const m of fogMeshes)m.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
@@ -460,7 +491,7 @@ export function createWorld(host,stage){
   if(dirty||environmentMoving||transition){
    if(projectionDirty){projectCards();projectionDirty=false;}
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
   if(environmentMoving||transition)frame=requestAnimationFrame(tick);
  }
