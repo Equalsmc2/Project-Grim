@@ -9,7 +9,7 @@ Based on 1.3 Living Atmosphere. Install as a complete website replacement: extra
 - Visual weather accumulation: puddles/wetness in rain, snow patches in blizzards and sand buildup in sandstorms. New **Ground accumulation** DM slider. The slider is stored/synced; precipitation supplements the setting.
 - Terrain material roughness/darkness, prop highlights, and fog wisps respond smoothly to weather without rebuilding terrain on each slider movement.
 - Reduced per-frame allocations, smoother card scaling across camera perspectives, and coalesced Firebase writes during quick DM changes (local changes remain immediate).
-- Cache-busted `assets/grim-140` active bundle; both HTML pages remain separate and anonymous authentication does not show a login.
+- Cache-busted `assets/grim-141` active bundle; both HTML pages remain separate and anonymous authentication does not show a login.
 
 ## Checks and limitations
 
@@ -58,7 +58,7 @@ This is the complete standalone site (DM page + player stage) based on 1.1.9.
   distance attenuation and fog, instead of evenly filling an empty black sky.
 - Existing live controls for **terrain width/depth, environment presets, weather,
   props and paths** remain synced across DM and stage.
-- The active source moved to `assets/grim-140/` to avoid caching older releases.
+- The active source moved to `assets/grim-141/` to avoid caching older releases.
 
 ## Install
 
@@ -103,7 +103,7 @@ This release is a **full replacement website**, based on **Locked Camera 1.1.7**
 - **Top** offers a **76° overhead perspective** for wider tactical context.
 - The three modes transition smoothly (approximately 720ms, or instantly when reduced motion is enabled). All cards stay upright, tied to their fixed world coordinates, and in initiative order within each side.
 - The player's stage includes a compact camera switch in the top-right of the battlefield. Its modes are viewer-local; changing camera mode does not overwrite shared campaign data.
-- New cache-distinct `assets/grim-140` bundle and **LIVING ATMOSPHERE 1.3** header, to prevent previously cached camera behavior.
+- New cache-distinct `assets/grim-141` bundle and **LIVING ATMOSPHERE 1.3** header, to prevent previously cached camera behavior.
 
 **Camera controls:** `1` Tactical, `2` Ground, `3` Top, `0` reset to Tactical, mouse drag/arrows orbit gently, mouse wheel and `+`/`−` zoom, `H` hide stage HUD, `F` fullscreen. All camera controls remain on the player presentation page; DM controls work as before.
 

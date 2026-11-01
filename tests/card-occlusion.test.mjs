@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask} from '../assets/grim-141/card-occlusion.js';
+
+const specs=makeOccluderSpecs({tree:[{x:0,z:1,s:1}],rock:[{x:3,z:-5,s:1}],pillar:[{x:-2,z:2,s:1}]},()=>0);
+assert.equal(specs.length,3);
+const project=(x,y,z)=>({x:500+x*35,y:490-y*45+z*5});
+const depth=(x,y,z)=>15-z;
+const shapes=projectOccluders(specs,project,depth);
+assert.equal(shapes.length,3);
+const card={left:430,right:570,top:300,bottom:540,depth:18};
+const front=foregroundForCard(shapes,card);
+assert(front.some(o=>o.kind==='tree'),'Nearby foreground trees should mask the card');
+assert(!front.some(o=>o.kind==='rock'),'Objects behind or outside the card must not mask it');
+assert(front.some(o=>o.kind==='pillar'),'Foreground ruins should mask the card');
+const behind=foregroundForCard(shapes,{...card,depth:10});
+assert.equal(behind.length,0,'Nothing behind a nearer card should mask it');
+let begun=0,drawn=0;
+const ctx={clearRect(){},fillRect(){},save(){},restore(){},beginPath(){begun++;},moveTo(){},lineTo(){},closePath(){},fill(){drawn++;}};
+assert(paintOcclusionMask(ctx,front,card,{width:174,height:240}));
+assert(begun>0&&drawn>0,'Silhouettes should be drawn into card masks');
+assert.equal(paintOcclusionMask(ctx,[],card,{width:174,height:240}),false);
+console.log('PASS: depth-aware per-card occlusion masks, foreground projection, hidden silhouettes and no-op cases.');

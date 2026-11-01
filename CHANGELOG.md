@@ -1,10 +1,17 @@
+## Depth-Aware Cards 1.4.1 — Natural Prop Occlusion
+
+- Added camera-depth-aware masking to world-anchored HTML cards: nearer trees, rocks, bushes, ruins, pillars, logs, gravestones, and snow mounds can naturally hide portions of a card.
+- Occlusion follows the Ground / Tactical / Top camera views, zoom, orbit and prop regeneration. Scene props behind a card do not obscure it.
+- Masks are computed from projected prop silhouettes only when camera/card positions change (throttled during camera transitions), avoiding extra WebGL draw calls and preserving sharp typography.
+- Preserved all 1.4 world polish, weather, lighting, DM controls, local/cloud synchronization and Windows uploader.
+
 ## Project Grim 1.4 — World Polish & Immersion
 - Seeded, path-aware clustered scenery, with safe combatant lanes.
 - Lighting/shadow refinements, nighttime card contrast and low-motion active hover.
 - Dynamic wet, snow and sand ground accumulation and prop tone reactions.
 - Better valley mist and smooth ground effect transitions.
 - Optimized render allocations and coalesced cloud updates, no changes to anonymous sign-in.
-- Separate `grim-140` asset directory, preserved Windows path-prompt uploader.
+- Separate `grim-141` asset directory, preserved Windows path-prompt uploader.
 
 ## Living Atmosphere 1.3 — Sky, Sun/Moon, Clouds and Storms
 
@@ -12,7 +19,7 @@
 - Instanced 3D clouds, nighttime stars, real sunlight/moonlight, and smooth atmosphere transitions.
 - Blizzard, sandstorm, thunderstorm, denser fog, storm-colored haze and wet-ground shading.
 - Compact DM atmosphere controls, presets and persistent Firebase/local sync state.
-- Cache-distinct active assets in `assets/grim-140`, full GitHub uploader retained.
+- Cache-distinct active assets in `assets/grim-141`, full GitHub uploader retained.
 
 ## Continuous World 1.2.2 — Terrain Grid + Hill Profiles
 
@@ -37,7 +44,7 @@
 - Added layered low-poly tree shapes, distant scenery, terrain-following scatter.
 - Improved weather 3D volumes with bounded distribution, fading and better fog.
 - Preserved the existing DM editor, Firebase/no-login sync, and GitHub BAT uploader.
-- Cache-safe `assets/grim-140` version.
+- Cache-safe `assets/grim-141` version.
 
 # Project Grim 1.1.9 — Tactical Perspective Redesign
 
