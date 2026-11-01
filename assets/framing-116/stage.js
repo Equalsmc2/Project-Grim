@@ -3,7 +3,7 @@ import {planFormation} from './formation.js';
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
-let yaw=0,pitch=0,lastSignature='',world=null;
+let yaw=0,pitch=0,zoom=1,lastSignature='',world=null;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeImg=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x)?x:'';
 
@@ -56,6 +56,7 @@ function render(s){
 subscribe(render);
 window.addEventListener('resize',()=>{world?.resize();lastSignature='';render(getState());});
 function updateCamera(){world?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
+function changeZoom(next){zoom=clamp(Number(next)||1,.72,1.6);world?.zoomTo(zoom);if(world)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
@@ -71,7 +72,25 @@ window.addEventListener('mousemove',e=>{
 function hudToggle(){try{const v=!(localStorage.getItem('grim:hideHud')==='true');localStorage.setItem('grim:hideHud',v?'true':'false');}catch{app.classList.toggle('ui-hidden');return;}render(getState());}
 $('toggleHud').onclick=hudToggle;
 $('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();};
-window.addEventListener('keydown',e=>{const key=e.key.toLowerCase();if(key==='h')hudToggle();else if(key==='f')$('fullscreen').click();else if(e.key==='ArrowLeft'){yaw=Math.max(-40,yaw-6);updateCamera();}else if(e.key==='ArrowRight'){yaw=Math.min(40,yaw+6);updateCamera();}else if(e.key==='ArrowUp'){pitch=Math.max(-12,pitch-3);updateCamera();}else if(e.key==='ArrowDown'){pitch=Math.min(12,pitch+3);updateCamera();}else if(key==='0'){yaw=0;pitch=0;updateCamera();}});
+window.addEventListener('keydown',e=>{
+ const key=e.key.toLowerCase();
+ if(e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
+ if(key==='h')hudToggle();
+ else if(key==='f')$('fullscreen').click();
+ else if(e.key==='ArrowLeft'){e.preventDefault();yaw=Math.max(-40,yaw-6);updateCamera();}
+ else if(e.key==='ArrowRight'){e.preventDefault();yaw=Math.min(40,yaw+6);updateCamera();}
+ else if(e.key==='ArrowUp'){e.preventDefault();pitch=Math.max(-12,pitch-3);updateCamera();}
+ else if(e.key==='ArrowDown'){e.preventDefault();pitch=Math.min(12,pitch+3);updateCamera();}
+ else if(key==='0'){yaw=0;pitch=0;changeZoom(1);updateCamera();}
+ else if(['+','='].includes(key)){e.preventDefault();changeZoom(zoom*1.09);}
+ else if(['-','_'].includes(key)){e.preventDefault();changeZoom(zoom/1.09);}
+});
+stage.addEventListener('wheel',e=>{
+ if(!world)return;
+ e.preventDefault();
+ changeZoom(zoom*Math.exp(-e.deltaY*.0011));
+},{passive:false});
+
 // Dragging the open battlefield or using arrow keys rotates the real WebGL
 // camera; each HTML card is reprojected from its unchanged 3D ground anchor.
 let cameraDrag=null;
@@ -100,7 +119,7 @@ async function launchWorld(){
  try {
   if(new URLSearchParams(location.search).get('webgl')==='0')throw new Error('Fallback requested');
   const {createWorld}=await import('./world.js');world=createWorld($('worldCanvas'),stage);
-  app.classList.add('webgl-ready');$('worldStatus').textContent='3D WORLD';render(getState());
+  app.classList.add('webgl-ready');changeZoom(zoom);render(getState());
  }catch(error){world?.dispose();world=null;app.classList.remove('webgl-ready');$('worldCanvas').replaceChildren();$('worldStatus').textContent='2D FALLBACK · 3D unavailable';console.warn('3D fallback:',error.message);}
 }
 launchWorld();

@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\optimized-114\state.js" (
+if not exist "%SOURCE_ROOT%\assets\framing-116\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -109,13 +109,13 @@ goto :cleanup_legacy
 rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
-if not exist "%REPO%\assets\optimized-114\state.js" (
-    echo [ERROR] Optimized 1.1.5 is not installed, refusing to remove old bundles.
+if not exist "%REPO%\assets\framing-116\state.js" (
+    echo [ERROR] Framing 1.1.6 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
 echo Cleanup option: remove inactive older Grim asset versions from this repository?
-echo The current optimized-114 assets, campaign data and Git history are untouched.
+echo The current framing-116 assets, campaign data and Git history are untouched.
 choice /c YN /n /m "Remove old version asset directories? [Y/N] "
 if errorlevel 2 goto :review_git
 if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
@@ -128,6 +128,7 @@ if exist "%REPO%\assets\environment-100\" rmdir /S /Q "%REPO%\assets\environment
 if exist "%REPO%\assets\perspective-110\" rmdir /S /Q "%REPO%\assets\perspective-110"
 if exist "%REPO%\assets\rectangle-112\" rmdir /S /Q "%REPO%\assets\rectangle-112"
 if exist "%REPO%\assets\anchored-113\" rmdir /S /Q "%REPO%\assets\anchored-113"
+if exist "%REPO%\assets\optimized-114\" rmdir /S /Q "%REPO%\assets\optimized-114"
 if exist "%REPO%\assets\stage.js" del /Q "%REPO%\assets\stage.js"
 if exist "%REPO%\assets\state.js" del /Q "%REPO%\assets\state.js"
 if exist "%REPO%\assets\styles.css" del /Q "%REPO%\assets\styles.css"
@@ -199,7 +200,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Optimized 1.1.5 deployed to Firebase Hosting.
+echo [SUCCESS] Framing 1.1.6 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

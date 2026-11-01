@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import * as T from '../assets/optimized-114/vendor/three.module.js';
-const source=readFileSync(new URL('../assets/optimized-114/world.js',import.meta.url),'utf8');
+import * as T from '../assets/framing-116/vendor/three.module.js';
+const source=readFileSync(new URL('../assets/framing-116/world.js',import.meta.url),'utf8');
 assert.match(source,/FIELD_W=35, FIELD_D=19/,'The 3D terrain dimensions must remain a wide rectangle');
 assert.match(source,/root\.scale\.set\(1,1,1\)/,'The scene must not apply nonuniform world scaling');
 assert.doesNotMatch(source,/root\.scale\.set\([^\n]*1\.6/,'Terrain depth must never be multiplied by 1.6');

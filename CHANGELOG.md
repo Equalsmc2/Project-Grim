@@ -1,3 +1,11 @@
+# Project Grim 1.1.6 — Framing that fits the site
+
+- New `framing-116` active asset path so the browser cannot reuse an older camera stylesheet/module URL.
+- Rebuilt the camera auto-fit around a higher spectator angle and less extreme padding. The rectangular stage now occupies considerably more of a landscape TV.
+- Reduced the default physical card presentation and corrected card-height projection to match the billboard dimensions; fixed world anchors and initiative ordering are unchanged.
+- Added mouse-wheel and +/- zoom for manual fine tuning; 0 resets orbit and zoom. Zoom is applied after auto-fit rather than being negated by it.
+- Kept environment, weather, DM controls, anonymous Firebase synchronization and Windows uploader; uploader can optionally remove the previous active asset directory.
+
 # Project Grim 1.1.5 — Camera Fit & Stage Proportion Tuning
 
 - Brought the 3D battlefield closer to the viewer so the stage uses more of the available screen space.

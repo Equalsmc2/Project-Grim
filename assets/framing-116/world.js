@@ -1,5 +1,6 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
+import {fitBattlefieldCamera} from './camera-frame.js';
 // Everything in this module is world-space geometry. HTML cards project from
 // fixed world anchors and are composited above the canvas for guaranteed clarity.
 export function createWorld(host,stage){
@@ -18,6 +19,7 @@ export function createWorld(host,stage){
  const sun=new T.DirectionalLight(0xffffff,2.4);sun.position.set(-7,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-21,right:21,top:21,bottom:-21});sun.shadow.bias=-.001;scene.add(sun);
  const spotlight=new T.SpotLight(0xffffff,35,35,.38,.7,1);spotlight.position.set(0,10,0);scene.add(spotlight,spotlight.target);
  let root=new T.Group();scene.add(root);
+ let zoom=1;
  // Marker meshes live outside environment root so changing the weather or
  // ground material never relocates units.
  let markerGroup=new T.Group();scene.add(markerGroup);
@@ -27,33 +29,13 @@ export function createWorld(host,stage){
  const mat=(color,extra={})=>{return new T.MeshStandardMaterial({color,roughness:.88,...extra});};
  const randomFactory=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  function cameraPose(){
-   // Bring the battlefield closer and let it occupy more of the site frame.
-   // The goal is a tighter presentation with less empty black space while the
-   // full rectangle still fits at common desktop sizes.
-   const orbitFit=1+Math.abs(Math.sin(yaw))*.26;
-   const portraitFit=Math.max(1,.98/(width/height));
-   const fit=orbitFit*portraitFit;
-   camera.position.set(Math.sin(yaw)*20.5*fit,(18.5+pitch*.82)*fit,Math.cos(yaw)*21.5*fit);
-   camera.lookAt(0,0,0);camera.updateMatrixWorld();
-   // Keep corners visible, but allow the arena to use more vertical and
-   // horizontal space than the conservative 1.1.4 framing.
-   for(let i=0;i<6;i++){
-     let maxX=0,maxY=0;
-     for(const x of [-HALF_W,HALF_W])for(const z of [-HALF_D,HALF_D]){
-       const q=new T.Vector3(x,0,z).project(camera);
-       maxX=Math.max(maxX,Math.abs(q.x));maxY=Math.max(maxY,Math.abs(q.y));
-     }
-     const oversize=Math.max(maxX/.992,maxY/.84);
-     if(oversize<=1.001)break;
-     camera.position.multiplyScalar(oversize*1.005);
-     camera.updateMatrixWorld();
-   }
+   fitBattlefieldCamera(camera, {width,height,yaw,pitch,zoom,fieldWidth:FIELD_W,fieldDepth:FIELD_D});
    dirty=true;projectionDirty=true;
  }
  function resize(){
    width=stage.clientWidth||1;height=stage.clientHeight||1;
    const ratio=width/height;
-   camera.aspect=ratio;camera.fov=ratio<1?44:38;
+   // Camera FOV and aspect are managed by the shared camera-fit helper.
    root.scale.set(1,1,1);camera.updateProjectionMatrix();
    // Constrain 3D canvas pixel count on ultra-high-resolution TVs; HTML cards
    // remain full native resolution, so readability is unaffected.
@@ -147,10 +129,10 @@ export function createWorld(host,stage){
      const distance=camera.position.distanceTo(cardPosition.set(a.x,.96,a.z));
      // Physical perspective: closer markers are slightly larger. The DM's
      // card-size slider still works, with responsive limits on small screens.
-     const responsive=width<520?.42:width<800?.53:width<1100?.60:.67;
+     const responsive=width<520?.38:width<800?.44:width<1100?.49:.53;
      const perspective=Math.max(.72,Math.min(1.15,referenceDistance/Math.max(distance,1)));
-     const scale=Math.max(.34,Math.min(.78,responsive*(a.layout.scale/.78)*perspective));
-     const CARD_H=242;
+     const scale=Math.max(.28,Math.min(.68,responsive*(a.layout.scale/.78)*perspective));
+     const CARD_H=240;
      const topY=bottomY-CARD_H*scale;
      const el=cardElements.get(a.id);
      if(!el)continue;
@@ -183,7 +165,7 @@ export function createWorld(host,stage){
  document.addEventListener('visibilitychange',visibility);
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
  renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
- resize();cameraPose();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p*.3;cameraPose();wake();},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
+ resize();cameraPose();return {update:rebuild,setCards,resize(){resize();wake();},orbit(y,p){yaw=y*Math.PI/180;pitch=p*.3;cameraPose();wake();},zoomTo(factor){zoom=Math.max(.72,Math.min(1.6,Number(factor)||1));cameraPose();wake();return zoom;},getZoom(){return zoom;},dispose(){disposed=true;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposeRoot();markerGroup.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}};
 }
 
 

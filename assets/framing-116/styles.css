@@ -946,7 +946,7 @@ html,body{height:100%}
  .webgl-ready .card-position,
 .webgl-ready .card-position.enemy-position,
 .webgl-ready .card-position.player-position{
-  position:absolute;left:var(--px);top:var(--py);width:172px;height:242px;
+  position:absolute;left:var(--px);top:var(--py);width:174px;height:240px;
   transform:translateX(-50%) scale(var(--unit-scale));
   transform-origin:top center;transition:none;will-change:transform,left,top;
   pointer-events:none;
@@ -954,7 +954,7 @@ html,body{height:100%}
 .webgl-ready .card-position .lam-card,
 .webgl-ready .card-position.enemy-position .lam-card,
 .webgl-ready .card-position.player-position .lam-card{
-  width:172px;height:242px;transform:none!important;
+  width:174px;height:240px;transform:none!important;
   filter:drop-shadow(0 9px 9px #000c);
 }
 /* Ground footprint is now a true THREE.Mesh on the map, not a fake fixed
@@ -968,14 +968,18 @@ html,body{height:100%}
 }
 .webgl-ready .card-position .rank-marker{top:-23px;left:50%;font-size:10px}
 .webgl-ready .card-topline{font-size:12px!important}
-.webgl-ready .card-character-name{font-size:20px!important}
+.webgl-ready .card-character-name{font-size:19px!important}
 .webgl-ready .stat-sm{font-size:17px!important}
 .webgl-ready .stat-sm small{font-size:11px!important}
 .webgl-ready .card-class{font-size:11px!important}
 @media(max-width:690px){
- .webgl-ready .card-position,.webgl-ready .card-position.enemy-position,.webgl-ready .card-position.player-position{width:172px;height:242px;transform:translateX(-50%) scale(var(--unit-scale))!important}
- .webgl-ready .card-position .lam-card{width:172px;height:242px}
+ .webgl-ready .card-position,.webgl-ready .card-position.enemy-position,.webgl-ready .card-position.player-position{width:174px;height:240px;transform:translateX(-50%) scale(var(--unit-scale))!important}
+ .webgl-ready .card-position .lam-card{width:174px;height:240px}
 }
 
 .webgl-ready .stage-main{cursor:grab;touch-action:none}
 .webgl-ready .stage-main:active{cursor:grabbing}
+
+/* Grim 1.1.6: readable reduced-scale world billboards and uncluttered camera frame. */
+.webgl-ready .card-position .card-conditions{font-size:10px}
+.webgl-ready #worldCanvas{inset:0}

@@ -1,10 +1,19 @@
-# Project Grim 1.1.5 — Optimization & Cleanup
+# Project Grim 1.1.6 — Camera Framing & Card Scale
 
 **Stable release based on the uploaded World-Anchored 1.1.3 full website.** It retains the same 3D battlefield, fixed ground markers, upright player/enemy cards, card ordering, terrain, weather, DM tools, and optional no-login Firebase synchronization. No campaign reset or changes to saved data structures are required.
 
+## Visual framing fix in 1.1.6
+
+This release uses a **new asset URL** (`assets/framing-116/`). The previous 1.1.5 release still loaded `optimized-114`, so an older cached stylesheet or renderer could make the upload look unchanged. Both `index.html` and `dm.html` must show **FRAMING 1.1.6** once deployed.
+
+- Higher, closer tactical camera; terrain now occupies approximately **94% of the view width** and **70–78% of the view height** on common 16:9/landscape displays, while keeping the corners inside the frame at default zoom. Measurements are from deterministic camera projection tests, **not from a live browser screenshot**.
+- Smaller world-anchored player and enemy billboards; the ground points and initiative ordering are unchanged.
+- **Mouse wheel or +/-** adjusts stage zoom without the auto-fit cancelling it; **0** resets zoom and orbit. Zoom may intentionally crop the arena when increased above 100%.
+- The arena/card projection is nudged down within the lens so enemy turn markers stay clear of the top combat HUD.
+
 ## What's improved
 
-- Removed all **10 inactive historical asset folders** and unused root-level legacy assets from the *downloaded package*. Only `assets/optimized-114` is loaded. Documentation and current tests are retained.
+- Removed all **10 inactive historical asset folders** and unused root-level legacy assets from the *downloaded package*. Only `assets/framing-116` is loaded. Documentation and current tests are retained.
 - Updated the Windows `github.bat` uploader to verify the **current** active asset directory and optionally remove only explicitly named older Grim asset folders from your existing GitHub repository. **It asks before deleting.** It never deletes `.git` or user-created folders.
 - Three.js weather continues rendering when active, but it does **not recalculate/rewrite all HTML card positions on every animation frame** unless the camera or cards actually change. Player/enemy card positions remain world-anchored.
 - Reused the renderer's temporary card-position vector and cached the current card HTML nodes, reducing garbage generation and DOM lookups during camera movement.
@@ -19,7 +28,7 @@
 3. Confirm copying the files, then optionally choose **Yes** to remove older inactive Grim asset folders in your Git repository. These are known versioned copies only; no user art or campaign data are targeted.
 4. Review the Git changes before committing/pushing. GitHub Pages deploys when your configured Pages workflow completes. Firebase Hosting is a separate optional upload offered by the BAT.
 5. For local use, launch **`RUN-GRIM.bat`** in the repository and open `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
-6. Check both pages say **OPTIMIZED 1.1.5**. If not, the browser is still serving an earlier deployment or cache.
+6. Check both pages say **FRAMING 1.1.6**. If not, the browser is still serving an earlier deployment or cache.
 
 **Test in your Windows browser before a live session.** The anonymous Firebase UID and secure rules have not been touched. This is a maintenance update, not a new campaign setup.
 
@@ -28,6 +37,7 @@
 ```sh
 node tests/world-anchor.test.mjs
 node tests/rectangle-projection.test.mjs
+node tests/camera-frame.test.mjs
 node --experimental-vm-modules tests/state.test.cjs
 ```
 
@@ -92,7 +102,7 @@ the existing campaign state; Scene and Combat remain separate presentation modes
 - Regenerate seed changes the deterministic layout. Clear props sets prop
   density to zero; terrain scatter, path and weather remain independently set.
 
-Drag across the battlefield or use arrow keys to orbit the camera; press 0 to reset it.
+Drag across the battlefield or use arrow keys to orbit the camera. Use the mouse wheel or +/- to zoom, and 0 to reset camera orbit and zoom.
 H hides the HUD and F toggles fullscreen. Cards stay front-facing, with readable
 HTML text above all 3D props/weather. Enemies occupy the far/upper bank; players
 occupy the near/lower bank. Global turn ranks are preserved, with descending
