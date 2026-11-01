@@ -110,7 +110,7 @@ rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
 if not exist "%REPO%\assets\optimized-114\state.js" (
-    echo [ERROR] Optimized 1.1.4 is not installed, refusing to remove old bundles.
+    echo [ERROR] Optimized 1.1.5 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
@@ -199,7 +199,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Optimized 1.1.4 deployed to Firebase Hosting.
+echo [SUCCESS] Optimized 1.1.5 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

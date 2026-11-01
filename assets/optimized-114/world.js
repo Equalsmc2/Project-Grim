@@ -13,7 +13,7 @@ export function createWorld(host,stage){
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setClearColor(0x050505);
  renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
  host.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','3D environment battlefield');
- const scene=new T.Scene(),camera=new T.PerspectiveCamera(44,1,.1,140);
+ const scene=new T.Scene(),camera=new T.PerspectiveCamera(40,1,.1,140);
  scene.add(new T.HemisphereLight(0xe6e6e6,0x242424,2));
  const sun=new T.DirectionalLight(0xffffff,2.4);sun.position.set(-7,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-21,right:21,top:21,bottom:-21});sun.shadow.bias=-.001;scene.add(sun);
  const spotlight=new T.SpotLight(0xffffff,35,35,.38,.7,1);spotlight.position.set(0,10,0);scene.add(spotlight,spotlight.target);
@@ -27,25 +27,25 @@ export function createWorld(host,stage){
  const mat=(color,extra={})=>{return new T.MeshStandardMaterial({color,roughness:.88,...extra});};
  const randomFactory=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  function cameraPose(){
-   // Perspective camera looks down at the rectangle while preserving its true
-   // aspect ratio. Refit distance for narrower displays or camera orbiting;
-   // do NOT resize world axes independently to make the plane fit.
-   const orbitFit=1+Math.abs(Math.sin(yaw))*.45;
-   const portraitFit=Math.max(1,.93/(width/height));
+   // Bring the battlefield closer and let it occupy more of the site frame.
+   // The goal is a tighter presentation with less empty black space while the
+   // full rectangle still fits at common desktop sizes.
+   const orbitFit=1+Math.abs(Math.sin(yaw))*.26;
+   const portraitFit=Math.max(1,.98/(width/height));
    const fit=orbitFit*portraitFit;
-   camera.position.set(Math.sin(yaw)*26*fit,(24+pitch)*fit,Math.cos(yaw)*26*fit);
+   camera.position.set(Math.sin(yaw)*20.5*fit,(18.5+pitch*.82)*fit,Math.cos(yaw)*21.5*fit);
    camera.lookAt(0,0,0);camera.updateMatrixWorld();
-   // Keep all four terrain corners visible, giving the HUD / cards breathing
-   // room. This also keeps the entire physical rectangle on-screen at 1024px.
-   for(let i=0;i<5;i++){
+   // Keep corners visible, but allow the arena to use more vertical and
+   // horizontal space than the conservative 1.1.4 framing.
+   for(let i=0;i<6;i++){
      let maxX=0,maxY=0;
      for(const x of [-HALF_W,HALF_W])for(const z of [-HALF_D,HALF_D]){
        const q=new T.Vector3(x,0,z).project(camera);
        maxX=Math.max(maxX,Math.abs(q.x));maxY=Math.max(maxY,Math.abs(q.y));
      }
-     const oversize=Math.max(maxX/.965,maxY/.73);
+     const oversize=Math.max(maxX/.992,maxY/.84);
      if(oversize<=1.001)break;
-     camera.position.multiplyScalar(oversize*1.01);
+     camera.position.multiplyScalar(oversize*1.005);
      camera.updateMatrixWorld();
    }
    dirty=true;projectionDirty=true;
@@ -53,7 +53,7 @@ export function createWorld(host,stage){
  function resize(){
    width=stage.clientWidth||1;height=stage.clientHeight||1;
    const ratio=width/height;
-   camera.aspect=ratio;camera.fov=ratio<1?48:42;
+   camera.aspect=ratio;camera.fov=ratio<1?44:38;
    root.scale.set(1,1,1);camera.updateProjectionMatrix();
    // Constrain 3D canvas pixel count on ultra-high-resolution TVs; HTML cards
    // remain full native resolution, so readability is unaffected.
@@ -147,10 +147,11 @@ export function createWorld(host,stage){
      const distance=camera.position.distanceTo(cardPosition.set(a.x,.96,a.z));
      // Physical perspective: closer markers are slightly larger. The DM's
      // card-size slider still works, with responsive limits on small screens.
-     const responsive=width<520?.48:width<800?.60:width<1100?.69:.77;
+     const responsive=width<520?.42:width<800?.53:width<1100?.60:.67;
      const perspective=Math.max(.72,Math.min(1.15,referenceDistance/Math.max(distance,1)));
-     const scale=Math.max(.40,Math.min(.92,responsive*(a.layout.scale/.78)*perspective));
-     const topY=bottomY-264*scale;
+     const scale=Math.max(.34,Math.min(.78,responsive*(a.layout.scale/.78)*perspective));
+     const CARD_H=242;
+     const topY=bottomY-CARD_H*scale;
      const el=cardElements.get(a.id);
      if(!el)continue;
      el.style.setProperty('--px',px.toFixed(2)+'px');

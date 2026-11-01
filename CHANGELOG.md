@@ -1,3 +1,11 @@
+# Project Grim 1.1.5 — Camera Fit & Stage Proportion Tuning
+
+- Brought the 3D battlefield closer to the viewer so the stage uses more of the available screen space.
+- Relaxed the camera auto-fit margins so the arena better matches the site aspect ratio instead of floating in excessive empty black space.
+- Reduced the world-anchored combat card size and screen projection scale for a cleaner stage-to-card balance.
+- Increased the room canvas size slightly to support the tighter framing.
+- Updated projected card height math so tethers and tops remain aligned after the smaller card size change.
+
 # Project Grim 1.1.2 — Rectangle Fix
 
 - Corrected nonuniform terrain depth scale that made the 3D battlefield square.

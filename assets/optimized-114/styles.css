@@ -935,7 +935,7 @@ html,body{height:100%}
 .initiative-track{grid-column:1/-1}
 
 /* RECTANGLE 1.1.2: cache-safe fallback stage matching the actual WebGL field. */
-.stage-app .room-3d{width:min(1450px,96vw);height:min(715px,77vh);}
+.stage-app .room-3d{width:min(1490px,98vw);height:min(760px,82vh);}
 @media(max-width:900px){.stage-app .room-3d{width:96vw;height:72vh}}
 
 
@@ -943,10 +943,10 @@ html,body{height:100%}
    Each --px/--py is the projected position of a fixed 3D ground point;
    cards rotate to face the spectator and are never artificially reflowed. */
 .webgl-ready .card-positions{position:absolute;inset:0;z-index:8;transform:none!important;pointer-events:none;overflow:visible}
-.webgl-ready .card-position,
+ .webgl-ready .card-position,
 .webgl-ready .card-position.enemy-position,
 .webgl-ready .card-position.player-position{
-  position:absolute;left:var(--px);top:var(--py);width:188px;height:264px;
+  position:absolute;left:var(--px);top:var(--py);width:172px;height:242px;
   transform:translateX(-50%) scale(var(--unit-scale));
   transform-origin:top center;transition:none;will-change:transform,left,top;
   pointer-events:none;
@@ -954,7 +954,7 @@ html,body{height:100%}
 .webgl-ready .card-position .lam-card,
 .webgl-ready .card-position.enemy-position .lam-card,
 .webgl-ready .card-position.player-position .lam-card{
-  width:188px;height:264px;transform:none!important;
+  width:172px;height:242px;transform:none!important;
   filter:drop-shadow(0 9px 9px #000c);
 }
 /* Ground footprint is now a true THREE.Mesh on the map, not a fake fixed
@@ -966,15 +966,15 @@ html,body{height:100%}
   background:linear-gradient(#e2e2e2a6,#e2e2e21a);border:0;box-shadow:0 0 4px #000c;
   pointer-events:none;
 }
-.webgl-ready .card-position .rank-marker{top:-25px;left:50%;font-size:11px}
+.webgl-ready .card-position .rank-marker{top:-23px;left:50%;font-size:10px}
 .webgl-ready .card-topline{font-size:12px!important}
-.webgl-ready .card-character-name{font-size:22px!important}
-.webgl-ready .stat-sm{font-size:19px!important}
+.webgl-ready .card-character-name{font-size:20px!important}
+.webgl-ready .stat-sm{font-size:17px!important}
 .webgl-ready .stat-sm small{font-size:11px!important}
-.webgl-ready .card-class{font-size:12px!important}
+.webgl-ready .card-class{font-size:11px!important}
 @media(max-width:690px){
- .webgl-ready .card-position,.webgl-ready .card-position.enemy-position,.webgl-ready .card-position.player-position{width:188px;height:264px;transform:translateX(-50%) scale(var(--unit-scale))!important}
- .webgl-ready .card-position .lam-card{width:188px;height:264px}
+ .webgl-ready .card-position,.webgl-ready .card-position.enemy-position,.webgl-ready .card-position.player-position{width:172px;height:242px;transform:translateX(-50%) scale(var(--unit-scale))!important}
+ .webgl-ready .card-position .lam-card{width:172px;height:242px}
 }
 
 .webgl-ready .stage-main{cursor:grab;touch-action:none}

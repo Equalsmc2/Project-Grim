@@ -1,4 +1,4 @@
-# Project Grim 1.1.4 — Optimization & Cleanup
+# Project Grim 1.1.5 — Optimization & Cleanup
 
 **Stable release based on the uploaded World-Anchored 1.1.3 full website.** It retains the same 3D battlefield, fixed ground markers, upright player/enemy cards, card ordering, terrain, weather, DM tools, and optional no-login Firebase synchronization. No campaign reset or changes to saved data structures are required.
 
@@ -19,7 +19,7 @@
 3. Confirm copying the files, then optionally choose **Yes** to remove older inactive Grim asset folders in your Git repository. These are known versioned copies only; no user art or campaign data are targeted.
 4. Review the Git changes before committing/pushing. GitHub Pages deploys when your configured Pages workflow completes. Firebase Hosting is a separate optional upload offered by the BAT.
 5. For local use, launch **`RUN-GRIM.bat`** in the repository and open `http://localhost:4174/dm.html` and `http://localhost:4174/index.html`.
-6. Check both pages say **OPTIMIZED 1.1.4**. If not, the browser is still serving an earlier deployment or cache.
+6. Check both pages say **OPTIMIZED 1.1.5**. If not, the browser is still serving an earlier deployment or cache.
 
 **Test in your Windows browser before a live session.** The anonymous Firebase UID and secure rules have not been touched. This is a maintenance update, not a new campaign setup.
 
@@ -31,7 +31,7 @@ node tests/rectangle-projection.test.mjs
 node --experimental-vm-modules tests/state.test.cjs
 ```
 
-See `OPTIMIZATION_REPORT_1.1.4.md` for exact changes and verification limitations.
+See `OPTIMIZATION_REPORT_1.1.5.md` for exact changes and verification limitations.
 
 ---
 
