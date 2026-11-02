@@ -1,3 +1,11 @@
+## Project Grim 1.4.8 — Slim Card Redesign
+
+- Changed native card proportions to **160×268 (1:1.675)**, taller/slimmer than 1.4.7.
+- Replaced both face and physical backing with rounded, UV-mapped, softly beveled 3D geometry.
+- Retuned dark-metallic frame, taller portrait, slim name area and open stat strip.
+- Preserved depth-correct occlusion, burn/frost foil, HP crack progression and live 3D shatter.
+- Created cache-distinct `assets/grim-148` and updated GitHub uploader/test references.
+
 ## Project Grim 1.4.7 — Card FX Polish
 
 - More dramatic flame foil/embers and layered crystalline frost on native cards.

@@ -1,11 +1,11 @@
 import * as T from './vendor/three.module.js';
 
-// Cards live in the same WebGL scene and depth buffer as scenery. Grim 1.4.7
+// Cards live in the same WebGL scene and depth buffer as scenery. Grim 1.4.8
 // keeps that real depth behavior, but restores a richer laminated-card look.
-export const CARD_WIDTH_PX = 174;
-export const CARD_HEIGHT_PX = 240;
-export const TEXTURE_WIDTH = 696;
-export const TEXTURE_HEIGHT = 960;
+export const CARD_WIDTH_PX = 160;
+export const CARD_HEIGHT_PX = 268;
+export const TEXTURE_WIDTH = 640;
+export const TEXTURE_HEIGHT = 1072;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const clean = s => String(s ?? '');
 const has2D = ctx => !!ctx && typeof ctx.fillRect === 'function';
@@ -317,94 +317,107 @@ function drawLaminateGloss(ctx, data, t){
   ctx.restore();
 }
 
+// The 1.4.8 presentation has a true tarot/dossier silhouette (160 x 268),
+// a tall portrait window and an open stat strip. Only the effects are remapped
+// from the earlier 174 x 240 finish artwork, preserving all 1.4.7 behavior.
 export function paintCard(ctx, data, portrait = null, timeMs = 0){
-  const w = CARD_WIDTH_PX, h = CARD_HEIGHT_PX;
-  ctx.clearRect(0, 0, w, h);
-  ctx.save();
-  ctx.imageSmoothingEnabled = true;
+  const w=CARD_WIDTH_PX, h=CARD_HEIGHT_PX;
+  ctx.clearRect(0,0,w,h); ctx.save(); ctx.imageSmoothingEnabled=true;
+  const exterior=ctx.createLinearGradient(0,0,w,h);
+  exterior.addColorStop(0,data.enemy?'#343033':'#364444');
+  exterior.addColorStop(.27,'#121719');
+  exterior.addColorStop(.78,'#0b0e11');
+  exterior.addColorStop(1,data.enemy?'#5b5257':'#3f5352');
+  rounded(ctx,1,1,w-2,h-2,15);ctx.fillStyle=exterior;ctx.fill();
+  // Double hairline border with spacious corners instead of a hard white box.
+  rounded(ctx,2.5,2.5,w-5,h-5,14);
+  ctx.strokeStyle=data.active?'rgba(223,242,238,.90)':'rgba(193,207,208,.34)';
+  ctx.lineWidth=data.active?1.7:1.15;ctx.stroke();
+  const charcoal=ctx.createLinearGradient(0,6,0,h-6);
+  charcoal.addColorStop(0,data.enemy?'#252126':'#1d282a');
+  charcoal.addColorStop(.42,'#141a1c');
+  charcoal.addColorStop(1,'#0b0f12');
+  rounded(ctx,6,6,w-12,h-12,11);ctx.fillStyle=charcoal;ctx.fill();
+  rounded(ctx,8,8,w-16,h-16,10);ctx.strokeStyle='rgba(222,231,234,.11)';ctx.lineWidth=.65;ctx.stroke();
 
-  const shell = ctx.createLinearGradient(0, 0, 0, h);
-  shell.addColorStop(0, data.enemy ? '#141215' : '#111516');
-  shell.addColorStop(1, data.enemy ? '#0b0b0c' : '#0c0f10');
-  rounded(ctx, 2, 2, w - 4, h - 4, 9); ctx.fillStyle = shell; ctx.fill();
-  ctx.strokeStyle = data.active ? '#ffffff' : data.enemy ? '#8d8e92' : '#8aa4a0';
-  ctx.lineWidth = data.active ? 3 : 1.6; ctx.stroke();
+  // Compact top metal plate, with right-aligned level cartouche.
+  rounded(ctx,10,11,102,25,6);
+  ctx.fillStyle='rgba(225,236,236,.055)';ctx.fill();
+  ctx.strokeStyle='rgba(225,236,236,.13)';ctx.lineWidth=.8;ctx.stroke();
+  ctx.font='700 8px monospace';ctx.textBaseline='middle';ctx.textAlign='left';
+  ctx.fillStyle=data.enemy?'#dfcfd3':'#b9d9d3';
+  ctx.fillText(data.enemy?'◆ ENEMY / NPC':'● PLAYER / PC',17,23);
+  rounded(ctx,119,11,31,25,6);ctx.fillStyle='rgba(225,236,236,.055)';ctx.fill();
+  ctx.strokeStyle='rgba(225,236,236,.13)';ctx.stroke();
+  ctx.textAlign='center';ctx.fillStyle='#eef0ef';ctx.fillText('LV '+data.level,134.5,23);ctx.textAlign='left';
 
-  const inner = ctx.createLinearGradient(0, 0, w, h);
-  inner.addColorStop(0, data.enemy ? '#1d1c20' : '#172022');
-  inner.addColorStop(.55, data.enemy ? '#141317' : '#13181a');
-  inner.addColorStop(1, '#0d1011');
-  rounded(ctx, 6, 6, w - 12, h - 12, 7); ctx.fillStyle = inner; ctx.fill();
-
-  capsule(ctx, 10, 10, 86, 13, data.enemy ? 'rgba(219,221,225,.08)' : 'rgba(185,220,212,.08)', 'rgba(255,255,255,.08)');
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'left';
-  ctx.font = '700 8px monospace';
-  ctx.fillStyle = data.enemy ? '#f0f1f3' : '#c7e3dd';
-  ctx.fillText(data.enemy ? '◆ ENEMY / NPC' : '● PLAYER / PC', 16, 16.8);
-  capsule(ctx, 130, 10, 34, 13, 'rgba(255,255,255,.045)', 'rgba(255,255,255,.07)');
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#e5e6e7';
-  ctx.fillText(`LV ${data.level}`, 147, 16.8);
-  ctx.textAlign = 'left';
-
-  drawPortrait(ctx, data, portrait);
-
-  const artFrame = ctx.createLinearGradient(10, 27, 10, 139);
-  artFrame.addColorStop(0, 'rgba(255,255,255,.08)');
-  artFrame.addColorStop(1, 'rgba(255,255,255,.02)');
-  ctx.strokeStyle = artFrame; ctx.lineWidth = 1.2;
-  rounded(ctx, 10, 27, 154, 112, 8); ctx.stroke();
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 16px system-ui, sans-serif';
-  const nm = fitText(ctx, data.name, 154, 16, 10);
-  ctx.fillText(nm, 11, 156);
-  ctx.fillStyle = '#aeb7bb';
-  ctx.font = '11px system-ui, sans-serif';
-  const role = clean(data.ancestry) + (data.ancestry && data.className ? ' · ' : '') + clean(data.className);
-  let sub = role; while(ctx.measureText(sub).width > 154 && sub.length > 2) sub = sub.slice(0, -2) + '…';
-  ctx.fillText(sub, 11, 172);
-
-  ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(10, 179, 154, 1);
-  drawStatBlock(ctx, 10, 186, 'HP', `${data.hp}/${data.maxHp}`, data.hpRatio < .25 ? '#ffd4d4' : '#eef1f1');
-  drawStatBlock(ctx, 63, 186, 'AC', String(data.ac), '#eef1f1');
-  drawStatBlock(ctx, 116, 186, data.combat ? 'INIT' : 'LVL', String(data.combat ? data.initiative : data.level), '#eef1f1');
-
-  let pillX = 10;
-  const statusFill = data.enemy ? 'rgba(255,255,255,.045)' : 'rgba(255,255,255,.04)';
-  const statusStroke = 'rgba(255,255,255,.08)';
-  pillX += drawStatusLabel(ctx, `TURN ${String(data.rank).padStart(2, '0')}`, pillX, 225, statusFill, statusStroke, '#d7dddd') + 4;
-  if(data.burning) pillX += drawStatusLabel(ctx, 'FIRE', pillX, 225, 'rgba(255,110,45,.14)', 'rgba(255,171,101,.45)', '#ffd0b1') + 4;
-  if(data.frozen) pillX += drawStatusLabel(ctx, 'ICE', pillX, 225, 'rgba(180,230,255,.16)', 'rgba(204,241,255,.36)', '#ebf8ff') + 4;
-  ctx.textAlign = 'right';
-  ctx.fillStyle = data.dead ? '#ffbaba' : data.active ? '#ffffff' : '#d8d7d0';
-  ctx.font = '700 8px monospace';
-  // Keep the right-side footer short when status tags are present.
-  if(data.dead) ctx.fillText('0 HP', 164, 233);
-  else if(data.active && !data.burning && !data.frozen) ctx.fillText('ACTIVE', 164, 233);
-  ctx.textAlign = 'left';
-
-  if(data.hpRatio < .25 && !data.dead){
-    const alert = ctx.createLinearGradient(0, 0, 174, 0);
-    alert.addColorStop(0, 'rgba(255,120,120,.00)');
-    alert.addColorStop(.5, 'rgba(255,120,120,.15)');
-    alert.addColorStop(1, 'rgba(255,120,120,.00)');
-    ctx.fillStyle = alert; ctx.fillRect(7, 181, 160, 42);
+  // Tall portrait and cut-corner inlay: the artwork owns more of the surface.
+  const ax=11,ay=43,aw=138,ah=141;
+  rounded(ctx,ax-1,ay-1,aw+2,ah+2,9);
+  ctx.fillStyle='rgba(202,216,215,.20)';ctx.fill();
+  ctx.save();rounded(ctx,ax,ay,aw,ah,8);ctx.clip();
+  if(portrait && portrait.complete && portrait.naturalWidth){
+    const ratio=Math.max(aw/portrait.naturalWidth,ah/portrait.naturalHeight);
+    const iw=portrait.naturalWidth*ratio,ih=portrait.naturalHeight*ratio;
+    ctx.drawImage(portrait,ax+(aw-iw)/2,ay+(ah-ih)/2,iw,ih);
+  }else{
+    const art=ctx.createLinearGradient(ax,ay,ax+aw,ay+ah);
+    art.addColorStop(0,data.enemy?'#51464a':'#516467');
+    art.addColorStop(.48,data.enemy?'#30272e':'#293538');
+    art.addColorStop(1,'#0e1114');ctx.fillStyle=art;ctx.fillRect(ax,ay,aw,ah);
+    ctx.textAlign='center';ctx.font='600 40px system-ui,sans-serif';ctx.fillStyle='rgba(231,242,241,.25)';ctx.fillText(data.symbol,w/2,106);
+    ctx.font='700 10px monospace';ctx.fillStyle='rgba(231,242,241,.38)';ctx.fillText(data.enemy?'NPC':'PC',w/2,150);ctx.textAlign='left';
+  }
+  const shade=ctx.createLinearGradient(0,ay,0,ay+ah);
+  shade.addColorStop(0,'rgba(0,0,0,.1)');shade.addColorStop(.61,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,.55)');
+  ctx.fillStyle=shade;ctx.fillRect(ax,ay,aw,ah);
+  ctx.restore();
+  rounded(ctx,ax,ay,aw,ah,8);ctx.strokeStyle='rgba(228,235,239,.19)';ctx.lineWidth=1;ctx.stroke();
+  // A tiny trapezoid inlay on each side visually breaks up the rigid frame.
+  ctx.strokeStyle='rgba(207,220,221,.19)';ctx.lineWidth=1;
+  for(const edge of [8,152]){
+    ctx.beginPath();ctx.moveTo(edge,58);ctx.lineTo(edge,81);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(edge,143);ctx.lineTo(edge,171);ctx.stroke();
   }
 
-  drawFreezeEffect(ctx, data, timeMs);
-  drawBurnEffect(ctx, data, timeMs);
-  drawLaminateGloss(ctx, data, timeMs);
-  // Fractures belong to the uppermost vinyl layer: cracks and chips must
-  // remain visible over any foil or frost finish.
-  drawWearAndCracks(ctx, data);
+  ctx.font='700 17px system-ui,sans-serif';ctx.fillStyle='#f2f4f4';
+  const name=fitText(ctx,data.name,138,17,11);ctx.fillText(name,11,202);
+  ctx.font='10px system-ui,sans-serif';ctx.fillStyle='#aeb8bb';
+  const role=clean(data.ancestry)+(data.ancestry&&data.className?' · ':'')+clean(data.className);
+  let subtitle=role;
+  while(ctx.measureText(subtitle).width>138&&subtitle.length>2) subtitle=subtitle.slice(0,-2)+'…';
+  ctx.fillText(subtitle,11,215);
+  ctx.fillStyle='rgba(225,235,233,.17)';ctx.fillRect(11,224,138,1);
 
-  if(data.active){
-    ctx.strokeStyle = 'rgba(255,255,255,.96)';
-    ctx.lineWidth = 2.4;
-    rounded(ctx, 6, 6, w - 12, h - 12, 7); ctx.stroke();
+  // Three slim columns, NO individual blocky stat boxes.
+  const statColumns=[{x:12,label:'HP',val:`${data.hp}/${data.maxHp}`},{x:61,label:'AC',val:String(data.ac)},{x:110,label:data.combat?'INIT':'LVL',val:String(data.combat?data.initiative:data.level)}];
+  for(const [i,stat] of statColumns.entries()){
+    if(i>0){ctx.fillStyle='rgba(227,235,235,.13)';ctx.fillRect(stat.x-6,230,1,24);}
+    ctx.font='700 8px monospace';ctx.fillStyle='#9facb0';ctx.fillText(stat.label,stat.x,234);
+    ctx.font='700 16px system-ui,sans-serif';ctx.fillStyle=i===0&&data.hpRatio<.25?'#ffdbdb':'#f0f2f2';
+    let val=stat.val;
+    if(ctx.measureText(val).width>43){ctx.font='700 13px system-ui,sans-serif';}
+    ctx.fillText(val,stat.x,249);
   }
+  // A deliberately thin footer plate, with state and turn order separated.
+  ctx.fillStyle='rgba(226,233,236,.06)';rounded(ctx,9,255,142,10,3);ctx.fill();
+  ctx.font='700 7.6px monospace';ctx.fillStyle='#b5c2c1';ctx.fillText(`TURN ${String(data.rank).padStart(2,'0')}`,14,260.4);
+  ctx.textAlign='right';
+  ctx.fillStyle=data.dead?'#ffb0ad':data.burning?'#ffb474':data.frozen?'#bfeafa':'#adb9b7';
+  const state=data.dead?'SHATTERED':data.burning&&data.frozen?'FIRE / FROST':data.burning?'BURNING':data.frozen?'FROZEN':data.active?'ACTIVE':'';
+  ctx.fillText(state,145,260.4);ctx.textAlign='left';
+
+  // Status finishes and continuous damage topology from 1.4.7 are remapped
+  // onto the taller, narrower card and clipped to its physical outline.
+  ctx.save();rounded(ctx,2,2,w-4,h-4,15);ctx.clip();
+  ctx.setTransform(TEXTURE_WIDTH/174,0,0,TEXTURE_HEIGHT/240,0,0);
+  drawFreezeEffect(ctx,data,timeMs);
+  drawBurnEffect(ctx,data,timeMs);
+  drawLaminateGloss(ctx,data,timeMs);
+  drawWearAndCracks(ctx,data);
+  ctx.restore();
+  // Active lighting is a controlled rim, not a blazing rectangle.
+  if(data.active){rounded(ctx,4,4,w-8,h-8,13);ctx.strokeStyle='rgba(210,243,237,.72)';ctx.lineWidth=1.15;ctx.stroke();}
   ctx.restore();
 }
 
@@ -431,11 +444,30 @@ function makeFoilMap(){
   return tex;
 }
 
+// One shared rounded silhouette serves both the opaque face and iridescent
+// foil. Correct UVs ensure text/portraits aren't stretched at the corners.
+export function roundedCardShape(radius=.065){
+  const r=clamp(radius,.025,.13), shape=new T.Shape();
+  const x=-.5,y=-.5,w=1,h=1;
+  shape.moveTo(x+r,y);shape.lineTo(x+w-r,y);
+  shape.quadraticCurveTo(x+w,y,x+w,y+r);
+  shape.lineTo(x+w,y+h-r);shape.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  shape.lineTo(x+r,y+h);shape.quadraticCurveTo(x,y+h,x,y+h-r);
+  shape.lineTo(x,y+r);shape.quadraticCurveTo(x,y,x+r,y);
+  return shape;
+}
+export function roundedCardFaceGeometry(){
+  const geo=new T.ShapeGeometry(roundedCardShape(.065),8);
+  const pos=geo.getAttribute('position'),uv=geo.getAttribute('uv');
+  for(let i=0;i<pos.count;i++)uv.setXY(i,pos.getX(i)+.5,pos.getY(i)+.5);
+  uv.needsUpdate=true;
+  return geo;
+}
 export function createNativeCardLayer(scene, { onError = () => {}, onChange = () => {} } = {}){
   const group = new T.Group(); group.name = 'GRIM_NATIVE_CARDS'; scene.add(group);
   const entries = new Map(); let available = true;
-  const faceGeometry = new T.PlaneGeometry(1, 1);
-  const shellGeometry = new T.BoxGeometry(1.045, 1.045, .038);
+  const faceGeometry = roundedCardFaceGeometry();
+  const shellGeometry = new T.ExtrudeGeometry(roundedCardShape(.065),{depth:.025,steps:1,bevelEnabled:true,bevelThickness:.007,bevelSize:.006,bevelSegments:2,curveSegments:8});
   const cameraForward = new T.Vector3(), fromCamera = new T.Vector3(), groundPoint = new T.Vector3();
   let lastAnimatedAt = 0;
   const SHATTER_DURATION = 1350;
@@ -553,10 +585,10 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     const faceMaterial = new T.MeshBasicMaterial({ map: texture, side: T.DoubleSide, depthTest: true, depthWrite: true, transparent: false, alphaTest: .04, toneMapped: false, fog: false });
     const faceMesh = new T.Mesh(faceGeometry, faceMaterial); faceMesh.name = 'GRIM_CARD_FACE_' + id;
     const shellMaterial = new T.MeshStandardMaterial({ color: data.enemy ? 0x1d1c1f : 0x182022, roughness: .88, metalness: .10 });
-    const shellMesh = new T.Mesh(shellGeometry, shellMaterial); shellMesh.position.z = -.004; shellMesh.castShadow = false; shellMesh.receiveShadow = false;
+    const shellMesh = new T.Mesh(shellGeometry, shellMaterial); shellMesh.position.z = -.019; shellMesh.castShadow = false; shellMesh.receiveShadow = false;
     const foilTexture = makeFoilMap();
     const foilMaterial = new T.MeshBasicMaterial({ map: foilTexture, transparent: true, opacity: .12, blending: T.AdditiveBlending, depthTest: true, depthWrite: false, toneMapped: false, side: T.DoubleSide, fog: false });
-    const foilMesh = new T.Mesh(faceGeometry, foilMaterial); foilMesh.position.z = .026;
+    const foilMesh = new T.Mesh(faceGeometry, foilMaterial); foilMesh.position.z = .027;
     const root = new T.Group(); root.name = 'GRIM_CARD_' + id; root.userData.combatantId = id; root.userData.shellMaterial = shellMaterial; root.frustumCulled = false;
     root.material = faceMaterial;
     faceMesh.position.z = .02;

@@ -1,3 +1,11 @@
+# Project Grim 1.4.8 — Slim Premium Cards
+
+**Current release:** redesigned real 3D character cards with a taller tarot/dossier profile, genuinely rounded 3D geometry, metallic laminated trim, cleaner typography and a taller portrait. Preserves 1.4.7 Burning, Frozen, cracking and 0-HP shatter finishes, and all stage/DM/ambience/terrain features.
+
+**Install:** Extract the full ZIP, run `github.bat`, enter the Project-Grim repository path, review and confirm. Both pages show **CARD REDESIGN 1.4.8**. Campaign data and Firebase settings are preserved. See `RELEASE_NOTES_1.4.8.md` and `TEST_REPORT_1.4.8.md`.
+
+---
+
 # Project Grim 1.4.7 — Card FX Polish
 
 **Current release:** richer burning and freezing laminate effects, continuous HP fracture progression, and one-shot 3D vinyl shatter when a character falls from positive HP to zero. Real 3D world anchoring, occlusion, camera controls, atmosphere, ambience, the DM dashboard, no-login Firebase/local sync, and the existing state format remain intact.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-147/environment-state.js';
-const root=new URL('../assets/grim-147/',import.meta.url);
+import {normalizeEnvironment} from '../assets/grim-148/environment-state.js';
+const root=new URL('../assets/grim-148/',import.meta.url);
 const env=normalizeEnvironment({cinematicPan:true,cinematicSpeed:25});
 assert.equal(env.cinematicPan,true);
 assert.equal(env.cinematicSpeed,2.5);
