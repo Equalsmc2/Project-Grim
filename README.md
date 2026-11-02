@@ -1,3 +1,11 @@
+# Project Grim 1.4.10 — Always-Visible Cards
+
+**Current release:** every displayed native 3D card must remain entirely inside the player-stage viewport, including during zoom, cinematic panning, camera transitions, rotation, large rosters and resizing. The new final camera-framing pass projects each physical card's four corners and adjusts the camera only when clipping would occur. Existing card FX, 3D depth behavior, terrain, DM dashboard, ambience and no-login Firebase workflow are preserved.
+
+**Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CARD VISIBILITY 1.4.10**. No campaign reset is required. See `RELEASE_NOTES_1.4.10.md` and `TEST_REPORT_1.4.10.md`.
+
+---
+
 # Project Grim 1.4.9 — Card Finish Fix
 
 **Current release:** fixes barely visible Burning, prevents camera zoom from cropping combatant cards, and replaces scratchy cracks with stable, readable portrait-glass fractures. The existing 0 HP shatter, native 3D depth occlusion, weather, ambience, combat/DM systems and no-login Firebase are preserved.

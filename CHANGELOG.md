@@ -1,3 +1,11 @@
+## Project Grim 1.4.10 — Always-Visible Cards
+
+- Added a **final camera-framing safeguard** that checks all four corners of every visible 3D card after camera rotation, zoom, cinematic movement, resize and transitions.
+- Corrected the old guard's failure case: previously it accepted a clipped layout when even the minimum zoom was insufficient. It now supports extra automatic retreat only when required.
+- Kept standard manual zoom behavior while allowing the internal safety fit to exceed its normal range.
+- Added a deterministic 216-case viewport/camera/roster regression test.
+- Changed the active website bundle to cache-safe `assets/grim-1410` and updated the Windows path-prompt uploader.
+
 ## Project Grim 1.4.9 — Card Finish Fix
 
 - Corrected 1.4.8's old-card canvas transform: Burning and Frozen finishes now cover the actual tall card face.
@@ -5,7 +13,7 @@
 - Refined damage into deterministic, branching portrait-laminate fractures with small critical stress halos.
 - Added roster-aware safe zoom in Ground/Tactical/Top views to keep visible cards within the stage frame.
 - Updated stage zoom indicator and added a focused regression test and visual preview page.
-- Cache-safe `assets/grim-149` bundle; installer and no-login campaign state preserved.
+- Cache-safe `assets/grim-1410` bundle; installer and no-login campaign state preserved.
 
 ## Project Grim 1.4.8 — Slim Card Redesign
 
