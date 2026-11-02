@@ -6,7 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
 
-const live=path.resolve('assets/grim-144');
+const live=path.resolve('assets/grim-145');
 const temp=mkdtempSync(path.join(os.tmpdir(),'grim-preset-test-'));
 const fakeRenderer=`
 export * from './vendor/three.module.js';
@@ -17,7 +17,7 @@ export class WebGLRenderer{
 }
 `;
 let frameId=0,pendingFrames=new Map();
-const ctx={clearRect(){},fillRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},createRadialGradient(){return {addColorStop(){}}}};
+const ctx={clearRect(){},fillRect(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},stroke(){},fill(){},save(){},restore(){},clip(){},setTransform(){},fillText(){},measureText(t){return {width:String(t).length*7}},createRadialGradient(){return {addColorStop(){}}},createLinearGradient(){return {addColorStop(){}}}};
 const classList={add(){},remove(){},toggle(){}};
 const stageApp={classList};
 globalThis.document={hidden:false,createElement(type){if(type==='canvas')return {width:64,height:64,getContext(){return ctx}};return {}},getElementById(){return stageApp},querySelector(){return null},addEventListener(){},removeEventListener(){}};
@@ -36,6 +36,14 @@ try{
  const {normalizeEnvironment,ENV_DEFAULT,PRESETS}=await import(pathToFileURL(path.join(temp,'environment-state.js')).href);
  const host={appendChild(){},classList},stage={clientWidth:1500,clientHeight:850};
  const world=createWorld(host,stage);
+ world.update(normalizeEnvironment({...ENV_DEFAULT,...PRESETS.Forest,preset:'Forest'}));
+ flush(70);
+ const actors=[{id:'p1',name:'Rogue',faction:'player',hp:30,maxHp:40,ac:18,initiative:21,level:3,className:'Rogue',ancestry:'Human'}];
+ world.setCards(new Map([['p1',{worldX:0,worldZ:3,side:'player',scale:.72,rank:1,active:true}]]),actors,true);
+ flush(100);
+ const nativeGroup=globalThis.grimFakeRenderer.scene.children.find(o=>o.name==='GRIM_NATIVE_CARDS');
+ assert.equal(nativeGroup?.children.length,1,'Native card created in shared 3D scene');
+ const nativeMesh=nativeGroup.children[0];
  try {
   const sequence=['Forest','Blank test stage','Snowfield','Blank test stage','Ruins','Desert','Forest'];
   let now=200;
@@ -46,6 +54,7 @@ try{
    const root=globalThis.grimFakeRenderer.scene.children.find(obj=>obj.isGroup && obj.children.some(child=>child.isMesh&&child.geometry?.type==='PlaneGeometry'));
    assert(root,`Terrain missing after switching to ${preset}`);
    assert(root.children.some(obj=>obj.isMesh&&obj.geometry?.type==='PlaneGeometry'),`No generated floor after ${preset}`);
+   assert.equal(nativeGroup.children[0],nativeMesh,'Preset switching must preserve native cards and their textures');
   }
   console.log('PASS: repeated Forest → Blank → Snowfield → Blank → Ruins → Desert → Forest rebuilds and renders.');
  } finally {world.dispose();}

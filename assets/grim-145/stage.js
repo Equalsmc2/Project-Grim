@@ -47,7 +47,7 @@ function render(s){
     $('cardPositions').innerHTML=chars.slice().sort((a,b)=>layout.placements.get(a.id).rank-layout.placements.get(b.id).rank).map(c=>cardHTML(c,s,layout.placements.get(c.id))).join('');
     lastSignature=signature;
   }
-  if(world){world.update(s.environment);world.setCards(layout.placements);}
+  if(world){world.update(s.environment);world.setCards(layout.placements,chars,combat);}
   updateCinematicUI(s.environment?.cinematicPan);
   if(combat){
     $('roundDisplay').textContent=s.combat.round;
@@ -148,7 +148,7 @@ async function launchWorld(){
   if(new URLSearchParams(location.search).get('webgl')==='0')throw new Error('Fallback requested');
   const {createWorld}=await import('./world.js');world=createWorld($('worldCanvas'),stage);
   app.classList.add('webgl-ready');selectCameraView(viewMode);render(getState());
- }catch(error){world?.dispose();world=null;app.classList.remove('webgl-ready');$('worldCanvas').replaceChildren();$('worldStatus').textContent='2D FALLBACK · 3D unavailable';console.warn('3D fallback:',error.message);}
+ }catch(error){world?.dispose();world=null;app.classList.remove('webgl-ready','native-cards-ready');$('worldCanvas').replaceChildren();$('worldStatus').textContent='2D FALLBACK · 3D unavailable';console.warn('3D fallback:',error.message);}
 }
 launchWorld();
 window.addEventListener('pagehide',()=>{if(tiltFrame)cancelAnimationFrame(tiltFrame);world?.dispose();});

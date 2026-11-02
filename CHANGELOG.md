@@ -1,8 +1,16 @@
+## 1.4.5 — Native 3D Cards
+
+- Replaced separate HTML cards and projected prop-silhouette cutouts with true Three.js card surfaces sharing the 3D depth buffer.
+- Recreated cards as crisp, camera-facing canvas textures with full HP, AC, initiative, portrait support, team distinction, active turn and conditions.
+- Textures update only for card changes, not camera/weather frames; removed obsolete silhouette clipping code and test suite.
+- Preserved HTML fallback, world-anchored cards, cinematic pan, audio, no-login sync and environment preset switching.
+- New cache-distinct `assets/grim-145` directory.
+
 ## Project Grim 1.4.4 — Preset recovery fix
 
 - Removed a stale undefined occlusion variable that crashed environment reconstruction after changing presets.
 - Added runtime scene-rebuild regression coverage for Blank → other preset transitions.
-- Updated active assets to `assets/grim-144` so browsers fetch the corrected code.
+- Updated active assets to `assets/grim-145` so browsers fetch the corrected code.
 
 ## Preset Fix 1.4.4 — Pan and Stable Occlusion
 

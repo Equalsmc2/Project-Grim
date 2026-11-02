@@ -1,3 +1,11 @@
+# Project Grim 1.4.5 — Native 3D Cards
+
+**Current release:** Native depth-tested laminated cards. In WebGL mode every card is a high-resolution Three.js plane anchored to its actual battlefield coordinate, so trees, stones and ruins naturally occlude the card surface. The old projected CSS polygon masks are removed. Fallback HTML cards are preserved when WebGL is unavailable. Preset switching, cinematic pan, terrain, lighting, ambience and no-login cloud/local sync are unchanged.
+
+Extract this ZIP, run `github.bat`, enter your existing Project-Grim repository path, review the changes, and deploy. Confirm **NATIVE 3D CARDS 1.4.5** in both page headers. No campaign reset is required. See `RELEASE_NOTES_1.4.5.md` and `TEST_REPORT_1.4.5.md` for tests and limitations.
+
+---
+
 # Project Grim 1.4.4 — Preset Recovery Fix
 
 **Current release:** fixes a renderer error when changing environment presets, especially after selecting Blank test stage. See `RELEASE_NOTES_1.4.4.md`. The existing saved campaign, ambience, stage and DM controls are preserved.

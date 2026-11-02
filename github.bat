@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\grim-144\state.js" (
+if not exist "%SOURCE_ROOT%\assets\grim-145\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -91,7 +91,7 @@ if errorlevel 2 goto :done
 echo.
 echo Copying Project Grim site files...
 rem Copy only known site root files. Never copy the .git folder or all Downloads.
-robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "RELEASE_NOTES_1.4.5.md" "TEST_REPORT_1.4.5.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\assets" "%REPO%\assets" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
@@ -109,13 +109,13 @@ goto :cleanup_legacy
 rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
-if not exist "%REPO%\assets\grim-144\state.js" (
-    echo [ERROR] Preset Fix 1.4.4 is not installed, refusing to remove old bundles.
+if not exist "%REPO%\assets\grim-145\state.js" (
+    echo [ERROR] Native 3D Cards 1.4.5 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
 echo Cleanup option: remove inactive older Grim asset versions from this repository?
-echo The current grim-144 assets, campaign data and Git history are untouched.
+echo The current grim-145 assets, campaign data and Git history are untouched.
 choice /c YN /n /m "Remove old version asset directories? [Y/N] "
 if errorlevel 2 goto :review_git
 if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
@@ -143,6 +143,7 @@ if exist "%REPO%\assets\firebase-sync.js" del /Q "%REPO%\assets\firebase-sync.js
 if exist "%REPO%\assets\firebase-config.js" del /Q "%REPO%\assets\firebase-config.js"
 if exist "%REPO%\assets\grim-142" rmdir /S /Q "%REPO%\assets\grim-142"
 if exist "%REPO%\assets\grim-143" rmdir /S /Q "%REPO%\assets\grim-143"
+if exist "%REPO%\assets\grim-144" rmdir /S /Q "%REPO%\assets\grim-144"
 echo [OK] Old bundled assets cleaned.
 goto :review_git
 
@@ -208,7 +209,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Preset Fix 1.4.4 deployed to Firebase Hosting.
+echo [SUCCESS] Native 3D Cards 1.4.5 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

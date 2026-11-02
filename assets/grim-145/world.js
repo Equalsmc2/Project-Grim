@@ -2,12 +2,12 @@ import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
 import {effectiveTime,lightAt,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
 import {clusteredProps,accumulationTarget,pathDistance} from './world-polish.js';
-import {makeOccluderSpecs,projectOccluders,foregroundForCard,cardOcclusionClip} from './card-occlusion.js';
+import {createNativeCardLayer} from './native-cards.js';
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
-// Unit anchors are fixed in world coordinates. The cards are sharp camera-facing
-// HTML billboards; only their projected screen positions change on camera orbit.
+// Unit anchors are fixed in world coordinates. Cards are genuine Three.js
+// camera-facing planes sharing the scene depth buffer with environment props.
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const hillScale=(h='mid')=>({flat:0,small:.45,mid:1,mountains:1.9}[h]??1);
 const palettes={
@@ -72,21 +72,18 @@ export function createWorld(host,stage){
  const spotlight=new T.SpotLight(0xffffff,26,30,.43,.7,1);scene.add(spotlight,spotlight.target);
  let root=new T.Group();scene.add(root);
  const markerGroup=new T.Group();scene.add(markerGroup);
+ const nativeCards=createNativeCardLayer(scene,{onChange:()=>{dirty=true;wake();},onError:message=>console.warn('Native cards:',message)});
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null;
  let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
- let occluders=[];
  let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0;
  const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
  let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0,windPhase=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
- const dummy=new T.Object3D(),proj=new T.Vector3(),foot=new T.Vector3(),cardPoint=new T.Vector3(),target=new T.Vector3();
- const occlusionPoint=new T.Vector3(),viewDirection=new T.Vector3();
- const clipCache=new Map(),occlusionHistory=new Map();
- const cssClipSupported=typeof CSS!=='undefined'&&CSS.supports?.('clip-path','path(evenodd, \"M 0 0 H 10 V 10 H 0 Z\")');
- const cardElements=new Map();const stageShell=document.getElementById('stageApp');
+ const dummy=new T.Object3D(),target=new T.Vector3();
+ const stageShell=document.getElementById('stageApp');
  function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
  function cameraPose(animate=false){
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
@@ -107,7 +104,7 @@ export function createWorld(host,stage){
   group.traverse(o=>{if(o.geometry)geos.add(o.geometry);if(o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material])){mats.add(m);if(m.map&&m.map!==groundShadow)textures.add(m.map);}}if(o.isInstancedMesh)o.dispose?.();});
   geos.forEach(g=>g.dispose());mats.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());
  }
- function clearRoot(){disposeObject(root);scene.remove(root);root=new T.Group();scene.add(root);occluders=[];}
+ function clearRoot(){disposeObject(root);scene.remove(root);root=new T.Group();scene.add(root);}
  function instanced(geo,mat,count,fn,{shadows=false}={}){
   if(!count){geo.dispose();mat.dispose();return null;}
   const mesh=new T.InstancedMesh(geo,mat,count);
@@ -204,7 +201,6 @@ export function createWorld(host,stage){
   if(e.density<=0)return;
   const types={forest:['tree','bush','log','tuft','rock'],rocks:['rock'],ruins:['pillar','ruin','grave','rock'],snow:['mound','rock','tree'],grass:['tuft'],bushes:['bush'],logs:['log'],graves:['grave'],mixed:['tree','bush','log','tuft','rock','pillar','ruin','grave','mound']}[e.props]||['rock'];
   const grouped=clusteredProps(e,rnd,fieldWidth,fieldDepth);
-  occluders=makeOccluderSpecs(grouped,(x,z)=>landscapeHeight(x,z,fieldWidth,fieldDepth,e.seed,e.variation,e.hills));
   const each=(name,geo,color,fn,{shadows=true}={})=>{
    const all=grouped[name]||[];
    const mat=material(color);if(all.length)scenicMaterials.push({mat,base:mat.color.clone(),name});
@@ -425,7 +421,7 @@ export function createWorld(host,stage){
   fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
   const stable=JSON.stringify([env.ground,env.hills,env.variation,env.path,env.pathX,env.pathZ,env.pathAngle,env.pathWidth,env.pathEdge,env.props,env.density,env.seed,fieldWidth,fieldDepth]);
   if(stable!==terrainSignature){
-   terrainSignature=stable;markerSignature='';clipCache.clear();occlusionHistory.clear();clearRoot();weatherSystems=[];fogMeshes=[];
+   terrainSignature=stable;markerSignature='';clearRoot();weatherSystems=[];fogMeshes=[];
    skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=wetPatches=snowPatches=sandPatches=null;scenicMaterials=[];
    cloudClock=cloudUpdated=0;
    const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
@@ -435,15 +431,13 @@ export function createWorld(host,stage){
   updateWeatherTarget();
   dirty=true;projectionDirty=true;wake();
  }
- function setCards(placements){
+ function setCards(placements,characters=[],combat=false){
   if(width!==stage.clientWidth||height!==stage.clientHeight)resize();
-  anchors=[];cardElements.clear();clipCache.clear();
-  for(const id of clipCache.keys())if(!placements.has(id)){clipCache.delete(id);occlusionHistory.delete(id);}
+  anchors=[];
   for(const [id,p] of placements){
    const x=clamp(Number(p.worldX)||0,-fieldWidth*.5+1,fieldWidth*.5-1);
    const z=clamp(Number(p.worldZ)||0,-fieldDepth*.5+1,fieldDepth*.5-1);
    anchors.push({id,x,z,active:p.active,layout:p});
-   const el=document.querySelector(`[data-combatant-id="${CSS.escape(id)}"]`);if(el)cardElements.set(id,el);
   }
   const nextSig=JSON.stringify(anchors.map(a=>[a.id,a.x,a.z,a.active,a.layout.side]));
   if(nextSig!==markerSignature){
@@ -456,6 +450,8 @@ export function createWorld(host,stage){
     ring.rotation.x=-Math.PI/2;ring.position.set(a.x,y+.10,a.z);markerGroup.add(ring);
    }
   }
+  nativeCards.setCards(anchors,characters,combat);
+  stageShell.classList.toggle('native-cards-ready',true);
   dirty=true;projectionDirty=true;wake();
  }
  function updateCinematicSettings(e){
@@ -487,57 +483,17 @@ export function createWorld(host,stage){
   projectionDirty=true;dirty=true;return true;
  }
  function projectCards(){
-  camera.updateMatrixWorld();let active=false;
-  const cardRects=[];
-  for(const a of anchors){
+  // Real 3D billboards share opaque geometry's depth buffer. No CSS silhouette
+  // masks, delayed bitmap generation, or independently sorted HTML overlay.
+  camera.updateMatrixWorld();
+  nativeCards.update(camera,width,height,env,landscapeHeight);
+  let active=false;
+  for(const a of anchors)if(a.active){
    const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
-   const hover=a.active?1.45:1.1;
-   foot.set(a.x,y+.02,a.z).project(camera);proj.set(a.x,y+hover,a.z).project(camera);
-   const px=(proj.x+1)*width*.5,groundY=(1-foot.y)*height*.5,bottomY=(1-proj.y)*height*.5;
-   const distance=camera.position.distanceTo(cardPoint.set(a.x,y+hover,a.z));
-   const responsive=width<520?.39:width<800?.47:width<1100?.53:.60;
-   const perspective=clamp(Math.pow(30/Math.max(distance,1),.20),.92,1.06);
-   const scale=clamp(responsive*(a.layout.scale/.72)*perspective,.32,.76);
-   const el=cardElements.get(a.id);if(!el)continue;
-   // Keep the HTML laminated card hovering exactly over the 3D ground shadow.
-   el.style.setProperty('--px',px.toFixed(2)+'px');
-   el.style.setProperty('--py',(bottomY-240*scale).toFixed(2)+'px');
-   el.style.setProperty('--unit-scale',scale.toFixed(3));
-   el.style.setProperty('--tether-size','0px');
-   cardRects.push({id:a.id,el,x:a.x,z:a.z,y:y+hover,left:px-87*scale,right:px+87*scale,top:bottomY-240*scale,bottom:bottomY});
-   el.style.zIndex=String(30+Math.round((a.z+fieldDepth*.5)*2)+(a.active?100:0));
-   if(a.active){spotlight.position.set(a.x,10,a.z+2);spotlight.target.position.set(a.x,0,a.z);active=true;}
+   spotlight.position.set(a.x,10,a.z+2);spotlight.target.position.set(a.x,y,a.z);
+   active=true;break;
   }
   spotlight.visible=active;
-  // Update native vector clipping in the same frame as card projection.
-  // PNG mask generation was asynchronous and throttled to 85ms; the moving
-  // cards and stale PNGs used to flicker/stutter against trees and pillars.
-  camera.getWorldDirection(viewDirection);
-  const screenProject=(x,y,z)=>{
-   occlusionPoint.set(x,y,z).project(camera);
-   return {x:(occlusionPoint.x+1)*width*.5,y:(1-occlusionPoint.y)*height*.5};
-  };
-  const depthOf=(x,y,z)=>(x-camera.position.x)*viewDirection.x+(y-camera.position.y)*viewDirection.y+(z-camera.position.z)*viewDirection.z;
-  const shapes=cardRects.length&&occluders.length?projectOccluders(occluders,screenProject,depthOf):[];
-  for(const card of cardRects){
-   const face=card.el.querySelector('.lam-card');if(!face)continue;
-   const inFront=foregroundForCard(shapes,{...card,depth:depthOf(card.x,card.y,card.z)},occlusionHistory.get(card.id));
-   occlusionHistory.set(card.id,new Set(inFront.map(o=>o.id)));
-   if(cssClipSupported){
-    const clip=cardOcclusionClip(inFront,card);
-    if(clipCache.get(card.id)!==clip){
-     clipCache.set(card.id,clip);
-     face.style.clipPath=clip;
-     face.style.webkitClipPath=clip;
-    }
-    // Masks from previous builds are never used in this path.
-    face.style.maskImage='';face.style.webkitMaskImage='';
-   }else{
-    // Older browsers: a short crossfade is more stable than rebuilding image
-    // masks on every pan frame. No flash or PNG decode is involved.
-    face.style.opacity=inFront.length?'.25':'1';
-   }
-  }
  }
  function tick(t){
   frame=0;if(disposed||lost||document.hidden)return;
@@ -565,8 +521,8 @@ export function createWorld(host,stage){
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
- renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);frame=0;host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
- renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';terrainSignature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
+ renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);frame=0;host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready','native-cards-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
+ renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';terrainSignature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready','native-cards-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
  resize();return {
   update:rebuild,setCards,
   resize(){resize();wake();},
@@ -579,6 +535,6 @@ export function createWorld(host,stage){
   getCinematic(){return cinematicEnabled;},
   zoomTo(v){cinematicPauseUntil=performance.now()+10000;zoom=clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM);cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
-  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;clipCache.clear();occlusionHistory.clear();document.removeEventListener('visibilitychange',visibility);clearRoot();disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
+  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);clearRoot();disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };
 }
