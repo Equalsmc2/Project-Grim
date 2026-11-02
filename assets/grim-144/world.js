@@ -107,7 +107,7 @@ export function createWorld(host,stage){
   group.traverse(o=>{if(o.geometry)geos.add(o.geometry);if(o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material])){mats.add(m);if(m.map&&m.map!==groundShadow)textures.add(m.map);}}if(o.isInstancedMesh)o.dispose?.();});
   geos.forEach(g=>g.dispose());mats.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());
  }
- function clearRoot(){disposeObject(root);scene.remove(root);root=new T.Group();scene.add(root);occluders=[];lastOcclusionAt=0;}
+ function clearRoot(){disposeObject(root);scene.remove(root);root=new T.Group();scene.add(root);occluders=[];}
  function instanced(geo,mat,count,fn,{shadows=false}={}){
   if(!count){geo.dispose();mat.dispose();return null;}
   const mesh=new T.InstancedMesh(geo,mat,count);

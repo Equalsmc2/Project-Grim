@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask,cardOcclusionClip} from '../assets/grim-143/card-occlusion.js';
+import {makeOccluderSpecs,projectOccluders,foregroundForCard,paintOcclusionMask,cardOcclusionClip} from '../assets/grim-144/card-occlusion.js';
 
 const specs=makeOccluderSpecs({tree:[{x:0,z:1,s:1}],rock:[{x:3,z:-5,s:1}],pillar:[{x:-2,z:2,s:1}]},()=>0);
 assert.equal(specs.length,3);

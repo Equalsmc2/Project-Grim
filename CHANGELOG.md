@@ -1,4 +1,10 @@
-## Cinematic 1.4.3 — Pan and Stable Occlusion
+## Project Grim 1.4.4 — Preset recovery fix
+
+- Removed a stale undefined occlusion variable that crashed environment reconstruction after changing presets.
+- Added runtime scene-rebuild regression coverage for Blank → other preset transitions.
+- Updated active assets to `assets/grim-144` so browsers fetch the corrected code.
+
+## Preset Fix 1.4.4 — Pan and Stable Occlusion
 
 Automatic cinematic camera orbit and tilt; removes intermittent raster mask generation that caused card stutter when passing scenery.
 

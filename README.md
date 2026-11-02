@@ -1,3 +1,7 @@
+# Project Grim 1.4.4 — Preset Recovery Fix
+
+**Current release:** fixes a renderer error when changing environment presets, especially after selecting Blank test stage. See `RELEASE_NOTES_1.4.4.md`. The existing saved campaign, ambience, stage and DM controls are preserved.
+
 # Project Grim 1.4.3 — Cinematic Camera & Card Occlusion
 
 DM Environment panel: toggle Auto cinematic pan and set speed. Stage: Auto pan toggle / C key. Manual camera movement pauses auto orbit briefly; no automatic zoom-out. 1.4.2 ambience sounds remain bundled.
