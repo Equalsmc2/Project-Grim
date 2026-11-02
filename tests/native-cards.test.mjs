@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import * as T from '../assets/grim-145/vendor/three.module.js';
-import {createNativeCardLayer,cardVisualData,cardPixelSize,worldHeightForPixels,CARD_WIDTH_PX,CARD_HEIGHT_PX} from '../assets/grim-145/native-cards.js';
+import * as T from '../assets/grim-147/vendor/three.module.js';
+import {createNativeCardLayer,cardVisualData,cardPixelSize,worldHeightForPixels,CARD_WIDTH_PX,CARD_HEIGHT_PX} from '../assets/grim-147/native-cards.js';
 
 const sink=[];
 function fakeCanvas(){
@@ -42,11 +42,11 @@ cards.setCards(anchors,players,true);assert.equal(sink.length,2,'Camera and redu
 players[0].hp=21;cards.setCards(anchors,players,true);assert.equal(sink.length,3,'HP change repaints the card immediately');
 cards.setCards(anchors.slice(1),players,true);assert.equal(cards.count,1,'Removed combatants are disposed and detached');
 cards.dispose();assert.equal(cards.count,0);assert(!scene.children.includes(cards.group));
-const world=readFileSync(new URL('../assets/grim-145/world.js',import.meta.url),'utf8');
-const stage=readFileSync(new URL('../assets/grim-145/stage.js',import.meta.url),'utf8');
-const css=readFileSync(new URL('../assets/grim-145/styles.css',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-147/world.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../assets/grim-147/stage.js',import.meta.url),'utf8');
+const css=readFileSync(new URL('../assets/grim-147/styles.css',import.meta.url),'utf8');
 assert(!world.includes('cardOcclusionClip(')&&!world.includes('projectOccluders('),'Removed inaccurate CSS silhouette clipping');
-assert(world.includes('nativeCards.update(camera,width,height,env,landscapeHeight)'));
+assert(world.includes('nativeCards.update(camera,width,height,env,landscapeHeight,time)'));
 assert(world.includes('nativeCards.dispose()'));
 assert(stage.includes('world.setCards(layout.placements,chars,combat)'));
 assert(css.includes('.native-cards-ready .card-positions'));

@@ -1,8 +1,16 @@
-# Project Grim 1.4.5 — Native 3D Cards
+# Project Grim 1.4.7 — Card FX Polish
 
-**Current release:** Native depth-tested laminated cards. In WebGL mode every card is a high-resolution Three.js plane anchored to its actual battlefield coordinate, so trees, stones and ruins naturally occlude the card surface. The old projected CSS polygon masks are removed. Fallback HTML cards are preserved when WebGL is unavailable. Preset switching, cinematic pan, terrain, lighting, ambience and no-login cloud/local sync are unchanged.
+**Current release:** richer burning and freezing laminate effects, continuous HP fracture progression, and one-shot 3D vinyl shatter when a character falls from positive HP to zero. Real 3D world anchoring, occlusion, camera controls, atmosphere, ambience, the DM dashboard, no-login Firebase/local sync, and the existing state format remain intact.
 
-Extract this ZIP, run `github.bat`, enter your existing Project-Grim repository path, review the changes, and deploy. Confirm **NATIVE 3D CARDS 1.4.5** in both page headers. No campaign reset is required. See `RELEASE_NOTES_1.4.5.md` and `TEST_REPORT_1.4.5.md` for tests and limitations.
+**Install:** Extract this full ZIP, run `github.bat`, input your existing Project-Grim repository path, review the copy and Git changes, then push/deploy. Both pages should show **CARD FX POLISH 1.4.7**. See `RELEASE_NOTES_1.4.7.md` and `TEST_REPORT_1.4.7.md`. No campaign reset is needed.
+
+---
+
+# Project Grim 1.4.6 — Premium Card FX
+
+**Current release:** premium-looking laminated world cards with improved native 3D presentation, burning/frozen finish effects, and progressive HP cracking/shatter while keeping real Three.js prop occlusion. Ground camera remains the default; atmosphere, terrain, ambience, compact DM controls, no-login sync and the GitHub uploader are preserved.
+
+Extract this ZIP, run `github.bat`, enter your existing Project-Grim repository path, review the changes, and deploy. Confirm **PREMIUM CARD FX 1.4.6** in both page headers. No campaign reset is required. See `RELEASE_NOTES_1.4.6.md` and `TEST_REPORT_1.4.6.md` for details.
 
 ---
 

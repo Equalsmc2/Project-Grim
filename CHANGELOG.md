@@ -1,16 +1,26 @@
-## 1.4.5 — Native 3D Cards
+## Project Grim 1.4.7 — Card FX Polish
 
-- Replaced separate HTML cards and projected prop-silhouette cutouts with true Three.js card surfaces sharing the 3D depth buffer.
-- Recreated cards as crisp, camera-facing canvas textures with full HP, AC, initiative, portrait support, team distinction, active turn and conditions.
-- Textures update only for card changes, not camera/weather frames; removed obsolete silhouette clipping code and test suite.
-- Preserved HTML fallback, world-anchored cards, cinematic pan, audio, no-login sync and environment preset switching.
-- New cache-distinct `assets/grim-145` directory.
+- More dramatic flame foil/embers and layered crystalline frost on native cards.
+- Persistent, continuous HP crack growth; highly fractured 0 HP state.
+- Real, texture-mapped, depth-tested 24-piece shatter burst on positive-HP to 0 HP transitions, with cleanup and revival handling.
+- Card effects continue animating even without moving weather; reduced-motion preference respected.
+- Cache-distinct `assets/grim-147` and updated folder-prompt GitHub uploader.
+
+## 1.4.6 — Premium Card FX
+
+- Kept true Three.js world-anchored card occlusion, but upgraded the card art back toward a sharper premium laminated presentation.
+- Added richer native card framing, portrait panel styling, cleaner stat capsules, stronger active-turn emphasis, and a thin 3D shell/backing.
+- Added status-finish visuals for **burning** and **frozen** cards.
+- Added progressive HP wear: scuffs, cracks, heavy fractures, and a shattered vinyl-style 0 HP state.
+- Added lightweight animated refresh for burning/frozen/dead/heavily damaged cards while leaving ordinary cards stable and efficient.
+- New cache-distinct `assets/grim-146` directory remains the active bundle.
+
 
 ## Project Grim 1.4.4 — Preset recovery fix
 
 - Removed a stale undefined occlusion variable that crashed environment reconstruction after changing presets.
 - Added runtime scene-rebuild regression coverage for Blank → other preset transitions.
-- Updated active assets to `assets/grim-145` so browsers fetch the corrected code.
+- Updated active assets to `assets/grim-146` so browsers fetch the corrected code.
 
 ## Preset Fix 1.4.4 — Pan and Stable Occlusion
 

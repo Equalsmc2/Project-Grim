@@ -1055,6 +1055,6 @@ html,body{height:100%}
 @media(max-width:730px){.auto-pan-control{font-size:9px;padding:5px 6px;}}
 @media(prefers-reduced-motion:reduce){.webgl-ready .card-position .lam-card{transition:none;}}
 
-/* 1.4.5 — WebGL card meshes own the same depth buffer as the environment.
+/* 1.4.6 — WebGL card meshes own the same depth buffer as the environment.
    Keep complete HTML card markup ONLY as a usable WebGL fallback. */
 .stage-app.webgl-ready.native-cards-ready .card-positions {display:none!important;}

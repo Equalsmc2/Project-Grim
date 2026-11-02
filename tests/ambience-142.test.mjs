@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync,statSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-145/environment-state.js';
-import {AMBIENCE_TRACKS,normalizeSelection,sourceFor,formatGain} from '../assets/grim-145/ambience.js';
+import {normalizeEnvironment} from '../assets/grim-147/environment-state.js';
+import {AMBIENCE_TRACKS,normalizeSelection,sourceFor,formatGain} from '../assets/grim-147/ambience.js';
 const e=normalizeEnvironment({ambience:'storm',ambienceVolume:.7});
 assert.equal(e.ambience,'storm');assert.equal(e.ambienceVolume,.7);
 assert.equal(normalizeEnvironment({ambience:'../../private',ambienceVolume:99}).ambience,'none');
@@ -14,8 +14,8 @@ for(const [id,track] of Object.entries(AMBIENCE_TRACKS)){
  const url=new URL(sourceFor(id));assert.equal(url.protocol,'file:');
  assert(existsSync(url),`${id} file missing`);assert(statSync(url).size>100000,`${id} file empty`);
 }
-const editor=readFileSync(new URL('../assets/grim-145/environment-editor.js',import.meta.url),'utf8');
-const stage=readFileSync(new URL('../assets/grim-145/stage.js',import.meta.url),'utf8');
+const editor=readFileSync(new URL('../assets/grim-147/environment-editor.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../assets/grim-147/stage.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert(editor.includes('ambienceTrack')&&editor.includes('ambiencePreview'));
 assert(stage.includes('stageSoundToggle')&&stage.includes('createAmbiencePlayer'));

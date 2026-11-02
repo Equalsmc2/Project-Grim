@@ -482,11 +482,11 @@ export function createWorld(host,stage){
   applyCameraPose(camera,pose);target.copy(pose.target);
   projectionDirty=true;dirty=true;return true;
  }
- function projectCards(){
+ function projectCards(time){
   // Real 3D billboards share opaque geometry's depth buffer. No CSS silhouette
   // masks, delayed bitmap generation, or independently sorted HTML overlay.
   camera.updateMatrixWorld();
-  nativeCards.update(camera,width,height,env,landscapeHeight);
+  nativeCards.update(camera,width,height,env,landscapeHeight,time);
   let active=false;
   for(const a of anchors)if(a.active){
    const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
@@ -512,12 +512,14 @@ export function createWorld(host,stage){
    projectionDirty=true;dirty=true;if(f>=1)transition=null;
   }
   const cinematicMoving=cinematicStep(t,dt);
-  if(dirty||environmentMoving||transition||cinematicMoving){
-   if(projectionDirty){projectCards();projectionDirty=false;}
+  const cardFxMoving=nativeCards.needsAnimation(t);
+  if(dirty||environmentMoving||transition||cinematicMoving||cardFxMoving){
+   if(projectionDirty){projectCards(t);projectionDirty=false;}
+   else if(cardFxMoving)nativeCards.update(camera,width,height,env,landscapeHeight,t);
    renderer.render(scene,camera);dirty=false;
    if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
-  if(environmentMoving||transition||cinematicEnabled)frame=requestAnimationFrame(tick);
+  if(environmentMoving||transition||cinematicEnabled||cardFxMoving)frame=requestAnimationFrame(tick);
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);

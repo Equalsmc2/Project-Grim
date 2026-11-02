@@ -5,7 +5,7 @@ export const SCENES = [
   { id:'archive', name:'Graybox', kicker:'STAGE 03 / GRAY', description:'A middle-gray test space for checking spacing and proportions.', palette:'gray', ambience:'GRAY GRID / NEUTRAL LIGHT', sigil:'03' },
   { id:'court', name:'Black Studio', kicker:'STAGE 04 / DARK', description:'A dark neutral stage for testing light text and card contrast.', palette:'dark', ambience:'DARK GRID / NEUTRAL LIGHT', sigil:'04' },
 ];
-export const CONDITION_OPTIONS=['Frightened','Off-guard','Prone','Stunned','Dying','Wounded','Slowed','Sickened','Clumsy','Enfeebled','Drained','Grabbed'];
+export const CONDITION_OPTIONS=['Frightened','Off-guard','Prone','Stunned','Dying','Wounded','Slowed','Sickened','Clumsy','Enfeebled','Drained','Grabbed','Burning','Frozen'];
 export const DEMO_CHARACTERS = [
   {id:'mara',name:'Fighter 01',ancestry:'Human',className:'Fighter',level:3,maxHp:46,hp:46,tempHp:0,ac:20,initiative:22,perception:8,conditions:[],faction:'player',accent:'gold',symbol:'01',portrait:'',hidden:false},
   {id:'ilyra',name:'Fighter 02',ancestry:'Elf',className:'Witch',level:3,maxHp:32,hp:32,tempHp:0,ac:17,initiative:18,perception:7,conditions:[],faction:'player',accent:'violet',symbol:'02',portrait:'',hidden:false},
