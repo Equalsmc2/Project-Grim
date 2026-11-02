@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {cardVisualData, paintCard} from '../assets/grim-148/native-cards.js';
+import {cardVisualData, paintCard} from '../assets/grim-149/native-cards.js';
 
 function fakeCanvas(){
   const ctx = {

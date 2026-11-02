@@ -1,3 +1,11 @@
+# Project Grim 1.4.9 — Card Finish Fix
+
+**Current release:** fixes barely visible Burning, prevents camera zoom from cropping combatant cards, and replaces scratchy cracks with stable, readable portrait-glass fractures. The existing 0 HP shatter, native 3D depth occlusion, weather, ambience, combat/DM systems and no-login Firebase are preserved.
+
+**Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CARD FINISH FIX 1.4.9**. You do not need to reset saved campaign data. Details: `RELEASE_NOTES_1.4.9.md`, `TEST_REPORT_1.4.9.md`.
+
+---
+
 # Project Grim 1.4.8 — Slim Premium Cards
 
 **Current release:** redesigned real 3D character cards with a taller tarot/dossier profile, genuinely rounded 3D geometry, metallic laminated trim, cleaner typography and a taller portrait. Preserves 1.4.7 Burning, Frozen, cracking and 0-HP shatter finishes, and all stage/DM/ambience/terrain features.

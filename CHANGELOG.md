@@ -1,3 +1,12 @@
+## Project Grim 1.4.9 — Card Finish Fix
+
+- Corrected 1.4.8's old-card canvas transform: Burning and Frozen finishes now cover the actual tall card face.
+- Strengthened orange flame edge/foil treatment and subtle frosted glass border, staying clear of core stats.
+- Refined damage into deterministic, branching portrait-laminate fractures with small critical stress halos.
+- Added roster-aware safe zoom in Ground/Tactical/Top views to keep visible cards within the stage frame.
+- Updated stage zoom indicator and added a focused regression test and visual preview page.
+- Cache-safe `assets/grim-149` bundle; installer and no-login campaign state preserved.
+
 ## Project Grim 1.4.8 — Slim Card Redesign
 
 - Changed native card proportions to **160×268 (1:1.675)**, taller/slimmer than 1.4.7.

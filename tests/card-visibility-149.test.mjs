@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {clampZoomToCards} from '../assets/grim-149/camera-guard.js';
+import {cardVisualData,damageSeverity,fractureLayout,paintCard} from '../assets/grim-149/native-cards.js';
+const env={terrainWidth:32,terrainDepth:20,hills:'flat',seed:7301,variation:.35};
+const at=(xs)=>xs.flatMap(x=>[-5.2,5.2].map(z=>({x,z,layout:{scale:.72},active:false})));
+const params={width:1920,height:925,mode:'ground',env,landscapeHeight:()=>0};
+const broad=clampZoomToCards({...params,requestedZoom:1.45,anchors:at([-12,-6,0,6,12])});
+const small=clampZoomToCards({...params,requestedZoom:1.45,anchors:at([-4,4])});
+assert(broad<1.02,'Wide 5-card formation cannot be zoomed past screen edge');
+assert(small>1.40,'Small formation can still be shown in a close-up');
+assert.equal(clampZoomToCards({...params,requestedZoom:1.1,anchors:[]}),1.1);
+for(const ratio of [1,.70,.45,.21,.08,0]){
+ const severity=damageSeverity(ratio);
+ const paths=fractureLayout('test-character',severity);
+ assert(paths.every(path=>path.points.every(([x,y])=>x>=12&&x<=147&&y>=45&&y<=181)),'No fractures over stat region');
+}
+const p50=fractureLayout('stable',damageSeverity(.50));
+const p15=fractureLayout('stable',damageSeverity(.15));
+assert(p15.length>=p50.length,'Damage progression adds stable branches instead of randomizing them');
+const data=cardVisualData({id:'burn',name:'Fire',hp:20,maxHp:40,conditions:['Burning']},{side:'enemy',rank:1,active:true},true);
+assert(data.burning);
+let transforms=0,strokes=0;
+const ctx={clearRect(){},setTransform(){transforms++},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},fill(){},stroke(){strokes++},clip(){},fillRect(){},fillText(){},createLinearGradient(){return {addColorStop(){}}},measureText(t){return {width:String(t).length*6.5}}};
+paintCard(ctx,data,null,1000);
+assert.equal(transforms,0,'Native card finishes must not replace the caller\'s correct texture transform');
+assert(strokes>10,'Burning finish draws visible rim/flame outlines');
+const world=readFileSync(new URL('../assets/grim-149/world.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../assets/grim-149/stage.js',import.meta.url),'utf8');
+assert(world.includes('clampZoomToCards')&&world.includes('zoom=fitCardsZoom(zoom)'),'World camera enforces card-safe zoom');
+assert(stage.includes('zoom=world.zoomTo(zoom)'),'Stage uses actual permitted zoom');
+console.log('PASS: visible burning, stable portrait-only laminate fractures, and camera/card-safe zoom limits.');

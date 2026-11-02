@@ -6,7 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
 
-const live=path.resolve('assets/grim-148');
+const live=path.resolve('assets/grim-149');
 const temp=mkdtempSync(path.join(os.tmpdir(),'grim-preset-test-'));
 const fakeRenderer=`
 export * from './vendor/three.module.js';

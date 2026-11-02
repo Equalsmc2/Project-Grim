@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-148/environment-state.js';
-import {clusteredProps,accumulationTarget,pathDistance,clearForCombat} from '../assets/grim-148/world-polish.js';
+import {normalizeEnvironment} from '../assets/grim-149/environment-state.js';
+import {clusteredProps,accumulationTarget,pathDistance,clearForCombat} from '../assets/grim-149/world-polish.js';
 function rand(seed=43){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;};}
 const env=normalizeEnvironment({ground:'grass',density:.85,props:'forest',path:true,pathWidth:3,pathAngle:25,terrainWidth:32,terrainDepth:20});
 const a=clusteredProps(env,rand(),32,20),b=clusteredProps(env,rand(),32,20);
@@ -17,9 +17,9 @@ assert(accumulationTarget({weather:'blizzard',intensity:1,accumulation:.6}).snow
 assert(accumulationTarget({weather:'thunderstorm',intensity:.8,accumulation:.6}).wet>.7);
 assert(accumulationTarget({weather:'sandstorm',intensity:1,accumulation:.6}).sand>.7);
 assert.equal(accumulationTarget({weather:'none',intensity:1,accumulation:1}).snow,0);
-const world=readFileSync(new URL('../assets/grim-148/world.js',import.meta.url),'utf8');
-const editor=readFileSync(new URL('../assets/grim-148/environment-editor.js',import.meta.url),'utf8');
-const sync=readFileSync(new URL('../assets/grim-148/firebase-sync.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-149/world.js',import.meta.url),'utf8');
+const editor=readFileSync(new URL('../assets/grim-149/environment-editor.js',import.meta.url),'utf8');
+const sync=readFileSync(new URL('../assets/grim-149/firebase-sync.js',import.meta.url),'utf8');
 for(const value of ['makeWeatherGround(env,rnd)','clusteredProps(e,rnd,fieldWidth,fieldDepth)','wetPatches.material.opacity','snowPatches.material.opacity','sandPatches.material.opacity','scenicMaterials','nightStage','nativeCards.update(camera,width,height,env,landscapeHeight,time)'])assert(world.includes(value),`Missing 1.4 renderer: ${value}`);
 assert(editor.includes('Ground accumulation'));
 assert(sync.includes('setTimeout(()=>{writeTimer=null;void publish();},190)'));

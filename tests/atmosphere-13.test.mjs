@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {normalizeEnvironment} from '../assets/grim-148/environment-state.js';
-import {ATMOSPHERE_PRESETS,effectiveTime,lightAt,skyAt,isPrecipitation,smoothValue} from '../assets/grim-148/atmosphere.js';
+import {normalizeEnvironment} from '../assets/grim-149/environment-state.js';
+import {ATMOSPHERE_PRESETS,effectiveTime,lightAt,skyAt,isPrecipitation,smoothValue} from '../assets/grim-149/atmosphere.js';
 import {readFileSync} from 'node:fs';
 for(const preset of Object.keys(ATMOSPHERE_PRESETS)){
  const e=normalizeEnvironment({...ATMOSPHERE_PRESETS[preset],atmospherePreset:preset});
@@ -22,8 +22,8 @@ assert(!isPrecipitation({weather:'none',intensity:1}));
 assert(smoothValue(0,1,1)>0&&smoothValue(0,1,1)<1);
 const legacy=normalizeEnvironment({ground:'stone',weather:'rain',timeOfDay:18,cloudCover:3,cycleEnabled:true});
 assert.equal(legacy.cloudCover,1);assert.equal(legacy.cycleEnabled,true);assert.equal(legacy.ground,'stone');
-const world=readFileSync(new URL('../assets/grim-148/world.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-149/world.js',import.meta.url),'utf8');
 for(const feature of ['sunBody','moonBody','starMesh','cloudMesh','scene.fog.density','weatherSystems','updateLighting(dt,t)','isPrecipitation(env)','terrainSignature'])assert(world.includes(feature),feature);
-const editor=readFileSync(new URL('../assets/grim-148/environment-editor.js',import.meta.url),'utf8');
+const editor=readFileSync(new URL('../assets/grim-149/environment-editor.js',import.meta.url),'utf8');
 assert(editor.includes('Atmosphere')&&editor.includes('atmo-preset')&&editor.includes('cycleEnabled'));
 console.log('PASS: 1.3 sky, daylight/moonlight, storm effects, presets, smooth interpolation, compatibility and editor wiring.');

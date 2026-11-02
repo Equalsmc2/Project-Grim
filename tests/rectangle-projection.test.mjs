@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {FIELD_WIDTH,FIELD_DEPTH,calculateCameraPose} from '../assets/grim-148/camera-frame.js';
-const source=readFileSync(new URL('../assets/grim-148/world.js',import.meta.url),'utf8');
+import {FIELD_WIDTH,FIELD_DEPTH,calculateCameraPose} from '../assets/grim-149/camera-frame.js';
+const source=readFileSync(new URL('../assets/grim-149/world.js',import.meta.url),'utf8');
 assert.equal(FIELD_WIDTH,32);
 assert.equal(FIELD_DEPTH,20);
 assert(FIELD_WIDTH>FIELD_DEPTH,'Terrain is a rectangle');
