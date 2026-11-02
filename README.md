@@ -1,8 +1,8 @@
-# Project Grim 1.4.10 — Always-Visible Cards
+# Project Grim 1.4.11 — Camera Stability Repair
 
-**Current release:** every displayed native 3D card must remain entirely inside the player-stage viewport, including during zoom, cinematic panning, camera transitions, rotation, large rosters and resizing. The new final camera-framing pass projects each physical card's four corners and adjusts the camera only when clipping would occur. Existing card FX, 3D depth behavior, terrain, DM dashboard, ambience and no-login Firebase workflow are preserved.
+**Current release:** fixes the extreme zoom-out introduced in 1.4.10 (which could force the camera to 6% zoom). The stage now uses bounded framing adjustments and adaptive card-only scaling when encounters are crowded, so the world stays a useful size and every displayed card remains within the stage frame in tested scenarios. All native 3D card FX, depth, weather, audio, DM controls and no-login Firebase workflow remain available.
 
-**Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CARD VISIBILITY 1.4.10**. No campaign reset is required. See `RELEASE_NOTES_1.4.10.md` and `TEST_REPORT_1.4.10.md`.
+**Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CAMERA STABILITY 1.4.11**. No campaign reset is required. See `RELEASE_NOTES_1.4.11.md` and `TEST_REPORT_1.4.11.md`.
 
 ---
 

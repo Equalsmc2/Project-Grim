@@ -6,4 +6,4 @@ Also checked JavaScript syntax for all first-party modules. Rendered all six car
 
 **Browser/WebGL limitation:** Chromium refused local and localhost navigation (`ERR_BLOCKED_BY_ADMINISTRATOR`). Consequently, live WebGL FPS, 3D projection appearance and on-device ambience/Firebase interactions were not verified in a browser. The original 1.4.8 combat/environment tests still pass, and a static card preview is provided at `tests/card-visual-preview.html` for convenient in-browser QA.
 
-Production files: `assets/grim-1410/` is the only active JavaScript asset bundle. Existing uploaded MP3s remain under `assets/audio/`.
+Production files: `assets/grim-1411/` is the only active JavaScript asset bundle. Existing uploaded MP3s remain under `assets/audio/`.

@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 set "PORT=4174"
 echo.
-echo   PROJECT GRIM - Card Visibility 1.4.10 Launcher
+echo   PROJECT GRIM - Card Visibility 1.4.11 Launcher
 echo   =================================
 echo   Stage: http://localhost:4174/
 echo   DM:    http://localhost:4174/dm.html
