@@ -1,3 +1,13 @@
+# Project Grim 1.4.12 — Performance & Stability
+
+This build fixes severe slowdowns from Burning and Frozen status effects by animating foil on the GPU instead of repeatedly painting and uploading high-resolution card textures. It also improves card texture memory, portrait reuse, fallback UI handling, and initiative-strip updates. Existing features and save data are preserved.
+
+**Install:** Extract the full ZIP, run `github.bat`, enter your Project-Grim repository path, approve copy/push, and look for **PERFORMANCE 1.4.12** in both headers. No Firebase reset or campaign reset is needed.
+
+See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
+
+---
+
 # Project Grim 1.4.11 — Camera Stability Repair
 
 **Current release:** fixes the extreme zoom-out introduced in 1.4.10 (which could force the camera to 6% zoom). The stage now uses bounded framing adjustments and adaptive card-only scaling when encounters are crowded, so the world stays a useful size and every displayed card remains within the stage frame in tested scenarios. All native 3D card FX, depth, weather, audio, DM controls and no-login Firebase workflow remain available.

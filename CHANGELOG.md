@@ -1,3 +1,12 @@
+## Project Grim 1.4.12 — Performance & Stability
+
+- Eliminated periodic full-card canvas repaints and GPU texture uploads for animated Burning/Frozen cards; retained moving GPU foil.
+- Reduced card face pixel allocation from 640×1072 to 480×804, with unchanged logical card proportions.
+- Split camera/layout updates from lightweight foil/shatter animation.
+- Cached portrait decoding through HP/condition changes, bypassed invisible HTML fallback mouse tilts, and avoided unchanged initiative HUD rebuilds.
+- Added 16-combatant A/B performance measurements and regression tests, plus `window.grim3DStats.cardPerformance`.
+- Updated cache-distinct asset path `assets/grim-1412` and retained existing UI, content, audio, local/Firebase sync and Windows uploader.
+
 ## Project Grim 1.4.11 — Camera Stability Repair
 
 - Fixed the 1.4.10 regression that could push the camera to **6% zoom** and make the battlefield tiny.
@@ -5,7 +14,7 @@
 - Protected all card corners during zoom, cinematic pan, camera transitions and resizing without making the entire environment vanish.
 - Fixed cumulative camera retreat on repeated combat state updates.
 - Added a 20-update stability regression and retained the 216-case framing test.
-- New cache-safe `assets/grim-1411` with GitHub uploader references updated.
+- New cache-safe `assets/grim-1412` with GitHub uploader references updated.
 
 ## Project Grim 1.4.9 — Card Finish Fix
 
@@ -14,7 +23,7 @@
 - Refined damage into deterministic, branching portrait-laminate fractures with small critical stress halos.
 - Added roster-aware safe zoom in Ground/Tactical/Top views to keep visible cards within the stage frame.
 - Updated stage zoom indicator and added a focused regression test and visual preview page.
-- Cache-safe `assets/grim-1411` bundle; installer and no-login campaign state preserved.
+- Cache-safe `assets/grim-1412` bundle; installer and no-login campaign state preserved.
 
 ## Project Grim 1.4.8 — Slim Card Redesign
 

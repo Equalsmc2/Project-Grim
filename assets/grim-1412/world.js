@@ -77,7 +77,7 @@ export function createWorld(host,stage){
  const nativeCards=createNativeCardLayer(scene,{onChange:()=>{dirty=true;wake();},onError:message=>console.warn('Native cards:',message)});
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null,fitRetreat=0,fitScale=1;
- let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
  let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0;
@@ -535,11 +535,17 @@ export function createWorld(host,stage){
   // manual zoom. There must never be a frame with a clipped card.
   if(transitionMoving||transition||cinematicMoving||projectionDirty)enforceCardVisibility();
   const cardFxMoving=nativeCards.needsAnimation(t);
+  // Card-only FX frames need no environmental simulation or camera geometry.
+  // Cap foil-only redraws to ~30 FPS, but keep normal camera/weather frames
+  // unrestricted when movement actually demands them.
+  const fxOnly=cardFxMoving && !dirty && !environmentMoving && !transition && !cinematicMoving;
+  if(fxOnly && t-lastFxFrame<33){frame=requestAnimationFrame(tick);return;}
   if(dirty||environmentMoving||transition||cinematicMoving||cardFxMoving){
    if(projectionDirty){projectCards(t);projectionDirty=false;}
-   else if(cardFxMoving)nativeCards.update(camera,width,height,env,landscapeHeight,t,fitScale);
+   else if(cardFxMoving)nativeCards.animate(t);
+   if(cardFxMoving)lastFxFrame=t;
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),cardPerformance:nativeCards.getPerformanceStats(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
   if(environmentMoving||transition||cinematicEnabled||cardFxMoving)frame=requestAnimationFrame(tick);
  }

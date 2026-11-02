@@ -5,7 +5,7 @@ import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,DEFAULT_CAMERA_VIEW} f
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
-let yaw=0,pitch=0,zoom=1,viewMode=DEFAULT_CAMERA_VIEW,lastSignature='',world=null;
+let yaw=0,pitch=0,zoom=1,viewMode=DEFAULT_CAMERA_VIEW,lastSignature='',lastInitiativeSignature='',world=null;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeImg=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x)?x:'';
 
@@ -56,7 +56,11 @@ function render(s){
     $('roundDisplay').textContent=s.combat.round;
     const current=s.characters.find(c=>c.id===s.combat.activeId);
     $('turnDisplay').textContent=current?`${isEnemy(current)?'◆ ENEMY':'● PLAYER'} · ${current.name}'s turn`:'No active character';
-    $('initiativeTrack').innerHTML=orderedCharacters(s).filter(c=>!c.hidden).map(c=>`<span class="initiative-chip ${isEnemy(c)?'enemy-chip':'player-chip'}${current?.id===c.id?' active':''}"><b>${escapeHtml(c.initiative)}</b> ${isEnemy(c)?'◆':'●'} ${escapeHtml(c.name)}</span>`).join('');
+    const initiativeSignature=JSON.stringify([s.combat.activeId,...s.characters.filter(c=>!c.hidden).map(c=>[c.id,c.name,c.faction,c.initiative])]);
+    if(initiativeSignature!==lastInitiativeSignature){
+      $('initiativeTrack').innerHTML=orderedCharacters(s).filter(c=>!c.hidden).map(c=>`<span class="initiative-chip ${isEnemy(c)?'enemy-chip':'player-chip'}${current?.id===c.id?' active':''}"><b>${escapeHtml(c.initiative)}</b> ${isEnemy(c)?'◆':'●'} ${escapeHtml(c.name)}</span>`).join('');
+      lastInitiativeSignature=initiativeSignature;
+    }
   }
 }
 const autoPanButton=$('autoPanToggle');
@@ -85,6 +89,9 @@ function selectCameraView(mode){
 document.querySelectorAll('[data-camera-view]').forEach(btn=>btn.addEventListener('click',()=>selectCameraView(btn.dataset.cameraView)));
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
+  // Native cards are GPU billboards: do not touch invisible fallback HTML
+  // on every mousemove while WebGL is active.
+  if(world)return;
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
   if(tiltFrame)return;
   tiltFrame=requestAnimationFrame(()=>{

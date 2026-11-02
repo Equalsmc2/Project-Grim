@@ -14,7 +14,7 @@ A second risk was repeatedly applying a camera retreat to a previously retreated
 - The fitted card-scale factor is used by both the framing math and the Three.js card meshes, so the visible result matches the safety check.
 - Prevented cumulative camera retreat by starting every fit from the unadjusted camera pose. Repeated DM updates no longer make the stage drift backward.
 - Preserved Ground/Tactical/Top views, cinematic pan, anchored cards, initiative order, depth-tested scenery, atmosphere, ambience, and anonymous Firebase/local state synchronization.
-- Activated new cache-safe `assets/grim-1411/` paths in both entry pages and the Windows GitHub uploader.
+- Activated new cache-safe `assets/grim-1412/` paths in both entry pages and the Windows GitHub uploader.
 
 ## Test outcomes
 

@@ -4,8 +4,8 @@ import * as T from './vendor/three.module.js';
 // keeps that real depth behavior, but restores a richer laminated-card look.
 export const CARD_WIDTH_PX = 160;
 export const CARD_HEIGHT_PX = 268;
-export const TEXTURE_WIDTH = 640;
-export const TEXTURE_HEIGHT = 1072;
+export const TEXTURE_WIDTH = 480;
+export const TEXTURE_HEIGHT = 804;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const clean = s => String(s ?? '');
 const has2D = ctx => !!ctx && typeof ctx.fillRect === 'function';
@@ -507,7 +507,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
   const faceGeometry = roundedCardFaceGeometry();
   const shellGeometry = new T.ExtrudeGeometry(roundedCardShape(.065),{depth:.025,steps:1,bevelEnabled:true,bevelThickness:.007,bevelSize:.006,bevelSegments:2,curveSegments:8});
   const cameraForward = new T.Vector3(), fromCamera = new T.Vector3(), groundPoint = new T.Vector3();
-  let lastAnimatedAt = 0;
+  let texturePaints=0, layoutUpdates=0, foilUpdates=0, shatterUpdates=0;
   const SHATTER_DURATION = 1350;
   const SHATTER_COLS = 4, SHATTER_ROWS = 3;
 
@@ -592,11 +592,15 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     const ctx = entry.canvas.getContext('2d');
     if(!has2D(ctx)){ onError('Canvas 2D unavailable'); return; }
     ctx.setTransform(TEXTURE_WIDTH / CARD_WIDTH_PX, 0, 0, TEXTURE_HEIGHT / CARD_HEIGHT_PX, 0, 0);
+    // Only repaint on actual card-data or portrait changes. Animated finishes
+    // use GPU-side foil offsets, not repeated 480×804 canvas uploads.
     paintCard(ctx, entry.data, entry.image, timeMs);
+    texturePaints++;
     entry.texture.needsUpdate = true;
     onChange();
   }
   function updateFoil(entry, timeMs = 0){
+    foilUpdates++;
     const d = entry.data;
     const mat = entry.foilMesh.material;
     entry.foilTexture.offset.x = ((timeMs * (d.burning ? .00038 : d.frozen ? .00016 : .00010)) + entry.foilPhase) % 1;
@@ -631,7 +635,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     root.material = faceMaterial;
     faceMesh.position.z = .02;
     root.add(shellMesh, faceMesh, foilMesh); group.add(root);
-    return { root, mesh: root, faceMesh, shellMesh, foilMesh, texture, foilTexture, canvas, signature: '', data, alive: true, image: null, foilPhase: (hashString(id) % 997) / 997, lastAnimatedPaint: 0, shatter: null };
+    return { root, mesh: root, faceMesh, shellMesh, foilMesh, texture, foilTexture, canvas, signature: '', data, alive: true, image: null, portraitSource: '', foilPhase: (hashString(id) % 997) / 997, lastAnimatedPaint: 0, shatter: null };
   }
 
   function setCards(anchors, characters, combat){
@@ -655,15 +659,21 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
           // A healed/revived character gets their intact card back immediately.
           disposeShatter(entry);
         }
-        entry.image && (entry.image.onload = entry.image.onerror = null);
-        entry.image = null;
-        renderTexture(entry, typeof performance !== 'undefined' ? performance.now() : 0);
-        if(/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(data.portrait) && typeof Image !== 'undefined'){
-          const image = new Image(); entry.image = image;
-          image.onload = () => { if(entry.alive && entry.image === image) renderTexture(entry, typeof performance !== 'undefined' ? performance.now() : 0); };
-          image.onerror = () => { if(entry.alive && entry.image === image){ entry.image = null; renderTexture(entry, typeof performance !== 'undefined' ? performance.now() : 0); } };
-          image.src = data.portrait;
+        // Status/HP changes must not decode the same base64 portrait again.
+        // Keep the decoded Image across updates and only replace when the
+        // portrait itself changes (or the actor is removed).
+        const nextPortrait=/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(data.portrait) ? data.portrait : '';
+        if(entry.portraitSource!==nextPortrait){
+          if(entry.image)entry.image.onload=entry.image.onerror=null;
+          entry.image=null;entry.portraitSource=nextPortrait;
+          if(nextPortrait && typeof Image!=='undefined'){
+            const image=new Image();entry.image=image;
+            image.onload=()=>{if(entry.alive&&entry.image===image)renderTexture(entry,typeof performance!=='undefined'?performance.now():0);};
+            image.onerror=()=>{if(entry.alive&&entry.image===image){entry.image=null;renderTexture(entry,typeof performance!=='undefined'?performance.now():0);}};
+            image.src=nextPortrait;
+          }
         }
+        renderTexture(entry, typeof performance !== 'undefined' ? performance.now() : 0);
         entry.shellMesh.material.color.setHex(data.enemy ? 0x1d1c1f : 0x182022);
       }
       entry.anchor = a;
@@ -672,13 +682,12 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     for(const [id, entry] of entries) if(!used.has(id)){ disposeEntry(entry); entries.delete(id); }
   }
 
-  function update(camera, viewportWidth, viewportHeight, env, landscapeHeight, frameTime){
+  function update(camera, viewportWidth, viewportHeight, env, landscapeHeight, frameTime, fitScale=1){
     if(!available) return;
+    layoutUpdates++;
     const camQuaternion = camera.quaternion;
     const now = Number.isFinite(frameTime) ? frameTime : typeof performance !== 'undefined' ? performance.now() : Date.now();
     cameraForward.set(0, 0, -1).applyQuaternion(camQuaternion);
-    const doAnimatedPass = now - lastAnimatedAt > 84;
-    if(doAnimatedPass) lastAnimatedAt = now;
     for(const entry of entries.values()){
       const a = entry.anchor;
       const ground = landscapeHeight(a.x, a.z, env.terrainWidth, env.terrainDepth, env.seed, env.variation, env.hills);
@@ -689,22 +698,35 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
       const pix = cardPixelSize(viewportWidth, a.layout.scale, distance);
       fromCamera.set(a.x - camera.position.x, ground + hover - camera.position.y, a.z - camera.position.z);
       const depth = Math.max(.1, fromCamera.dot(cameraForward));
-      const h = worldHeightForPixels(pix.height, viewportHeight, depth, camera.fov);
+      const h = worldHeightForPixels(pix.height*fitScale, viewportHeight, depth, camera.fov);
       const w = h * CARD_WIDTH_PX / CARD_HEIGHT_PX;
       entry.root.scale.set(w, h, 1);
       entry.root.position.set(a.x, ground + hover + h * .5, a.z);
       entry.root.quaternion.copy(camQuaternion);
       entry.root.visible = true;
+      // Camera/layout work runs only when projection changes. The separate
+      // animate() path below handles moving foil/shatter without recalculating
+      // all card positions or uploading new canvases.
       updateFoil(entry, now);
       if(entry.shatter){
-        if(reducedMotion){disposeShatter(entry);}else animateShatter(entry,now);
-      }
-      if(doAnimatedPass && !reducedMotion && (entry.data.burning || entry.data.frozen)){
-        if(now - entry.lastAnimatedPaint > 92){entry.lastAnimatedPaint=now;renderTexture(entry,now);}
+        if(reducedMotion){disposeShatter(entry);}else {shatterUpdates++;animateShatter(entry,now);}
       }
     }
   }
 
+  function animate(now=typeof performance!=='undefined'?performance.now():Date.now()){
+    if(!available)return;
+    const reducedMotion=typeof window!=='undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    for(const entry of entries.values()){
+      if(!reducedMotion && (entry.data.burning || entry.data.frozen)) updateFoil(entry,now);
+      if(entry.shatter){
+        if(reducedMotion)disposeShatter(entry);
+        else {shatterUpdates++;animateShatter(entry,now);}
+      }
+    }
+  }
+  // Read-only diagnostics for benchmarking. No per-frame allocations needed.
+  function getPerformanceStats(){return {texturePaints,layoutUpdates,foilUpdates,shatterUpdates,cards:entries.size};}
   function needsAnimation(now=typeof performance!=='undefined'?performance.now():Date.now()){
     if(!available)return false;
     const reducedMotion=typeof window!=='undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -720,5 +742,5 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     for(const e of entries.values()) disposeEntry(e);
     entries.clear(); scene.remove(group); faceGeometry.dispose(); shellGeometry.dispose();
   }
-  return { setCards, update, needsAnimation, dispose, group, entries, get count(){ return entries.size; } };
+  return { setCards, update, animate, needsAnimation, getPerformanceStats, dispose, group, entries, get count(){ return entries.size; } };
 }
