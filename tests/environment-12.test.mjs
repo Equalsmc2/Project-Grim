@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-1412/environment-state.js';
-import {landscapeHeight} from '../assets/grim-1412/world.js';
-import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,calculateCameraPose} from '../assets/grim-1412/camera-frame.js';
+import {normalizeEnvironment} from '../assets/grim-1413/environment-state.js';
+import {landscapeHeight} from '../assets/grim-1413/world.js';
+import {FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,CAMERA_VIEWS,calculateCameraPose} from '../assets/grim-1413/camera-frame.js';
 assert.equal(FIELD_WIDTH,32);assert.equal(FIELD_DEPTH,20);
 assert.equal(DEFAULT_CAMERA_VIEW,'ground');
 assert(CAMERA_VIEWS.ground.elevation>=15&&CAMERA_VIEWS.ground.elevation<25);
@@ -19,8 +19,8 @@ for(const dimensions of [[18,12],[32,20],[48,36]]){
 const e=normalizeEnvironment({ground:'snow',weather:'snow',density:.6,props:'forest',hills:'mountains'});
 assert.equal(e.ground,'snow');assert.equal(e.weather,'snow');assert.equal(e.hills,'mountains');
 assert(landscapeHeight(0,-FIELD_DEPTH*1.8,FIELD_WIDTH,FIELD_DEPTH,7301,.35,'mountains')>landscapeHeight(0,-FIELD_DEPTH*1.8,FIELD_WIDTH,FIELD_DEPTH,7301,.35,'small'),'Mountain profile should rise more than small hills');
-const world=readFileSync(new URL('../assets/grim-1412/world.js',import.meta.url),'utf8');
-const styles=readFileSync(new URL('../assets/grim-1412/styles.css',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-1413/world.js',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../assets/grim-1413/styles.css',import.meta.url),'utf8');
 for(const word of ['makeTerrain(env,rnd,pal)','addProps(env,rnd,pal)','updateWeatherTarget()','new T.FogExp2','createSky(pal)','groundShadow','projectCards(t)'])
  assert(world.includes(word),`World needs ${word}`);
 assert(!world.includes('new T.BoxGeometry(fieldWidth,.35,fieldDepth)'),'No physical slab edge');

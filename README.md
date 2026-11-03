@@ -1,3 +1,11 @@
+# Project Grim 1.4.13 — Matte Card Finish
+
+**Current release:** The 3D cards now use a deep-charcoal matte finish instead of a milky all-over laminate. The large baked gloss overlay is gone; only a narrow specular accent remains for active cards and colored status treatments. The rounded card geometry, HP cracks/shatter, real 3D occlusion, 1.4.12 status-FX performance improvements, camera framing, terrain, sound, DM controls and local/no-login Firebase workflows remain intact.
+
+**Install:** Extract the full ZIP, run `github.bat`, enter your existing `Project-Grim` Git repository path and approve the copy/push. Verify **MATTE FINISH 1.4.13** appears on both Stage and DM page headers. No campaign or Firebase reset is needed. See `RELEASE_NOTES_1.4.13.md` and `TEST_REPORT_1.4.13.md`.
+
+---
+
 # Project Grim 1.4.12 — Performance & Stability
 
 This build fixes severe slowdowns from Burning and Frozen status effects by animating foil on the GPU instead of repeatedly painting and uploading high-resolution card textures. It also improves card texture memory, portrait reuse, fallback UI handling, and initiative-strip updates. Existing features and save data are preserved.

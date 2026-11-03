@@ -1071,3 +1071,14 @@ html,body{height:100%}
   box-shadow:0 0 0 1px rgba(194,239,255,.7),inset 0 0 21px rgba(186,232,255,.26)!important;
   background-image:linear-gradient(135deg,rgba(203,245,255,.2),transparent 45%,rgba(121,185,245,.18))!important;
 }
+
+/* Grim 1.4.13: HTML fallback uses the same matte/satin direction as native
+   cards. No full-face white shine that reduces portrait and text contrast. */
+.stage-app:not(.native-cards-ready) .card-face::after{
+  opacity:.065!important;
+  background:linear-gradient(122deg,transparent 0 34%,rgba(240,250,247,.13) 35%,rgba(240,250,247,.02) 37%,transparent 38% 100%)!important;
+}
+.stage-app:not(.native-cards-ready) .card-face{
+  background:linear-gradient(155deg,#1a2223 0%,#101719 53%,#0a0e10 100%);
+  border-color:#9bacab;
+}

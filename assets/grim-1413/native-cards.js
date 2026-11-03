@@ -344,15 +344,20 @@ function drawStatusLabel(ctx, text, x, y, fill, stroke, color){
   ctx.fillText(text, x + pad, y + 10.6);
   return w;
 }
+// Matte-coated print: the entire face is deliberately *not* covered by a
+// translucent plastic sheet. Only tiny perimeter glints suggest the physical
+// satin coating. Moving specular highlights live in the separate GPU foil layer.
 function drawLaminateGloss(ctx,data,t){
- ctx.save();rounded(ctx,5,5,150,258,13);ctx.clip();
- const phase=(Math.sin(t*.0016+hashString(data.id)*.00001)+1)*.5;
- const x=-55+phase*190;
- const grad=ctx.createLinearGradient(x,0,x+49,268);
- grad.addColorStop(0,'rgba(255,255,255,0)');
- grad.addColorStop(.46,`rgba(255,255,255,${data.active?.13:.07})`);
- grad.addColorStop(1,'rgba(255,255,255,0)');
- ctx.fillStyle=grad;ctx.fillRect(6,6,148,256);
+ ctx.save();
+ const edge=data.active?'rgba(225,236,233,.21)':'rgba(195,214,211,.095)';
+ ctx.strokeStyle=edge;
+ ctx.lineWidth=.55;
+ rounded(ctx,6.8,6.8,146.4,254.4,12.5);ctx.stroke();
+ // Tiny corner-light catches, not a broad diagonal haze over the artwork.
+ ctx.strokeStyle=data.active?'rgba(235,243,243,.24)':'rgba(205,221,220,.105)';
+ ctx.lineWidth=.8;
+ ctx.beginPath();ctx.moveTo(20,7.5);ctx.lineTo(46,7.5);
+ ctx.moveTo(153,231);ctx.lineTo(153,249);ctx.stroke();
  ctx.restore();
 }
 
@@ -363,19 +368,19 @@ export function paintCard(ctx, data, portrait = null, timeMs = 0){
   const w=CARD_WIDTH_PX, h=CARD_HEIGHT_PX;
   ctx.clearRect(0,0,w,h); ctx.save(); ctx.imageSmoothingEnabled=true;
   const exterior=ctx.createLinearGradient(0,0,w,h);
-  exterior.addColorStop(0,data.enemy?'#343033':'#364444');
+  exterior.addColorStop(0,data.enemy?'#252326':'#293332');
   exterior.addColorStop(.27,'#121719');
   exterior.addColorStop(.78,'#0b0e11');
-  exterior.addColorStop(1,data.enemy?'#5b5257':'#3f5352');
+  exterior.addColorStop(1,data.enemy?'#353136':'#303c3b');
   rounded(ctx,1,1,w-2,h-2,15);ctx.fillStyle=exterior;ctx.fill();
   // Double hairline border with spacious corners instead of a hard white box.
   rounded(ctx,2.5,2.5,w-5,h-5,14);
   ctx.strokeStyle=data.active?'rgba(223,242,238,.90)':'rgba(193,207,208,.34)';
   ctx.lineWidth=data.active?1.7:1.15;ctx.stroke();
   const charcoal=ctx.createLinearGradient(0,6,0,h-6);
-  charcoal.addColorStop(0,data.enemy?'#252126':'#1d282a');
-  charcoal.addColorStop(.42,'#141a1c');
-  charcoal.addColorStop(1,'#0b0f12');
+  charcoal.addColorStop(0,data.enemy?'#1c1b20':'#192123');
+  charcoal.addColorStop(.42,'#101719');
+  charcoal.addColorStop(1,'#090d10');
   rounded(ctx,6,6,w-12,h-12,11);ctx.fillStyle=charcoal;ctx.fill();
   rounded(ctx,8,8,w-16,h-16,10);ctx.strokeStyle='rgba(222,231,234,.11)';ctx.lineWidth=.65;ctx.stroke();
 
@@ -393,7 +398,7 @@ export function paintCard(ctx, data, portrait = null, timeMs = 0){
   // Tall portrait and cut-corner inlay: the artwork owns more of the surface.
   const ax=11,ay=43,aw=138,ah=141;
   rounded(ctx,ax-1,ay-1,aw+2,ah+2,9);
-  ctx.fillStyle='rgba(202,216,215,.20)';ctx.fill();
+  ctx.fillStyle='rgba(202,216,215,.12)';ctx.fill();
   ctx.save();rounded(ctx,ax,ay,aw,ah,8);ctx.clip();
   if(portrait && portrait.complete && portrait.naturalWidth){
     const ratio=Math.max(aw/portrait.naturalWidth,ah/portrait.naturalHeight);
@@ -401,8 +406,8 @@ export function paintCard(ctx, data, portrait = null, timeMs = 0){
     ctx.drawImage(portrait,ax+(aw-iw)/2,ay+(ah-ih)/2,iw,ih);
   }else{
     const art=ctx.createLinearGradient(ax,ay,ax+aw,ay+ah);
-    art.addColorStop(0,data.enemy?'#51464a':'#516467');
-    art.addColorStop(.48,data.enemy?'#30272e':'#293538');
+    art.addColorStop(0,data.enemy?'#383438':'#34484a');
+    art.addColorStop(.48,data.enemy?'#222127':'#202d31');
     art.addColorStop(1,'#0e1114');ctx.fillStyle=art;ctx.fillRect(ax,ay,aw,ah);
     ctx.textAlign='center';ctx.font='600 40px system-ui,sans-serif';ctx.fillStyle='rgba(231,242,241,.25)';ctx.fillText(data.symbol,w/2,106);
     ctx.font='700 10px monospace';ctx.fillStyle='rgba(231,242,241,.38)';ctx.fillText(data.enemy?'NPC':'PC',w/2,150);ctx.textAlign='left';
@@ -459,26 +464,31 @@ export function paintCard(ctx, data, portrait = null, timeMs = 0){
   ctx.restore();
 }
 
+// Narrow, sparse specular stripe with a fully transparent background.
+// The old five broad overlapping streaks washed out names and portraits.
+// Canvas alpha remains zero except around the light catch, and no GPU uploads
+// occur while the stripe moves (only texture offset and material tint change).
 function makeFoilMap(){
-  const c = document.createElement('canvas');
-  c.width = 96; c.height = 192;
-  const ctx = c.getContext('2d');
-  if(!has2D(ctx)) return new T.CanvasTexture(c);
-  const g = ctx.createLinearGradient(0, 0, 96, 192);
-  g.addColorStop(0, 'rgba(255,255,255,0)');
-  g.addColorStop(.33, 'rgba(255,255,255,.12)');
-  g.addColorStop(.48, 'rgba(255,255,255,.45)');
-  g.addColorStop(.62, 'rgba(255,255,255,.12)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, 96, 192);
-  for(let i=0;i<5;i++){
-    ctx.fillStyle = `rgba(255,255,255,${i===2 ? .20 : .06})`; 
-    ctx.fillRect(i * 20 - 6, 0, 5, 192);
-  }
-  const tex = new T.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = T.RepeatWrapping;
-  tex.repeat.set(1.25, 1.0);
-  tex.colorSpace = T.SRGBColorSpace;
+  const c=document.createElement('canvas');c.width=128;c.height=256;
+  const ctx=c.getContext('2d');
+  if(!has2D(ctx))return new T.CanvasTexture(c);
+  ctx.clearRect(0,0,128,256);
+  ctx.save();
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(128,0);ctx.lineTo(128,256);ctx.lineTo(0,256);ctx.closePath();ctx.clip();
+  // Angled glint: narrow white center fading gently to transparent sides.
+  const grad=ctx.createLinearGradient(36,0,79,0);
+  grad.addColorStop(0,'rgba(255,255,255,0)');
+  grad.addColorStop(.32,'rgba(255,255,255,.025)');
+  grad.addColorStop(.50,'rgba(255,255,255,.17)');
+  grad.addColorStop(.68,'rgba(255,255,255,.025)');
+  grad.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.moveTo(39,0);ctx.lineTo(67,0);ctx.lineTo(106,256);ctx.lineTo(78,256);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.restore();
+  const tex=new T.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=T.RepeatWrapping;
+  tex.repeat.set(1.0,1.0);
+  tex.colorSpace=T.SRGBColorSpace;
   return tex;
 }
 
@@ -606,19 +616,22 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     entry.foilTexture.offset.x = ((timeMs * (d.burning ? .00038 : d.frozen ? .00016 : .00010)) + entry.foilPhase) % 1;
     entry.foilTexture.offset.y = ((timeMs * .00005) + entry.foilPhase * .25) % 1;
     if(d.burning){
-      mat.opacity = d.active ? .30 : .23;
-      mat.color.setRGB(1, .55 + .08*Math.sin(timeMs*.004), .18);
+      // Status finishes own the color; satin gloss stays restrained.
+      mat.opacity=d.active?.22:.16;
+      mat.color.setRGB(1,.48+.10*Math.sin(timeMs*.004),.12);
     }else if(d.frozen){
-      mat.opacity = d.active ? .24 : .18;
-      mat.color.setRGB(.78, .92, 1);
+      mat.opacity=d.active?.18:.13;
+      mat.color.setRGB(.68,.88,1);
     }else if(d.active){
-      mat.opacity = .16;
-      mat.color.setRGB(1, 1, 1);
+      mat.opacity=.095;
+      mat.color.setRGB(.90,.96,.94);
     }else{
-      mat.opacity = .10;
-      mat.color.setRGB(.96, .98, 1);
+      // No perpetual milky film on normal, inactive cards.
+      mat.opacity=0;
+      mat.color.setRGB(1,1,1);
     }
-    if(d.dead) mat.opacity *= .55;
+    if(d.dead)mat.opacity*=.55;
+    entry.foilMesh.visible=mat.opacity>.005;
   }
   function createEntry(data, id){
     const canvas = document.createElement('canvas');
@@ -626,7 +639,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     const texture = new T.CanvasTexture(canvas); texture.colorSpace = T.SRGBColorSpace; texture.anisotropy = 4;
     const faceMaterial = new T.MeshBasicMaterial({ map: texture, side: T.DoubleSide, depthTest: true, depthWrite: true, transparent: false, alphaTest: .04, toneMapped: false, fog: false });
     const faceMesh = new T.Mesh(faceGeometry, faceMaterial); faceMesh.name = 'GRIM_CARD_FACE_' + id;
-    const shellMaterial = new T.MeshStandardMaterial({ color: data.enemy ? 0x1d1c1f : 0x182022, roughness: .88, metalness: .10 });
+    const shellMaterial = new T.MeshStandardMaterial({ color: data.enemy ? 0x16171a : 0x152021, roughness: .94, metalness: .035 });
     const shellMesh = new T.Mesh(shellGeometry, shellMaterial); shellMesh.position.z = -.019; shellMesh.castShadow = false; shellMesh.receiveShadow = false;
     const foilTexture = makeFoilMap();
     const foilMaterial = new T.MeshBasicMaterial({ map: foilTexture, transparent: true, opacity: .12, blending: T.AdditiveBlending, depthTest: true, depthWrite: false, toneMapped: false, side: T.DoubleSide, fog: false });
@@ -674,7 +687,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
           }
         }
         renderTexture(entry, typeof performance !== 'undefined' ? performance.now() : 0);
-        entry.shellMesh.material.color.setHex(data.enemy ? 0x1d1c1f : 0x182022);
+        entry.shellMesh.material.color.setHex(data.enemy ? 0x16171a : 0x152021);
       }
       entry.anchor = a;
       updateFoil(entry, typeof performance !== 'undefined' ? performance.now() : 0);

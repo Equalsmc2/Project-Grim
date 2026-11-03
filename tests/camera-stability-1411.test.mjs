@@ -3,12 +3,12 @@ import {mkdtempSync,cpSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
-import * as T from '../assets/grim-1412/vendor/three.module.js';
-import {calculateCameraPose,applyCameraPose,MIN_CAMERA_ZOOM} from '../assets/grim-1412/camera-frame.js';
-import {clampZoomToCards} from '../assets/grim-1412/camera-guard.js';
+import * as T from '../assets/grim-1413/vendor/three.module.js';
+import {calculateCameraPose,applyCameraPose,MIN_CAMERA_ZOOM} from '../assets/grim-1413/camera-frame.js';
+import {clampZoomToCards} from '../assets/grim-1413/camera-guard.js';
 
 const temp=mkdtempSync(path.join(os.tmpdir(),'grim-camera-stability-'));
-const active=path.resolve('assets/grim-1412');
+const active=path.resolve('assets/grim-1413');
 const fakeRenderer=`export * from './vendor/three.module.js';export class WebGLRenderer{
  constructor(){this.domElement={setAttribute(){},addEventListener(){},remove(){}};this.shadowMap={};this.info={render:{calls:1,triangles:10},memory:{geometries:5}};globalThis.fakeGrimRenderer=this;}
  setPixelRatio(x){this.dpr=x;}getPixelRatio(){return this.dpr||1;}setClearColor(){}setSize(){}

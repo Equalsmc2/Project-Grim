@@ -1,8 +1,8 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Grim 1.4.9 · Card visual QA</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Grim 1.4.13 · Matte card visual QA</title><style>
 body{margin:0;padding:28px;background:#080b0c;color:#e2e9ea;font-family:system-ui,sans-serif}h1{font-size:20px;font-weight:650}.row{display:flex;gap:22px;flex-wrap:wrap}.item{min-width:185px}.item canvas{display:block;width:240px;height:402px;filter:drop-shadow(0 16px 20px #0009)}.item p{font-size:13px;color:#95a5ac}small{color:#73848b}
-</style></head><body><h1>Project Grim 1.4.9 — Card visual QA</h1><small>Static dev preview; no campaign data is changed.</small><div class="row" id="cards"></div>
+</style></head><body><h1>Project Grim 1.4.13 — Matte card finish QA</h1><small>Static dev preview; no campaign data is changed.</small><div class="row" id="cards"></div>
 <script type="module">
-import {cardVisualData,paintCard,TEXTURE_WIDTH,TEXTURE_HEIGHT} from '../assets/grim-1412/native-cards.js';
+import {cardVisualData,paintCard,TEXTURE_WIDTH,TEXTURE_HEIGHT} from '../assets/grim-1413/native-cards.js';
 const fixtures=[
  ['Healthy / clean',40,[]],['Burning',32,['Burning']],['Frozen',28,['Frozen']],['Light cracks',27,[]],['Critical cracks',5,[]],['Shattered',0,[]]
 ];
@@ -12,7 +12,7 @@ for(let i=0;i<fixtures.length;i++){
  const parent=document.createElement('div');parent.className='item';
  const canvas=document.createElement('canvas');canvas.width=TEXTURE_WIDTH;canvas.height=TEXTURE_HEIGHT;
  const d=cardVisualData({id:'preview-hero',name:'Seren Voss',ancestry:'Human',className:'Champion',level:5,hp,maxHp:40,ac:23,initiative:19,conditions,portrait:'',symbol:'✦'},{side:'player',active:i===1,rank:1},true);
- const ctx=canvas.getContext('2d');ctx.scale(4,4);paintCard(ctx,d,null,650);
+ const ctx=canvas.getContext('2d');ctx.scale(TEXTURE_WIDTH/160,TEXTURE_HEIGHT/268);paintCard(ctx,d,null,650);
  const title=document.createElement('p');title.textContent=label;parent.append(canvas,title);host.append(parent);
 }
 </script></body></html>

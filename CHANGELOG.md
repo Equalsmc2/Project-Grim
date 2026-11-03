@@ -1,3 +1,13 @@
+## 1.4.13 — Matte Card Finish
+
+- Replaced baked, broad white laminate streaks with subtle metallic edge catches and a deep-charcoal satin base.
+- Reworked the GPU foil map into one narrow, mostly transparent specular stripe instead of several overlapping full-face streaks.
+- No foil overlay at all on regular inactive cards, and lower opacity on active/status cards; retained Burning and Frozen finishes.
+- Darkened placeholder portrait gradients to preserve contrast; lightly refined backing roughness and metallic edge treatment.
+- Updated fallback HTML card gloss to match the restrained matte design.
+- Preserved 1.4.12's static card texture caching and foil offset-only animation (no frame-by-frame card texture uploads).
+- Isolated the active assets in `assets/grim-1413` to prevent browser cache reuse.
+
 ## Project Grim 1.4.12 — Performance & Stability
 
 - Eliminated periodic full-card canvas repaints and GPU texture uploads for animated Burning/Frozen cards; retained moving GPU foil.

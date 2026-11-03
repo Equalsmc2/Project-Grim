@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-1412/vendor/three.module.js';
-import {createNativeCardLayer,TEXTURE_WIDTH,TEXTURE_HEIGHT} from '../assets/grim-1412/native-cards.js';
+import * as T from '../assets/grim-1413/vendor/three.module.js';
+import {createNativeCardLayer,TEXTURE_WIDTH,TEXTURE_HEIGHT} from '../assets/grim-1413/native-cards.js';
 
 // Recreates the exact expensive case: many persistent Burning/Frozen cards
 // across 3 seconds of animation with an unchanged roster and camera.
