@@ -4,3 +4,6 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Local QA output; never upload browser screenshots or test reports by default
+qa-reports/

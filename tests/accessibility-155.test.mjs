@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import * as T from '../assets/grim-156/vendor/three.module.js';
+import {MOTION_STORAGE_KEY,normalizeMotionChoice,reduceMotion,nextNavigationIndex,smoothScrollBehavior} from '../assets/grim-156/presentation-preferences.js';
+import {createNativeCardLayer} from '../assets/grim-156/native-cards.js';
+
+assert.equal(MOTION_STORAGE_KEY,'grim:motion:v1');
+for (const v of [null,undefined,'bad',''])assert.equal(normalizeMotionChoice(v),'system');
+assert.equal(reduceMotion('system',true),true);
+assert.equal(reduceMotion('system',false),false);
+assert.equal(reduceMotion('reduce',false),true);
+assert.equal(reduceMotion('full',true),false);
+assert.equal(smoothScrollBehavior(true),'instant');
+assert.equal(nextNavigationIndex(0,-1,5),4);
+assert.equal(nextNavigationIndex(4,1,5),0);
+assert.equal(nextNavigationIndex(2,1,0),-1);
+
+const ctx={clearRect(){},setTransform(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},fill(){},stroke(){},clip(){},fillRect(){},fillText(){},drawImage(){},createLinearGradient(){return {addColorStop(){}}},measureText(t){return {width:String(t).length*7}}};
+globalThis.document={createElement(type){assert.equal(type,'canvas');return {width:0,height:0,getContext(){return ctx;}}}};
+const cards=createNativeCardLayer(new T.Scene());
+const place={side:'player',active:true,rank:1,scale:.72};
+const anchor=[{id:'p1',x:0,z:0,active:true,layout:place}];
+const actor=hp=>({id:'p1',name:'Test',hp,maxHp:30,ac:16,initiative:18,conditions:['Burning','Frozen']});
+cards.setReducedMotion(true);
+cards.setCards(anchor,[actor(30)],true);
+cards.setCards(anchor,[actor(0)],true);
+assert.equal(cards.entries.get('p1').shatter,null,'Reduced motion skips new shatter bursts');
+assert.equal(cards.needsAnimation(),false,'Reduced motion suppresses perpetual animated foil');
+cards.setReducedMotion(false);
+cards.setCards(anchor,[actor(10)],true);
+cards.setCards(anchor,[actor(0)],true);
+assert(cards.entries.get('p1').shatter,'Full motion permits a genuine shatter burst');
+cards.setReducedMotion(true);
+assert.equal(cards.entries.get('p1').shatter,null,'Enabling reduced motion cleans up in-flight fragments');
+cards.dispose();
+
+const asset=new URL('../assets/grim-156/',import.meta.url);
+const world=readFileSync(new URL('world.js',asset),'utf8');
+const stage=readFileSync(new URL('stage.js',asset),'utf8');
+const dm=readFileSync(new URL('dm.js',asset),'utf8');
+const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const styles=readFileSync(new URL('styles.css',asset),'utf8');
+for(const code of ['setReducedMotion(enabled)','nativeCards.setReducedMotion(next)','if(reducedMotion||!cinematicEnabled','&&!reducedMotion){'])assert(world.includes(code),`Missing renderer motion rule: ${code}`);
+for(const code of ['MOTION_STORAGE_KEY','systemMotion?.addEventListener','world?.setReducedMotion','e.ctrlKey||e.metaKey||e.altKey'])assert(stage.includes(code),`Missing stage preference or shortcut protection: ${code}`);
+assert(html.includes('id="stageMotion"')&&html.includes('value="system"'));
+assert(dm.includes("setAttribute('aria-current','page')")&&dm.includes('nextNavigationIndex(current'));
+assert(styles.includes('@media (max-width:560px)')&&styles.includes('.grim-reduced-motion *'));
+console.log('PASS: persisted motion preferences, OS override, static condition FX, shatter cleanup, cinematic suppression, keyboard navigation and mobile controls.');

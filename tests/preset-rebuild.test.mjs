@@ -6,7 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
 
-const live=path.resolve('assets/grim-1413');
+const live=path.resolve('assets/grim-156');
 const temp=mkdtempSync(path.join(os.tmpdir(),'grim-preset-test-'));
 const fakeRenderer=`
 export * from './vendor/three.module.js';
@@ -44,6 +44,10 @@ try{
  const nativeGroup=globalThis.grimFakeRenderer.scene.children.find(o=>o.name==='GRIM_NATIVE_CARDS');
  assert.equal(nativeGroup?.children.length,1,'Native card created in shared 3D scene');
  const nativeMesh=nativeGroup.children[0];
+ assert.equal(world.setQuality('low'),'low');flush(120);
+ assert.equal(world.getQuality(),'low');
+ assert.equal(world.setQuality('high'),'high');flush(140);
+ assert.equal(world.setQuality('balanced'),'balanced');flush(170);
  try {
   const sequence=['Forest','Blank test stage','Snowfield','Blank test stage','Ruins','Desert','Forest'];
   let now=200;

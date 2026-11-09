@@ -1,6 +1,82 @@
+# Project Grim 1.5.6 — Visual Regression Foundation
+
+**Current release:** a reproducible screenshot regression system for the DM dashboard, stage controls and native canvas card art. Adds six pinned screenshot baselines, a visual-diff report, explicit baseline approval, and a Windows `RUN-VISUAL-TESTS.bat` runner. No intentional visual redesign, gameplay change, saved-state migration or Firebase account change.
+
+**Install:** Extract the ZIP and run `github.bat` to copy into your Project-Grim repository. Stage and DM pages should display **VISUAL QA 1.5.6**. Your previous characters and scene presets remain compatible.
+
+**Tests:** `RUN-TESTS.bat` runs Node regressions. `RUN-VISUAL-TESTS.bat` compares screenshots if Python, Pillow, Playwright and Chromium are installed. For machines with different browser/font versions, `python tools/visual-regression.py --smoke` performs viewport geometry and screenshot capture without strict baseline comparison. Review any differences before approving new reference images. See `RELEASE_NOTES_1.5.6.md` and `TEST_REPORT_1.5.6.md`.
+
+**Scope:** Screenshot fixtures cover static HTML/CSS layouts and actual 2D-painted card artwork. The full WebGL stage, real FPS and live Firebase access still need separate interactive testing on a machine with browser navigation access.
+
+---
+
+# Project Grim 1.5.5 — Presentation & Accessibility Polish
+
+**Current release:** safer DM navigation on keyboards and small screens, a viewer-local Motion control (System / Reduced / Full), reduced-motion support for the native 3D cinematic director and card effects, and improved mobile presentation controls. No changes to characters, saved campaigns, Firebase credentials, or shared gameplay state.
+
+**Motion control:** On the player stage, use the **Motion** selector next to Quality. System follows the browser/OS preference, Reduced pauses automatic cinematic movement and animated card finishes/shatter bursts, and Full allows the original motion. This is saved only on that viewer's device. Weather may still move because the DM deliberately selected it.
+
+**DM navigation:** On narrow screens, the sidebar becomes a horizontally scrollable strip; Tab remains supported, and Arrow Left/Right or Up/Down navigates among the main DM pages. Keyboard focus is more visible and the current section is announced to assistive technology. Existing DM shortcuts C/S/N no longer interfere while editing or focused on a button.
+
+**Installation:** Extract the full ZIP and run `github.bat`. Choose your existing Project-Grim repository path. Both pages should display **ACCESSIBILITY 1.5.5**. No campaign reset is required. Run `RUN-TESTS.bat` for automated checks; optionally run `npm run test:layout` if Chromium and Playwright are installed for HTML/CSS viewport testing.
+
+**Verification:** 34/34 automated Node test suites and 14 static Chromium viewport/layout checks passed in the build environment. The full live website WebGL and FPS tests remain unverified because direct browser navigation is blocked here.
+
+---
+
+# Project Grim 1.5.4 — DM Workflow Reliability
+
+**Current release:** stronger scene backups, more predictable Environment Undo/Redo, and recoverable Firebase publishing. The player stage and visual effects are unchanged. No new login and no campaign reset are required.
+
+**DM additions:** Environment → Prepared scenes now has **Export** and **Import**. The JSON file backs up your 12 prepared scene setups, not your entire campaign. Undo/Redo treats a slider drag as one change but each applied scene as a separate step; ambience changes are also included.
+
+**Firebase recovery:** Temporary failed writes are retried within the open DM tab. An unsynced revision marker also protects locally saved changes after a refresh: if Grim finds one, it keeps the local view and asks you to click **Publish** to recover. This deliberately avoids silently overwriting a potentially newer cloud room. Keep the same browser profile and do not clear browser storage until the changes are published. The stage viewer stays read-only.
+
+**Install:** Extract this full ZIP and run `github.bat` next to the website files, then choose your Project-Grim Git repository. Both pages must show **DM RELIABILITY 1.5.4**. Run `RUN-TESTS.bat` or `npm test` for the automated tests. See `RELEASE_NOTES_1.5.4.md` and `TEST_REPORT_1.5.4.md`.
+
+---
+
+# Project Grim 1.5.3 — Architecture & Cleanup
+
+**Earlier release:** safer, atomic environment rebuilds, dedicated terrain/resource/cinematic modules, and focused cleanup. If one environment fails to generate, the previous battlefield remains visible, including its card meshes. No deliberate visual or gameplay redesign; no saved-world data changes.
+
+**Install:** Extract the full ZIP, run `github.bat`, and enter the Project-Grim Git repository folder. The stage and DM headers should display **ARCHITECTURE 1.5.3**. Run `RUN-TESTS.bat` or `npm test` for the complete automated checks. See [`RELEASE_NOTES_1.5.3.md`](RELEASE_NOTES_1.5.3.md) and [`TEST_REPORT_1.5.3.md`](TEST_REPORT_1.5.3.md).
+
+---
+
+# Project Grim 1.5.2 — Performance Engineering
+
+**Earlier release:** renderer scheduling improvements for storms and long encounters. Weather particle updates use a quality-aware simulation budget rather than updating at every display refresh; unchanged scenic materials and settled static lighting are no longer recalculated each animation frame. The existing 1.5.1 reliability tests, camera safeguards, matte/status cards, DM tools, saved scenes, audio and Firebase configuration remain intact.
+
+**Install:** Extract the full ZIP. Run `github.bat`, enter your Project-Grim Git repository path, confirm the copy and optionally push/deploy. Both website headers should read **ARCHITECTURE 1.5.3**. No campaign reset is needed. `RUN-TESTS.bat` or `npm test` executes the full automated suite. See `RELEASE_NOTES_1.5.2.md` and `TEST_REPORT_1.5.2.md` for limitations.
+
+---
+
+# Project Grim 1.5.1 — Automated Reliability Foundation
+
+**Earlier release:** a reliability-first patch built directly on 1.5.0. All stage and DM features remain in place. This release adds a one-command QA runner, long-encounter stress tests, real local HTTP checks, and an optional browser screenshot test. It also fixes scene snapshot Undo/Redo and hardens the local preview server.
+
+**Install:** Extract the full ZIP. Run `github.bat` and enter your existing Project-Grim repository path. The stage and DM page headers should display **RELIABILITY 1.5.1**. Your existing saved campaign and Firebase anonymous connection settings are compatible.
+
+**Run tests yourself later:** Double-click `RUN-TESTS.bat`, or run `npm test` (Node.js LTS required; no `npm install` needed). Results are saved locally to `qa-reports/`. Optional real-browser smoke tests: `npm run test:browser` after installing Python Playwright and its Chromium browser; this is not part of the default test runner.
+
+See `RELEASE_NOTES_1.5.1.md` and `TEST_REPORT_1.5.1.md` for changes, test evidence and explicit limitations.
+
+---
+
+# Project Grim 1.5.0 — Refinement
+
+**Earlier release:** continued from 1.4.13, with viewer-local graphics quality (Low/Balanced/High), prepared DM scene snapshots, environment Undo/Redo, better camera direction, more coherent prop placement and fewer redundant 3D/DM updates.
+
+**Install:** Extract the full ZIP, run `github.bat`, choose your existing Project-Grim repository folder, review the copied files and authorize the push. Confirm **REFINEMENT 1.5.0** on the DM and Stage pages. The live site is still `index.html` and `dm.html`. Old campaign data is supported.
+
+See `RELEASE_NOTES_1.5.md` and `TEST_REPORT_1.5.md` for exact changes and limitations.
+
+---
+
 # Project Grim 1.4.13 — Matte Card Finish
 
-**Current release:** The 3D cards now use a deep-charcoal matte finish instead of a milky all-over laminate. The large baked gloss overlay is gone; only a narrow specular accent remains for active cards and colored status treatments. The rounded card geometry, HP cracks/shatter, real 3D occlusion, 1.4.12 status-FX performance improvements, camera framing, terrain, sound, DM controls and local/no-login Firebase workflows remain intact.
+**Earlier release:** The 3D cards now use a deep-charcoal matte finish instead of a milky all-over laminate. The large baked gloss overlay is gone; only a narrow specular accent remains for active cards and colored status treatments. The rounded card geometry, HP cracks/shatter, real 3D occlusion, 1.4.12 status-FX performance improvements, camera framing, terrain, sound, DM controls and local/no-login Firebase workflows remain intact.
 
 **Install:** Extract the full ZIP, run `github.bat`, enter your existing `Project-Grim` Git repository path and approve the copy/push. Verify **MATTE FINISH 1.4.13** appears on both Stage and DM page headers. No campaign or Firebase reset is needed. See `RELEASE_NOTES_1.4.13.md` and `TEST_REPORT_1.4.13.md`.
 
@@ -18,7 +94,7 @@ See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
 
 # Project Grim 1.4.11 — Camera Stability Repair
 
-**Current release:** fixes the extreme zoom-out introduced in 1.4.10 (which could force the camera to 6% zoom). The stage now uses bounded framing adjustments and adaptive card-only scaling when encounters are crowded, so the world stays a useful size and every displayed card remains within the stage frame in tested scenarios. All native 3D card FX, depth, weather, audio, DM controls and no-login Firebase workflow remain available.
+**Earlier release:** fixes the extreme zoom-out introduced in 1.4.10 (which could force the camera to 6% zoom). The stage now uses bounded framing adjustments and adaptive card-only scaling when encounters are crowded, so the world stays a useful size and every displayed card remains within the stage frame in tested scenarios. All native 3D card FX, depth, weather, audio, DM controls and no-login Firebase workflow remain available.
 
 **Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CAMERA STABILITY 1.4.11**. No campaign reset is required. See `RELEASE_NOTES_1.4.11.md` and `TEST_REPORT_1.4.11.md`.
 
@@ -26,7 +102,7 @@ See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
 
 # Project Grim 1.4.9 — Card Finish Fix
 
-**Current release:** fixes barely visible Burning, prevents camera zoom from cropping combatant cards, and replaces scratchy cracks with stable, readable portrait-glass fractures. The existing 0 HP shatter, native 3D depth occlusion, weather, ambience, combat/DM systems and no-login Firebase are preserved.
+**Earlier release:** fixes barely visible Burning, prevents camera zoom from cropping combatant cards, and replaces scratchy cracks with stable, readable portrait-glass fractures. The existing 0 HP shatter, native 3D depth occlusion, weather, ambience, combat/DM systems and no-login Firebase are preserved.
 
 **Install:** Extract the ZIP, run `github.bat`, enter your existing Project Grim Git repository path, and approve the upload. Both pages should show **CARD FINISH FIX 1.4.9**. You do not need to reset saved campaign data. Details: `RELEASE_NOTES_1.4.9.md`, `TEST_REPORT_1.4.9.md`.
 
@@ -34,7 +110,7 @@ See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
 
 # Project Grim 1.4.8 — Slim Premium Cards
 
-**Current release:** redesigned real 3D character cards with a taller tarot/dossier profile, genuinely rounded 3D geometry, metallic laminated trim, cleaner typography and a taller portrait. Preserves 1.4.7 Burning, Frozen, cracking and 0-HP shatter finishes, and all stage/DM/ambience/terrain features.
+**Earlier release:** redesigned real 3D character cards with a taller tarot/dossier profile, genuinely rounded 3D geometry, metallic laminated trim, cleaner typography and a taller portrait. Preserves 1.4.7 Burning, Frozen, cracking and 0-HP shatter finishes, and all stage/DM/ambience/terrain features.
 
 **Install:** Extract the full ZIP, run `github.bat`, enter the Project-Grim repository path, review and confirm. Both pages show **CARD REDESIGN 1.4.8**. Campaign data and Firebase settings are preserved. See `RELEASE_NOTES_1.4.8.md` and `TEST_REPORT_1.4.8.md`.
 
@@ -42,7 +118,7 @@ See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
 
 # Project Grim 1.4.7 — Card FX Polish
 
-**Current release:** richer burning and freezing laminate effects, continuous HP fracture progression, and one-shot 3D vinyl shatter when a character falls from positive HP to zero. Real 3D world anchoring, occlusion, camera controls, atmosphere, ambience, the DM dashboard, no-login Firebase/local sync, and the existing state format remain intact.
+**Earlier release:** richer burning and freezing laminate effects, continuous HP fracture progression, and one-shot 3D vinyl shatter when a character falls from positive HP to zero. Real 3D world anchoring, occlusion, camera controls, atmosphere, ambience, the DM dashboard, no-login Firebase/local sync, and the existing state format remain intact.
 
 **Install:** Extract this full ZIP, run `github.bat`, input your existing Project-Grim repository path, review the copy and Git changes, then push/deploy. Both pages should show **CARD FX POLISH 1.4.7**. See `RELEASE_NOTES_1.4.7.md` and `TEST_REPORT_1.4.7.md`. No campaign reset is needed.
 
@@ -50,7 +126,7 @@ See `RELEASE_NOTES_1.4.12.md` and `TEST_REPORT_1.4.12.md` for details.
 
 # Project Grim 1.4.6 — Premium Card FX
 
-**Current release:** premium-looking laminated world cards with improved native 3D presentation, burning/frozen finish effects, and progressive HP cracking/shatter while keeping real Three.js prop occlusion. Ground camera remains the default; atmosphere, terrain, ambience, compact DM controls, no-login sync and the GitHub uploader are preserved.
+**Earlier release:** premium-looking laminated world cards with improved native 3D presentation, burning/frozen finish effects, and progressive HP cracking/shatter while keeping real Three.js prop occlusion. Ground camera remains the default; atmosphere, terrain, ambience, compact DM controls, no-login sync and the GitHub uploader are preserved.
 
 Extract this ZIP, run `github.bat`, enter your existing Project-Grim repository path, review the changes, and deploy. Confirm **PREMIUM CARD FX 1.4.6** in both page headers. No campaign reset is required. See `RELEASE_NOTES_1.4.6.md` and `TEST_REPORT_1.4.6.md` for details.
 
@@ -58,7 +134,7 @@ Extract this ZIP, run `github.bat`, enter your existing Project-Grim repository 
 
 # Project Grim 1.4.4 — Preset Recovery Fix
 
-**Current release:** fixes a renderer error when changing environment presets, especially after selecting Blank test stage. See `RELEASE_NOTES_1.4.4.md`. The existing saved campaign, ambience, stage and DM controls are preserved.
+**Earlier release:** fixes a renderer error when changing environment presets, especially after selecting Blank test stage. See `RELEASE_NOTES_1.4.4.md`. The existing saved campaign, ambience, stage and DM controls are preserved.
 
 # Project Grim 1.4.3 — Cinematic Camera & Card Occlusion
 

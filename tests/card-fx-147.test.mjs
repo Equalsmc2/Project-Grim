@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-1413/vendor/three.module.js';
-import {createNativeCardLayer,cardVisualData,damageSeverity,shatterProgress} from '../assets/grim-1413/native-cards.js';
+import * as T from '../assets/grim-156/vendor/three.module.js';
+import {createNativeCardLayer,cardVisualData,damageSeverity,shatterProgress} from '../assets/grim-156/native-cards.js';
 import {readFileSync} from 'node:fs';
 
 const ctx={clearRect(){},setTransform(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},fill(){},stroke(){},clip(){},fillRect(){},fillText(){},drawImage(){},createLinearGradient(){return {addColorStop(){}}},measureText(t){return {width:String(t).length*7}}};
 globalThis.document={createElement(type){assert.equal(type,'canvas');return {width:0,height:0,getContext(){return ctx;}}}};
-const stateSource=readFileSync(new URL('../assets/grim-1413/state.js',import.meta.url),'utf8');
+const stateSource=readFileSync(new URL('../assets/grim-156/state.js',import.meta.url),'utf8');
 assert(stateSource.includes("'Burning','Frozen'"),'DM can apply both finish conditions');
 assert.equal(damageSeverity(1),0);assert.equal(damageSeverity(.79)>0,true);
 assert(damageSeverity(.15)>damageSeverity(.50));assert.equal(damageSeverity(0),1);
@@ -33,6 +33,6 @@ layer.setCards(anchors,[makeCharacter(0)],true);
 layer.update(camera,1600,900,env,()=>0,entry.shatter.start+2000);
 assert.equal(entry.shatter,null,'Finished shatter disposes GPU fragments');
 layer.dispose();
-const world=readFileSync(new URL('../assets/grim-1413/world.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-156/world.js',import.meta.url),'utf8');
 assert(world.includes('cardFxMoving=nativeCards.needsAnimation(t)'),'Camera renderer continues while card effects animate');
 console.log('PASS: continuous HP severity, status stacking, one-shot textured shatter, revival and GPU cleanup.');

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-1413/environment-state.js';
-const root=new URL('../assets/grim-1413/',import.meta.url);
+import {normalizeEnvironment} from '../assets/grim-156/environment-state.js';
+const root=new URL('../assets/grim-156/',import.meta.url);
 const env=normalizeEnvironment({cinematicPan:true,cinematicSpeed:25});
 assert.equal(env.cinematicPan,true);
 assert.equal(env.cinematicSpeed,2.5);
@@ -13,7 +13,7 @@ const editor=readFileSync(new URL('environment-editor.js',root),'utf8');
 const ui=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 for(const s of ['function cinematicStep(', 'updateCinematicSettings(env)', 'getCinematic()', 'cinematicPauseUntil', 'nativeCards.update(', 'createNativeCardLayer('])assert(world.includes(s),`Missing camera or depth fix: ${s}`);
 assert(!world.includes('canvas.toDataURL('),'Old animated PNG masks must not return');
-assert(world.includes('if(environmentMoving||transition||cinematicEnabled||cardFxMoving)'));
+assert(world.includes('if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)'),'Reduced-motion viewers must not schedule perpetual camera frames');
 assert(stage.includes("const autoPanButton=$('autoPanToggle')"));
 assert(ui.includes('id="autoPanToggle"')&&editor.includes('data-env="cinematicPan"'));
 console.log('PASS: cinematic camera state/controls, native 3D occlusion and regression guards.');

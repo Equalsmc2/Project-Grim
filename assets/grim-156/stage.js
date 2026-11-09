@@ -1,3 +1,5 @@
+import {normalizeGraphicsQuality} from './graphics-quality.js';
+import {normalizeMotionChoice,reduceMotion,MOTION_STORAGE_KEY} from './presentation-preferences.js';
 import {AMBIENCE_TRACKS,createAmbiencePlayer} from './ambience.js';
 import {getState,subscribe,getScene,orderedCharacters,getOptions,updateState,escapeHtml,isEnemy} from './state.js';
 import {planFormation} from './formation.js';
@@ -6,6 +8,29 @@ const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
 let yaw=0,pitch=0,zoom=1,viewMode=DEFAULT_CAMERA_VIEW,lastSignature='',lastInitiativeSignature='',world=null;
+const qualityControl=$('stageQuality');
+let localGraphics='balanced';
+try{localGraphics=normalizeGraphicsQuality(localStorage.getItem('grim:quality:v1'));}catch{}
+if(qualityControl){qualityControl.value=localGraphics;qualityControl.addEventListener('change',()=>{localGraphics=normalizeGraphicsQuality(qualityControl.value);try{localStorage.setItem('grim:quality:v1',localGraphics);}catch{}world?.setQuality(localGraphics);});}
+const motionControl=$('stageMotion');
+let motionChoice='system';
+try{motionChoice=normalizeMotionChoice(localStorage.getItem(MOTION_STORAGE_KEY));}catch{}
+const systemMotion=typeof window.matchMedia==='function'?window.matchMedia('(prefers-reduced-motion: reduce)'):null;
+const isReducedMotion=()=>reduceMotion(motionChoice,systemMotion?.matches);
+function applyMotion(){
+  const reduced=isReducedMotion();
+  app.classList.toggle('grim-reduced-motion',reduced);
+  document.documentElement.classList.toggle('grim-motion-full',motionChoice==='full');
+  if(motionControl)motionControl.value=motionChoice;
+  world?.setReducedMotion(reduced);
+}
+if(motionControl)motionControl.addEventListener('change',()=>{
+  motionChoice=normalizeMotionChoice(motionControl.value);
+  try{localStorage.setItem(MOTION_STORAGE_KEY,motionChoice);}catch{}
+  applyMotion();
+});
+systemMotion?.addEventListener?.('change',()=>{if(motionChoice==='system')applyMotion();});
+applyMotion();
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeImg=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x)?x:'';
 
@@ -91,7 +116,7 @@ let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   // Native cards are GPU billboards: do not touch invisible fallback HTML
   // on every mousemove while WebGL is active.
-  if(world)return;
+  if(world||isReducedMotion())return;
   tiltX=e.clientX/innerWidth-.5;tiltY=e.clientY/innerHeight-.5;
   if(tiltFrame)return;
   tiltFrame=requestAnimationFrame(()=>{
@@ -107,7 +132,7 @@ $('toggleHud').onclick=hudToggle;
 $('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();};
 window.addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
- if(e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
+ if(e.ctrlKey||e.metaKey||e.altKey||e.target?.closest?.('input,select,textarea,[contenteditable]'))return;
  if(key==='h')hudToggle();
  else if(key==='c'){e.preventDefault();autoPanButton?.click();}
  else if(key==='f')$('fullscreen').click();
@@ -156,8 +181,8 @@ launchFirebase();
 async function launchWorld(){
  try {
   if(new URLSearchParams(location.search).get('webgl')==='0')throw new Error('Fallback requested');
-  const {createWorld}=await import('./world.js');world=createWorld($('worldCanvas'),stage);
-  app.classList.add('webgl-ready');selectCameraView(viewMode);render(getState());
+  const {createWorld}=await import('./world.js');world=createWorld($('worldCanvas'),stage,{quality:localGraphics,reducedMotion:isReducedMotion()});
+  app.classList.add('webgl-ready');applyMotion();selectCameraView(viewMode);render(getState());
  }catch(error){world?.dispose();world=null;app.classList.remove('webgl-ready','native-cards-ready');$('worldCanvas').replaceChildren();$('worldStatus').textContent='2D FALLBACK · 3D unavailable';console.warn('3D fallback:',error.message);}
 }
 launchWorld();

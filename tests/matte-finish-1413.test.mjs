@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-1413/vendor/three.module.js';
-import {createNativeCardLayer,cardVisualData} from '../assets/grim-1413/native-cards.js';
+import * as T from '../assets/grim-156/vendor/three.module.js';
+import {createNativeCardLayer,cardVisualData} from '../assets/grim-156/native-cards.js';
 
 const mockContext={
  clearRect(){},setTransform(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},fill(){},stroke(){},clip(){},fillRect(){},fillText(){},drawImage(){},

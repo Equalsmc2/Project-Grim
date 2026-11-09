@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\grim-1413\state.js" (
+if not exist "%SOURCE_ROOT%\assets\grim-156\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -91,13 +91,15 @@ if errorlevel 2 goto :done
 echo.
 echo Copying Project Grim site files...
 rem Copy only known site root files. Never copy the .git folder or all Downloads.
-robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "RELEASE_NOTES_1.4.6.md" "TEST_REPORT_1.4.6.md" "RELEASE_NOTES_1.4.7.md" "TEST_REPORT_1.4.7.md" "RELEASE_NOTES_1.4.8.md" "TEST_REPORT_1.4.8.md" "RELEASE_NOTES_1.4.9.md" "TEST_REPORT_1.4.9.md" "RELEASE_NOTES_1.4.11.md" "TEST_REPORT_1.4.11.md" "RELEASE_NOTES_1.4.12.md" "TEST_REPORT_1.4.12.md" "RELEASE_NOTES_1.4.13.md" "TEST_REPORT_1.4.13.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "package.json" "RUN-TESTS.bat" "RUN-VISUAL-TESTS.bat" "RELEASE_NOTES_1.5.6.md" "TEST_REPORT_1.5.6.md" "RELEASE_NOTES_1.5.1.md" "RELEASE_NOTES_1.5.2.md" "RELEASE_NOTES_1.5.3.md" "TEST_REPORT_1.5.3.md" "RELEASE_NOTES_1.5.4.md" "TEST_REPORT_1.5.4.md" "RELEASE_NOTES_1.5.5.md" "TEST_REPORT_1.5.5.md" "TEST_REPORT_1.5.2.md" "TEST_REPORT_1.5.1.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "RELEASE_NOTES_1.4.6.md" "TEST_REPORT_1.4.6.md" "RELEASE_NOTES_1.4.7.md" "TEST_REPORT_1.4.7.md" "RELEASE_NOTES_1.4.8.md" "TEST_REPORT_1.4.8.md" "RELEASE_NOTES_1.4.9.md" "TEST_REPORT_1.4.9.md" "RELEASE_NOTES_1.4.11.md" "TEST_REPORT_1.4.11.md" "RELEASE_NOTES_1.4.12.md" "TEST_REPORT_1.4.12.md" "RELEASE_NOTES_1.4.13.md" "TEST_REPORT_1.4.13.md" "RELEASE_NOTES_1.5.md" "TEST_REPORT_1.5.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\assets" "%REPO%\assets" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\docs" "%REPO%\docs" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 if exist "%SOURCE_ROOT%\tests" robocopy "%SOURCE_ROOT%\tests" "%REPO%\tests" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+if errorlevel 8 goto :copy_failed
+if exist "%SOURCE_ROOT%\tools" robocopy "%SOURCE_ROOT%\tools" "%REPO%\tools" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 echo [OK] Website files copied to: "%REPO%"
 goto :cleanup_legacy
@@ -109,13 +111,13 @@ goto :cleanup_legacy
 rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
-if not exist "%REPO%\assets\grim-1413\state.js" (
-    echo [ERROR] Matte Finish 1.4.13 is not installed, refusing to remove old bundles.
+if not exist "%REPO%\assets\grim-156\state.js" (
+    echo [ERROR] Project Grim 1.5.6 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
 echo Cleanup option: remove inactive older Grim asset versions from this repository?
-echo The current grim-1413 assets, campaign data and Git history are untouched.
+echo The current grim-156 assets, campaign data and Git history are untouched.
 choice /c YN /n /m "Remove old version asset directories? [Y/N] "
 if errorlevel 2 goto :review_git
 if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
@@ -150,6 +152,13 @@ if exist "%REPO%\assets\grim-145" rmdir /S /Q "%REPO%\assets\grim-145"
 if exist "%REPO%\assets\grim-1410" rmdir /S /Q "%REPO%\assets\grim-1410"
 if exist "%REPO%\assets\grim-1411" rmdir /S /Q "%REPO%\assets\grim-1411"
 if exist "%REPO%\assets\grim-1412" rmdir /S /Q "%REPO%\assets\grim-1412"
+if exist "%REPO%\assets\grim-1413" rmdir /S /Q "%REPO%\assets\grim-1413"
+if exist "%REPO%\assets\grim-150" rmdir /S /Q "%REPO%\assets\grim-150"
+if exist "%REPO%\assets\grim-151" rmdir /S /Q "%REPO%\assets\grim-151"
+if exist "%REPO%\assets\grim-152" rmdir /S /Q "%REPO%\assets\grim-152"
+if exist "%REPO%\assets\grim-153" rmdir /S /Q "%REPO%\assets\grim-153"
+if exist "%REPO%\assets\grim-154" rmdir /S /Q "%REPO%\assets\grim-154"
+if exist "%REPO%\assets\grim-155" rmdir /S /Q "%REPO%\assets\grim-155"
 echo [OK] Old bundled assets cleaned.
 goto :review_git
 
@@ -215,7 +224,7 @@ if not "%DEPLOY_RESULT%"=="0" (
     echo [ERROR] Firebase deploy failed. Check firebase login and project permissions.
     goto :done
 )
-echo [SUCCESS] Matte Finish 1.4.13 deployed to Firebase Hosting.
+echo [SUCCESS] Project Grim 1.5.6 deployed to Firebase Hosting.
 goto :done
 
 :copy_failed

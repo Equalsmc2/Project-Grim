@@ -518,6 +518,8 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
   const shellGeometry = new T.ExtrudeGeometry(roundedCardShape(.065),{depth:.025,steps:1,bevelEnabled:true,bevelThickness:.007,bevelSize:.006,bevelSegments:2,curveSegments:8});
   const cameraForward = new T.Vector3(), fromCamera = new T.Vector3(), groundPoint = new T.Vector3();
   let texturePaints=0, layoutUpdates=0, foilUpdates=0, shatterUpdates=0;
+  let reducedMotionOverride=null;
+  const motionReduced=()=>reducedMotionOverride??(typeof window!=='undefined'&&!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   const SHATTER_DURATION = 1350;
   const SHATTER_COLS = 4, SHATTER_ROWS = 3;
 
@@ -666,7 +668,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
         const previousHp=entry.data.hp;
         const isNew=entry.signature==='';
         entry.signature = signature; entry.data = data;
-        if(!isNew && previousHp>0 && data.dead){
+        if(!isNew && previousHp>0 && data.dead && !motionReduced()){
           beginShatter(entry,typeof performance!=='undefined'?performance.now():Date.now());
         }else if(!data.dead && entry.shatter){
           // A healed/revived character gets their intact card back immediately.
@@ -704,7 +706,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     for(const entry of entries.values()){
       const a = entry.anchor;
       const ground = landscapeHeight(a.x, a.z, env.terrainWidth, env.terrainDepth, env.seed, env.variation, env.hills);
-      const reducedMotion=typeof window!=='undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const reducedMotion=motionReduced();
       const bob = entry.data.active && !reducedMotion ? Math.sin(now * .0034 + entry.foilPhase * 6.28) * .032 : 0;
       const hover = (a.active ? 1.28 : 1.02) + bob;
       const distance = camera.position.distanceTo(groundPoint.set(a.x, ground + hover, a.z));
@@ -729,7 +731,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
 
   function animate(now=typeof performance!=='undefined'?performance.now():Date.now()){
     if(!available)return;
-    const reducedMotion=typeof window!=='undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion=motionReduced();
     for(const entry of entries.values()){
       if(!reducedMotion && (entry.data.burning || entry.data.frozen)) updateFoil(entry,now);
       if(entry.shatter){
@@ -742,7 +744,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
   function getPerformanceStats(){return {texturePaints,layoutUpdates,foilUpdates,shatterUpdates,cards:entries.size};}
   function needsAnimation(now=typeof performance!=='undefined'?performance.now():Date.now()){
     if(!available)return false;
-    const reducedMotion=typeof window!=='undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion=motionReduced();
     if(reducedMotion)return [...entries.values()].some(entry=>!!entry.shatter);
     for(const entry of entries.values()){
       if(entry.data.burning || entry.data.frozen)return true;
@@ -750,10 +752,14 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     }
     return false;
   }
+  function setReducedMotion(enabled){
+    reducedMotionOverride=!!enabled;
+    if(enabled)for(const entry of entries.values())if(entry.shatter)disposeShatter(entry);
+  }
   function dispose(){
     available = false;
     for(const e of entries.values()) disposeEntry(e);
     entries.clear(); scene.remove(group); faceGeometry.dispose(); shellGeometry.dispose();
   }
-  return { setCards, update, animate, needsAnimation, getPerformanceStats, dispose, group, entries, get count(){ return entries.size; } };
+  return { setCards, update, animate, needsAnimation, setReducedMotion, getPerformanceStats, dispose, group, entries, get count(){ return entries.size; } };
 }

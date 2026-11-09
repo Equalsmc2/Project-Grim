@@ -1,8 +1,21 @@
+import {nextNavigationIndex} from './presentation-preferences.js';
 import {SCENES,CONDITION_OPTIONS,getState,subscribe,updateState,getScene,orderedCharacters,adjustHp,randD20,defaultState,resetDemo,getOptions,setOptions,escapeHtml,prettyTime,isEnemy} from './state.js';
 const $=id=>document.getElementById(id);
 let section='overview';let selectedId=getState().characters[0]?.id;let cloud=null;let cloudConnecting=null;let cloudEpoch=0;let toastTimer;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2800);}
-function go(to){section=to;document.querySelectorAll('.nav-button').forEach(b=>b.classList.toggle('active',b.dataset.section===to));document.querySelectorAll('.dm-section').forEach(el=>el.classList.toggle('active',el.dataset.section===to));$('pageTitle').textContent=({overview:"Overview",environment:"Environment",scene:'Scene controls',combat:'Combat controls',cast:'Card editor',settings:'Connection & Setup'})[to];render(getState());window.scrollTo({top:0,behavior:'smooth'});}
+function go(to){
+ section=to;
+ document.querySelectorAll('.nav-button').forEach(b=>{
+   const active=b.dataset.section===to;
+   b.classList.toggle('active',active);
+   if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+ });
+ document.querySelectorAll('.dm-section').forEach(el=>el.classList.toggle('active',el.dataset.section===to));
+ $('pageTitle').textContent=({overview:'Overview',environment:'Environment',scene:'Scene controls',combat:'Combat controls',cast:'Card editor',settings:'Connection & Setup'})[to];
+ render(getState());
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+ window.scrollTo?.({top:0,behavior:reduced?'instant':'smooth'});
+}
 function switchMode(mode){updateState(s=>{s.mode=mode;},mode==='scene'?'Scene mode presented':'Combat mode presented');toast(`${mode==='scene'?'Scene':'Combat'} now showing on stage`);}
 function nextTurn(){updateState(s=>{const order=orderedCharacters(s).filter(c=>!c.hidden);if(!order.length)return;let index=order.findIndex(c=>c.id===s.combat.activeId);if(index===order.length-1||index<0){s.combat.round+=index<0?0:1;s.combat.activeId=order[0].id;}else s.combat.activeId=order[index+1].id;s.mode='combat';},'Initiative advanced');}
 function metrics(s){const current=s.characters.find(c=>c.id===s.combat.activeId);const wounded=s.characters.filter(c=>c.hp<c.maxHp).length;$('metrics').innerHTML=[['PRESENTATION',s.mode.toUpperCase(),'Current stage mode'],['COMBATANTS',s.characters.length,`${s.characters.filter(c=>!isEnemy(c)).length} ${s.characters.filter(c=>!isEnemy(c)).length===1?'player':'players'} · ${s.characters.filter(isEnemy).length} ${s.characters.filter(isEnemy).length===1?'enemy':'enemies'}`],['COMBAT ROUND',s.combat.round,`Active: ${current?.name||'None'}`],['INJURED CAST',wounded,'Below maximum HP']].map(a=>`<div class="metric"><span>${escapeHtml(a[0])}</span><strong>${escapeHtml(a[1])}</strong><small>${escapeHtml(a[2])}</small></div>`).join('');}
@@ -25,8 +38,8 @@ function renderCombat(s){$('dmRound').textContent=s.combat.round;const current=s
   <div class="initiative-number">${Number(c.initiative)||0}</div>
   <div class="character-caption"><span class="faction-chip ${isEnemy(c)?'is-enemy':'is-player'}">${isEnemy(c)?'◆ ENEMY':'● PLAYER'}</span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.ancestry)} · ${escapeHtml(c.className)}</small></div>
   <div class="tiny-stat"><span>AC </span><b>${Number(c.ac)||10}</b><small style="display:block;margin-top:5px">${c.tempHp?`+${c.tempHp} TEMP HP`:'NO TEMP HP'}</small></div>
-  <div class="hp-cell"><div class="hp-meta"><span>HIT POINTS</span><strong>${c.hp} / ${c.maxHp}</strong></div><div class="hp-progress"><i class="${pct<=30?'low':''}" style="width:${pct}%"></i></div><div class="hp-buttons"><button data-hp="-5" data-id="${c.id}">−5</button><button data-hp="-1" data-id="${c.id}">−1</button><button data-hp="1" data-id="${c.id}">+1</button><button data-hp="5" data-id="${c.id}">+5</button></div></div>
-  <div class="conditions-cell"><div class="condition-tags">${c.conditions?.length?c.conditions.map((x,i)=>`<button class="cond-tag" title="Click to remove" data-remove-condition="${i}" data-id="${c.id}">${escapeHtml(x)} ×</button>`).join(''):'<span class="no-conditions">No conditions</span>'}</div><div class="condition-edit"><select aria-label="Add condition to ${escapeHtml(c.name)}" id="condition-${escapeHtml(c.id)}"><option value="">Add a condition…</option>${CONDITION_OPTIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select><button data-add-condition="${c.id}" title="Add selected condition">+</button></div></div>
+  <div class="hp-cell"><div class="hp-meta"><span>HIT POINTS</span><strong>${c.hp} / ${c.maxHp}</strong></div><div class="hp-progress"><i class="${pct<=30?'low':''}" style="width:${pct}%"></i></div><div class="hp-buttons"><button aria-label="Damage ${escapeHtml(c.name)} by 5" data-hp="-5" data-id="${c.id}">−5</button><button aria-label="Damage ${escapeHtml(c.name)} by 1" data-hp="-1" data-id="${c.id}">−1</button><button aria-label="Heal ${escapeHtml(c.name)} by 1" data-hp="1" data-id="${c.id}">+1</button><button aria-label="Heal ${escapeHtml(c.name)} by 5" data-hp="5" data-id="${c.id}">+5</button></div></div>
+  <div class="conditions-cell"><div class="condition-tags">${c.conditions?.length?c.conditions.map((x,i)=>`<button class="cond-tag" title="Click to remove" aria-label="Remove ${escapeHtml(x)} from ${escapeHtml(c.name)}" data-remove-condition="${i}" data-id="${c.id}">${escapeHtml(x)} ×</button>`).join(''):'<span class="no-conditions">No conditions</span>'}</div><div class="condition-edit"><select aria-label="Add condition to ${escapeHtml(c.name)}" id="condition-${escapeHtml(c.id)}"><option value="">Add a condition…</option>${CONDITION_OPTIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select><button data-add-condition="${c.id}" title="Add selected condition" aria-label="Add selected condition to ${escapeHtml(c.name)}">+</button></div></div>
   <div class="select-cell"><button class="select-button" data-focus="${c.id}">${c.id===s.combat.activeId?'✦ ACTIVE':'SPOTLIGHT →'}</button><button class="edit-combatant" data-edit-combatant="${c.id}">Edit</button></div></div>`;}).join('')||'<p class="muted">Add a player or enemy to start an encounter.</p>';
 }
 function updateCastPreview(s){
@@ -69,8 +82,37 @@ function cast(s){if(!s.characters.some(c=>c.id===selectedId))selectedId=s.charac
  updateCastPreview(s);
 }
 function settings(s){const opts=getOptions();$('cardScale').value=Math.round((s.presentation.cardScale||1)*100);$('cardScaleValue').textContent=Math.round((s.presentation.cardScale||1)*100)+'%';$('showHudCheck').checked=s.presentation.showHud!==false;$('sceneCardsCheck').checked=!!s.presentation.showSceneCards;if(document.activeElement!==$('roomInput'))$('roomInput').value=opts.room;$('firebaseCheck').checked=!!opts.online;$('dmIdentityPanel').hidden=!opts.online;}
-function render(s){metrics(s);overview(s);if(section==='scene')scenes(s);if(section==='combat')renderCombat(s);if(section==='cast')cast(s);if(section==='settings')settings(s);}
+function render(s){
+ // Only rebuild the visible workspace. A weather slider should not recreate
+ // hidden combat rows, roster portraits or the overview activity log.
+ if(section==='overview'){metrics(s);overview(s);}
+ else if(section==='scene')scenes(s);
+ else if(section==='combat')renderCombat(s);
+ else if(section==='cast')cast(s);
+ else if(section==='settings')settings(s);
+}
 subscribe(render);
+// Give ordinary navigation buttons a screen-reader current-page state.
+// Arrow keys work within the menu; Tab continues to work normally.
+document.querySelectorAll('.dm-sidebar [data-section]').forEach(button=>{
+ const target=button.dataset.section;
+ button.setAttribute('aria-controls','dm-panel-'+target);
+ if(target==='overview')button.setAttribute('aria-current','page');
+});
+document.querySelectorAll('.dm-section[data-section]').forEach(panel=>{
+ panel.id='dm-panel-'+panel.dataset.section;
+ panel.setAttribute('aria-label',({overview:'Overview',scene:'Scene director',environment:'Environment',combat:'Combat controls',cast:'Combatant cards',settings:'Connection settings'})[panel.dataset.section]);
+});
+const mainMenu=$('dmNav');
+mainMenu.addEventListener('keydown',event=>{
+ if(!['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ const buttons=[...mainMenu.querySelectorAll('button[data-section]')];
+ const current=buttons.indexOf(document.activeElement);
+ if(current<0)return;
+ event.preventDefault();
+ const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:nextNavigationIndex(current,['ArrowDown','ArrowRight'].includes(event.key)?1:-1,buttons.length);
+ buttons[next].focus();go(buttons[next].dataset.section);
+});
 // Navigation / mode commands
 $('dmNav').onclick=e=>{const b=e.target.closest('[data-section]');if(b)go(b.dataset.section);};
 document.querySelector('.dm-sidebar .side-nav:nth-of-type(2)')?.addEventListener('click',e=>{const b=e.target.closest('[data-section]');if(b)go(b.dataset.section);});
@@ -213,5 +255,5 @@ async function startCloud(){
 }
 if(getOptions().online)void startCloud();
 // Hotkeys on DM page: F5 browser remains native. C = combat, S = scene, N = next turn, when not editing.
-window.addEventListener('keydown',e=>{if(e.target?.matches('input,textarea,select')||e.ctrlKey||e.metaKey||e.altKey)return;switch(e.key.toLowerCase()){case'c':switchMode('combat');break;case's':switchMode('scene');break;case'n':nextTurn();break;}});
+window.addEventListener('keydown',e=>{if(e.target?.closest?.('input,textarea,select,button,a,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;switch(e.key.toLowerCase()){case'c':switchMode('combat');break;case's':switchMode('scene');break;case'n':nextTurn();break;}});
 render(getState());

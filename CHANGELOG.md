@@ -1,3 +1,69 @@
+## 1.5.6 — Visual Regression Foundation
+
+- Added six pinned Chromium screenshot baselines for DM/stage viewport layouts and real 2D card-finish painting.
+- Added static layout/overlap assertions, toleranced pixel comparisons, failure diffs, and opt-in baseline approval.
+- Added optional Windows visual-QA launcher and npm script; static regression tests remain dependency-free.
+- Added new baseline-integrity Node tests and refreshed all release labels to `VISUAL QA 1.5.6`.
+- Preserved existing 1.5.5 gameplay, camera behavior, 3D renderer, Firebase synchronization, and visual styling.
+
+## 1.5.5 — Presentation & Accessibility Polish
+
+- Added a per-viewer Motion selector (System / Reduced / Full); stores preference locally, never in campaign/Firebase data.
+- Unified reduced-motion handling in native 3D camera, card hover/foil/shatter, lightning flashes, and CSS fallback.
+- Prevented DM and stage shortcuts from interfering with focused controls or Ctrl/Command browser shortcuts.
+- Added current-section accessibility state and arrow-key navigation to the DM sidebar, with clearer labels for combat actions.
+- Refined mobile and tablet controls, including a horizontal DM navigation strip and scrollable narrow displays.
+- Fixed a real 768px DM layout bug where the entire dashboard was pushed offscreen by the sidebar.
+- Added optional local Chromium HTML/CSS viewport verification covering seven viewport sizes on both pages.
+- Preserved existing cards, camera framing, game state, Firebase workflow, ambience, and visuals outside layout/accessibility changes.
+- Cache-safe active assets: `assets/grim-156`.
+
+## 1.5.4 — DM Workflow Reliability
+
+- Added Export/Import for up to 12 prepared scenes using validated, bounded JSON backups. Import preserves combatants and encounter state.
+- Normalized scene backups before truncation and deduplicated IDs, keeping the newest copy.
+- Refined environment history: a rapid sequence of Apply scene commands now produces individual Undo steps, while continuous slider drags still coalesce; ambience controls are included.
+- Added a serialized Firebase DM write queue with coalescing, retry/backoff for transient errors, explicit permission-error reporting and online-resume handling.
+- Prevented incoming older cloud snapshots from overwriting unsent DM edits. A small per-room local recovery marker guards an unfinished publish after browser refresh until the DM explicitly publishes.
+- Added deterministic cloud queue tests, simulated Firebase connection tests, history/backup tests and revised release checks. Viewer pages remain read-only.
+- Cache-safe active assets: `assets/grim-154`. No visual design changes or saved-campaign migrations.
+
+## 1.5.3 — Architecture & Cleanup
+
+- Extracted deterministic terrain/sky foundations and camera composition into standalone modules.
+- Added a GPU resource lifecycle module with shared-asset protection and deduplicated disposal.
+- Rebuilt environment switching as an atomic prepare/commit operation with rollback on failure.
+- Removed unused renderer code and fixed renderer shutdown to avoid recreating a group on disposal.
+- Added actual failure injection and repeated preset-switch regression tests; retained existing 1.5.2 visuals and save schema.
+- Cache-distinct active bundle: `assets/grim-153`.
+
+## 1.5.2 — Performance Engineering
+
+- Added a quality-aware weather simulation clock (Low 20, Balanced 30, High 45 updates/s) instead of updating all particle instance transforms every display refresh.
+- Cached storm wind vectors per update and skipped unnecessary terrain-height calculations while particles are high above the surface.
+- Stopped redundant WebGL renders between weather/cloud simulation ticks when the scene has no other visible changes.
+- Cached settled static lighting and scenic material values; changing environments or graphics quality still invalidates these caches.
+- Added in-world weather performance diagnostics, an actual renderer simulation regression test, and baseline-vs-optimized benchmark notes.
+- Kept 1.5.1 saved-state format and a cache-distinct active `assets/grim-152` directory.
+
+## 1.5.1 — Automated Reliability Foundation
+
+- Added a dependency-free `npm test` runner with test isolation, timeouts, pass/fail summary and local JSON/Markdown reports.
+- Added `RUN-TESTS.bat` and an optional Playwright screenshot smoke test for local Windows/browser verification.
+- Added 126 deterministic integration scenarios across combat rosters, Ground/Tactical/Top cameras, phone/desktop viewports, terrain presets, HP, conditions and active turns; verified status-animation texture stability.
+- Added automatic page/module/audio/uploader integrity checks and a real HTTP test exercising asset MIME types and malformed URL handling.
+- Fixed environment history: undo/redo after applying a prepared scene now restores its scene ID and labels alongside the environment, without touching combat.
+- Hardened the dependency-free local server to reject malformed URLs and avoid serving secrets, test files, or arbitrary project files.
+- Cache-distinct active bundle `assets/grim-151`. No visual redesign, new login system or campaign data reset.
+
+## 1.5.0 — Refinement
+
+- Viewer-local Low/Balanced/High WebGL quality controls with shadow, resolution and particle budgets.
+- Up to 12 named DM scene snapshots, environment-only Undo/Redo, no combat reset on applying a scene.
+- Cinematic direction subtly follows the active combatant and protects full-card visibility.
+- Better flank/background terrain composition; less unnecessary work during weather edits and hidden DM panels.
+- Cache-safe `grim-150` assets, preserved no-login Firebase sync and Windows GitHub uploader.
+
 ## 1.4.13 — Matte Card Finish
 
 - Replaced baked, broad white laminate streaks with subtle metallic edge catches and a deep-charcoal satin base.
@@ -6,7 +72,7 @@
 - Darkened placeholder portrait gradients to preserve contrast; lightly refined backing roughness and metallic edge treatment.
 - Updated fallback HTML card gloss to match the restrained matte design.
 - Preserved 1.4.12's static card texture caching and foil offset-only animation (no frame-by-frame card texture uploads).
-- Isolated the active assets in `assets/grim-1413` to prevent browser cache reuse.
+- Isolated the active assets in `assets/grim-150` to prevent browser cache reuse.
 
 ## Project Grim 1.4.12 — Performance & Stability
 

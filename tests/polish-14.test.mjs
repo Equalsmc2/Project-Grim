@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeEnvironment} from '../assets/grim-1413/environment-state.js';
-import {clusteredProps,accumulationTarget,pathDistance,clearForCombat} from '../assets/grim-1413/world-polish.js';
+import {normalizeEnvironment} from '../assets/grim-156/environment-state.js';
+import {clusteredProps,accumulationTarget,pathDistance,clearForCombat} from '../assets/grim-156/world-polish.js';
 function rand(seed=43){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;};}
 const env=normalizeEnvironment({ground:'grass',density:.85,props:'forest',path:true,pathWidth:3,pathAngle:25,terrainWidth:32,terrainDepth:20});
 const a=clusteredProps(env,rand(),32,20),b=clusteredProps(env,rand(),32,20);
@@ -17,11 +17,11 @@ assert(accumulationTarget({weather:'blizzard',intensity:1,accumulation:.6}).snow
 assert(accumulationTarget({weather:'thunderstorm',intensity:.8,accumulation:.6}).wet>.7);
 assert(accumulationTarget({weather:'sandstorm',intensity:1,accumulation:.6}).sand>.7);
 assert.equal(accumulationTarget({weather:'none',intensity:1,accumulation:1}).snow,0);
-const world=readFileSync(new URL('../assets/grim-1413/world.js',import.meta.url),'utf8');
-const editor=readFileSync(new URL('../assets/grim-1413/environment-editor.js',import.meta.url),'utf8');
-const sync=readFileSync(new URL('../assets/grim-1413/firebase-sync.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-156/world.js',import.meta.url),'utf8');
+const editor=readFileSync(new URL('../assets/grim-156/environment-editor.js',import.meta.url),'utf8');
+const sync=readFileSync(new URL('../assets/grim-156/firebase-sync.js',import.meta.url),'utf8');
 for(const value of ['makeWeatherGround(env,rnd)','clusteredProps(e,rnd,fieldWidth,fieldDepth)','wetPatches.material.opacity','snowPatches.material.opacity','sandPatches.material.opacity','scenicMaterials','nightStage','nativeCards.update(camera,width,height,env,landscapeHeight,time,fitScale)'])assert(world.includes(value),`Missing 1.4 renderer: ${value}`);
 assert(editor.includes('Ground accumulation'));
-assert(sync.includes('setTimeout(()=>{writeTimer=null;void publish();},190)'));
-assert(sync.includes('clearTimeout(writeTimer)'));
+assert(sync.includes('createCloudOutbox'),'Firebase uses the tested reliable write queue');
+assert(readFileSync(new URL('../assets/grim-156/cloud-outbox.js',import.meta.url),'utf8').includes('debounceMs=190'),'Debounce remains enabled for slider changes');
 console.log('PASS: clustered placement, card-row/path protection, weather accumulation, state migration and Firebase debouncing');

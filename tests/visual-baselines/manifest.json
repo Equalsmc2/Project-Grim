@@ -1,0 +1,48 @@
+{
+  "release": "1.5.6",
+  "cases": {
+    "dm-overview-desktop": {
+      "width": 1440,
+      "height": 900,
+      "file": "dm-overview-desktop.png",
+      "sha256": "8b7455f77a6768431936501dc2a69c652456be04311d01d95fd61ced259c704f",
+      "scrollWidth": 1440
+    },
+    "dm-environment-tablet": {
+      "width": 768,
+      "height": 860,
+      "file": "dm-environment-tablet.png",
+      "sha256": "febf26223b43f5c325b555283161e998d7183319766d7a0f38170740542733b0",
+      "scrollWidth": 768
+    },
+    "dm-combat-mobile": {
+      "width": 390,
+      "height": 844,
+      "file": "dm-combat-mobile.png",
+      "sha256": "d860fc5ecf4d211c4cf2c5e33e9b74bd911c6bcf68e920d462f14946a62f0202",
+      "scrollWidth": 390
+    },
+    "stage-scene-desktop": {
+      "width": 1440,
+      "height": 900,
+      "file": "stage-scene-desktop.png",
+      "sha256": "d5d8bb979158a16c1b8f55c55b684fdc1d3608adc103dbf26500abe96750c6b3",
+      "scrollWidth": 1440
+    },
+    "stage-combat-mobile": {
+      "width": 390,
+      "height": 844,
+      "file": "stage-combat-mobile.png",
+      "sha256": "d4890159152c581cfdbc8880d9edb25c13c4647c2874f01b2317d81834cf929d",
+      "scrollWidth": 390
+    },
+    "card-finishes": {
+      "width": 1330,
+      "height": 530,
+      "file": "card-finishes.png",
+      "sha256": "dd0e03a29b47b88d5cafc43ad9a28cee1db11d833f3585daf8362c4eb442977d",
+      "scrollWidth": 1330
+    }
+  },
+  "chromium": "144.0.7559.96"
+}

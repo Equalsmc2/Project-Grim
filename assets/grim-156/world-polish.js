@@ -35,7 +35,10 @@ export function clusteredProps(e,rng,w,d){
  const centers=[];
  for(let i=0;i<clusterCount;i++){
   const far=i>=clusterCount*.45;
-  const x=far?(rng()-.5)*w*3.2:(rng()-.5)*(w-2);
+  // Distant vegetation belongs behind the encounter. Nearby clusters are
+  // biased to the flanks, with occasional smaller center clearings. This
+  // makes the forest composition coherent without forbidding real occlusion.
+  const x=far?(rng()-.5)*w*3.2:(rng()<.72?(rng()<.5?-1:1)*(w*.29+rng()*w*.18):(rng()-.5)*(w-2));
   const z=far?-(d*.6+rng()*d*2):(rng()-.5)*(d-2);
   centers.push({x,z,far,type:types[Math.floor(rng()*types.length)],radius:far?3+rng()*6:1.4+rng()*2.6});
  }

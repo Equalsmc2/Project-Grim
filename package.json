@@ -1,0 +1,15 @@
+{
+  "name": "project-grim",
+  "version": "1.5.6",
+  "private": true,
+  "description": "Project Grim Pathfinder campaign stage and DM controls",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tools/run-tests.mjs",
+    "test:quick": "node tools/run-tests.mjs --quick",
+    "test:browser": "python tests/browser-smoke-151.py",
+    "test:layout": "python tools/check-layout.py",
+    "test:visual": "python tools/visual-regression.py",
+    "test:visual:update": "python tools/visual-regression.py --update-baselines"
+  }
+}

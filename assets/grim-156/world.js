@@ -1,88 +1,53 @@
 import * as T from './vendor/three.module.js';
 import {normalizeEnvironment} from './environment-state.js';
-import {effectiveTime,lightAt,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
+import {effectiveTime,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
 import {clusteredProps,accumulationTarget,pathDistance} from './world-polish.js';
 import {createNativeCardLayer} from './native-cards.js';
 import {clampZoomToCards} from './camera-guard.js';
 import {fitAllCardsInView} from './card-framing.js';
+import {GRAPHICS_QUALITY,normalizeGraphicsQuality,graphicsPixelRatio,weatherParticleCount} from './graphics-quality.js';
+import {createWeatherBudget,advanceWeatherBudget,needsSceneryRefresh} from './render-budget.js';
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
+import {landscapeHeight,rngFactory,palettes,shadowTexture,gridTexture,createSky} from './world-foundations.js';
+import {disposeSceneGraph,commitSceneGroup} from './scene-resources.js';
+import {cinematicTargets} from './cinematic-director.js';
+export {landscapeHeight} from './world-foundations.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
 // Unit anchors are fixed in world coordinates. Cards are genuine Three.js
 // camera-facing planes sharing the scene depth buffer with environment props.
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const hillScale=(h='mid')=>({flat:0,small:.45,mid:1,mountains:1.9}[h]??1);
-const palettes={
- blank:{ground:0x25292b,low:0x191e20,horizon:0x222d31,sky:0x0c1117,foliage:0x344a40},
- grass:{ground:0x3e6942,low:0x253f31,horizon:0x405b50,sky:0x101b22,foliage:0x31523e},
- stone:{ground:0x69716f,low:0x43494b,horizon:0x535d62,sky:0x101820,foliage:0x43544a},
- dirt:{ground:0x775b43,low:0x483a2f,horizon:0x695a4b,sky:0x1a1b1f,foliage:0x4b563e},
- sand:{ground:0xb9a076,low:0x827359,horizon:0x9c8d79,sky:0x29282b,foliage:0x777153},
- snow:{ground:0xb2c3cd,low:0x647f8d,horizon:0x829ba9,sky:0x151e2a,foliage:0x314f43},
- leaves:{ground:0x845a3b,low:0x4c392f,horizon:0x775e4b,sky:0x191822,foliage:0x755231}
-};
-export function landscapeHeight(x,z,w,d,seed=7301,variation=.35,hills='mid'){
-  // Playable region stays level for unit markers. Only the distant environment
-  // rises into soft hills; no geometry seams or separate floating platform.
-  const hs=hillScale(hills);
-  const rim=clamp(Math.max((Math.abs(x)-w*.45)/(w*.65),(Math.abs(z)-d*.44)/(d*.95),0),0,1);
-  const roll=Math.sin(x*.135+seed*.0013)*.55+Math.cos(z*.17+seed*.00031)*.45+
-             Math.sin(x*.085+z*.07)*.28;
-  const macro=hs<=0?0:rim*rim*(.55+Math.max(0,roll+1)*1.15)*hs;
-  const micro=(Math.sin(x*.9+z*.3)*Math.cos(z*.75-x*.22))*.035*variation*(hs===0?.15:1);
-  return macro+micro;
-}
-const rngFactory=(seed)=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 const material=(color,opts={})=>new T.MeshStandardMaterial({color,roughness:.95,...opts});
 const placeOnTerrain=(o,x,z,w,d,e,offset=0)=>o.position.set(x,landscapeHeight(x,z,w,d,e.seed,e.variation,e.hills)+offset,z);
-function shadowTexture(){
- const c=document.createElement('canvas');c.width=c.height=64;
- const ctx=c.getContext('2d');const g=ctx.createRadialGradient(32,32,3,32,32,32);
- g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(.35,'rgba(0,0,0,.31)');g.addColorStop(1,'rgba(0,0,0,0)');
- ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
- const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
-}
 
-function gridTexture(line=0x5d6368,bg='rgba(0,0,0,0)'){
- const c=document.createElement('canvas');c.width=c.height=128;
- const ctx=c.getContext('2d');
- ctx.clearRect(0,0,128,128);
- ctx.fillStyle=bg;ctx.fillRect(0,0,128,128);
- ctx.strokeStyle='#'+line.toString(16).padStart(6,'0');
- ctx.globalAlpha=.9;ctx.lineWidth=2;
- ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(128,0);ctx.lineTo(128,128);ctx.stroke();
- ctx.globalAlpha=.42;ctx.lineWidth=1;
- ctx.beginPath();ctx.moveTo(64,0);ctx.lineTo(64,128);ctx.moveTo(0,64);ctx.lineTo(128,64);ctx.stroke();
- const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=4;return tex;
-}
-
-function createSky(pal){
- const sky=new T.Mesh(new T.SphereGeometry(155,32,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{top:{value:new T.Color(pal.sky)},bottom:{value:new T.Color(pal.horizon)}},vertexShader:`varying float vY;void main(){vec4 p=modelMatrix*vec4(position,1.);vY=normalize(position).y;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`uniform vec3 top;uniform vec3 bottom;varying float vY;void main(){float t=smoothstep(-.18,.50,vY);gl_FragColor=vec4(mix(bottom,top,t),1.);}` }));
- sky.frustumCulled=false;sky.renderOrder=-100;return sky;
-}
-export function createWorld(host,stage){
+export function createWorld(host,stage,{quality='balanced',reducedMotion=false}={}){
+ reducedMotion=!!reducedMotion;
+ quality=normalizeGraphicsQuality(quality);
  let fieldWidth=FIELD_WIDTH,fieldDepth=FIELD_DEPTH;
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setClearColor(0x111820);
- renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
+ renderer.setPixelRatio(graphicsPixelRatio(quality,stage.clientWidth||1,stage.clientHeight||1,typeof devicePixelRatio==='undefined'?1:devicePixelRatio));renderer.setClearColor(0x111820);
+ renderer.shadowMap.enabled=GRAPHICS_QUALITY[quality].shadows;renderer.shadowMap.type=T.PCFSoftShadowMap;
  renderer.outputColorSpace=T.SRGBColorSpace;
  host.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','Continuous 3D battlefield');
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(40,1,.1,22000);
  const ambient=new T.HemisphereLight(0xe3eaf2,0x293331,1.75);scene.add(ambient);
  const sun=new T.DirectionalLight(0xfff3df,2.15);sun.position.set(-13,25,5);sun.castShadow=true;
- sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:125});sun.shadow.bias=-.00045;sun.shadow.normalBias=.025;sun.shadow.radius=2;sun.shadow.camera.updateProjectionMatrix();scene.add(sun);
+ sun.shadow.mapSize.set(GRAPHICS_QUALITY[quality].shadowSize,GRAPHICS_QUALITY[quality].shadowSize);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:125});sun.shadow.bias=-.00045;sun.shadow.normalBias=.025;sun.shadow.radius=2;sun.shadow.camera.updateProjectionMatrix();scene.add(sun);
  const spotlight=new T.SpotLight(0xffffff,26,30,.43,.7,1);scene.add(spotlight,spotlight.target);
  let root=new T.Group();scene.add(root);
  const markerGroup=new T.Group();scene.add(markerGroup);
  const nativeCards=createNativeCardLayer(scene,{onChange:()=>{dirty=true;wake();},onError:message=>console.warn('Native cards:',message)});
+ nativeCards.setReducedMotion(reducedMotion);
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null,fitRetreat=0,fitScale=1;
- let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',lastCardLayoutSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
- let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0;
+ const weatherBudget=createWeatherBudget();let weatherMatrixWrites=0,weatherDrawFrames=0,lightingSettled=false;
+ let lastScenicWet=NaN,lastScenicSnow=NaN;
+ let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0,cinematicGlide=0;
  const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
- let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0,windPhase=0;
+ let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),target=new T.Vector3();
  const stageShell=document.getElementById('stageApp');
@@ -105,24 +70,18 @@ export function createWorld(host,stage){
   zoom=fitCardsZoom(zoom);
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
   fitRetreat=0;fitScale=1;
-  if(animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  if(animate&&!reducedMotion){
    transition={start:performance.now(),duration:650,fromPos:camera.position.clone(),toPos:pose.position.clone(),fromTarget:target.clone(),toTarget:pose.target.clone(),fromFov:camera.fov,toFov:pose.fov,aspect:pose.aspect};
   }else{transition=null;applyCameraPose(camera,pose);target.copy(pose.target);enforceCardVisibility();}
   dirty=true;projectionDirty=true;wake();
  }
  function resize(){
   width=stage.clientWidth||1;height=stage.clientHeight||1;
-  const dpr=Math.min(devicePixelRatio||1,1.5);
-  const gpuRatio=Math.min(dpr,Math.max(.7,Math.sqrt(2800000/(width*height))));
+  const gpuRatio=graphicsPixelRatio(quality,width,height,typeof devicePixelRatio==='undefined'?1:devicePixelRatio);
   if(Math.abs(renderer.getPixelRatio()-gpuRatio)>.025)renderer.setPixelRatio(gpuRatio);
   renderer.setSize(width,height);cameraPose();
  }
- function disposeObject(group){
-  const geos=new Set(),mats=new Set(),textures=new Set();
-  group.traverse(o=>{if(o.geometry)geos.add(o.geometry);if(o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material])){mats.add(m);if(m.map&&m.map!==groundShadow)textures.add(m.map);}}if(o.isInstancedMesh)o.dispose?.();});
-  geos.forEach(g=>g.dispose());mats.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());
- }
- function clearRoot(){disposeObject(root);scene.remove(root);root=new T.Group();scene.add(root);}
+ function disposeObject(group){return disposeSceneGraph(group,{retainTextures:[groundShadow]});}
  function instanced(geo,mat,count,fn,{shadows=false}={}){
   if(!count){geo.dispose();mat.dispose();return null;}
   const mesh=new T.InstancedMesh(geo,mat,count);
@@ -217,7 +176,6 @@ export function createWorld(host,stage){
  }
  function addProps(e,rnd,pal){
   if(e.density<=0)return;
-  const types={forest:['tree','bush','log','tuft','rock'],rocks:['rock'],ruins:['pillar','ruin','grave','rock'],snow:['mound','rock','tree'],grass:['tuft'],bushes:['bush'],logs:['log'],graves:['grave'],mixed:['tree','bush','log','tuft','rock','pillar','ruin','grave','mound']}[e.props]||['rock'];
   const grouped=clusteredProps(e,rnd,fieldWidth,fieldDepth);
   const each=(name,geo,color,fn,{shadows=true}={})=>{
    const all=grouped[name]||[];
@@ -301,7 +259,7 @@ export function createWorld(host,stage){
   if(!type||type==='none')return null;
   const rnd=rngFactory(seed+type.length*701);
   const rain=type==='rain'||type==='thunderstorm',snow=type==='snow'||type==='blizzard',sand=type==='dust'||type==='sandstorm',leaf=type==='leaves';
-  const count=rain?750:snow?550:sand?440:320;
+  const count=weatherParticleCount(type,quality);
   const geo=rain?new T.BoxGeometry(.025,.46,.025):leaf?new T.PlaneGeometry(.17,.1):sand?new T.IcosahedronGeometry(.042,0):new T.IcosahedronGeometry(.066,0);
   const mat=material(leaf?0xffb36a:sand?0xc8a77a:rain?0xa9c5e6:0xeef4fa,{side:T.DoubleSide,transparent:true,opacity:0,depthWrite:false,fog:true});
   const wx=Math.max(26,fieldWidth*.9),wz=Math.max(26,fieldDepth*1.35);
@@ -322,18 +280,21 @@ export function createWorld(host,stage){
  }
  function weatherTick(t,dt){
   const wind=env.windAngle*Math.PI/180;
+  const windX=Math.cos(wind)*env.windSpeed*dt,windZ=Math.sin(wind)*env.windSpeed*dt;
+  const halfX=Math.max(26,fieldWidth*.9),halfZ=Math.max(26,fieldDepth*1.35);
   for(let n=weatherSystems.length-1;n>=0;n--){
    const sys=weatherSystems[n];
    sys.opacity=smoothValue(sys.opacity,sys.targetOpacity,dt,2);
    sys.mesh.material.opacity=sys.opacity*(sys.rain?.54:sys.sand?.52:.76);
-   const halfX=Math.max(26,fieldWidth*.9),halfZ=Math.max(26,fieldDepth*1.35);
    const fall=sys.rain?11:sys.snow?(sys.type==='blizzard'?1.35:.75):sys.leaf?1.35:.08;
    for(let i=0;i<sys.points.length;i++){
     const p=sys.points[i];
-    p.x+=Math.cos(wind)*env.windSpeed*dt*(sys.rain?.52:sys.type==='blizzard'?1.8:sys.type==='sandstorm'?2.8:1);
-    p.z+=Math.sin(wind)*env.windSpeed*dt*(sys.type==='blizzard'?1.8:1);
+    p.x+=windX*(sys.rain?.52:sys.type==='blizzard'?1.8:sys.type==='sandstorm'?2.8:1);
+    p.z+=windZ*(sys.type==='blizzard'?1.8:1);
     p.y-=fall*dt*(.65+p.weight*.4);
-    if(p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills)))p.y=sys.sand?2.4:12.7;
+    // A particle well above the tallest generated hill cannot touch ground.
+    // Avoid costly terrain noise until it enters the near-ground band.
+    if(p.y<8 && p.y<(.08+landscapeHeight(p.x,p.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills)))p.y=sys.sand?2.4:12.7;
     if(p.x>halfX)p.x=-halfX;if(p.x< -halfX)p.x=halfX;
     if(p.z>halfZ)p.z=-halfZ;if(p.z< -halfZ)p.z=halfZ;
     const far=clamp((Math.abs(p.z)-fieldDepth*.35)/(fieldDepth*1.5),0,1);
@@ -342,30 +303,34 @@ export function createWorld(host,stage){
     dummy.rotation.set(sys.leaf?t*.001+p.phase:sys.type==='blizzard'?.4:0,p.phase,sys.leaf?t*.0007:0);
     dummy.updateMatrix();sys.mesh.setMatrixAt(i,dummy.matrix);
    }
-   sys.mesh.instanceMatrix.needsUpdate=true;
+   sys.mesh.instanceMatrix.needsUpdate=true;weatherMatrixWrites+=sys.points.length;
    if(sys.targetOpacity===0&&sys.opacity<.005){
     root.remove(sys.mesh);disposeObject(sys.mesh);weatherSystems.splice(n,1);
    }
   }
  }
  function cloudTick(dt,now){
-  if(!cloudMesh)return;
+  if(!cloudMesh)return false;
   const coverage=currentCloud,wind=env.windAngle*Math.PI/180;
+  const windCos=Math.cos(wind),windSin=Math.sin(wind);
   cloudClock+=(dt||0)*env.windSpeed*.14;
-  if(now-cloudUpdated<100)return;
+  if(now-cloudUpdated<100)return false;
   cloudUpdated=now;
   for(let i=0;i<clouds.length;i++){
    const c=clouds[i],fill=clamp((coverage*clouds.length-i)/9,0,1);
-   const x=((c.x+cloudClock*Math.cos(wind)+87)%174+174)%174-87;
-   const z=((c.z+cloudClock*Math.sin(wind)+134)%134+134)%134-134;
+   const x=((c.x+cloudClock*windCos+87)%174+174)%174-87;
+   const z=((c.z+cloudClock*windSin+134)%134+134)%134-134;
    cloudDummy.position.set(x,c.y+Math.sin(c.offset+now*.00005)*.35,z);
    cloudDummy.scale.set(c.s*1.9*fill,c.s*.4*fill,c.s*1.3*fill);
    cloudDummy.rotation.set(0,c.offset,0);cloudDummy.updateMatrix();cloudMesh.setMatrixAt(i,cloudDummy.matrix);
    if(cloudShadowMesh){cloudDummy.position.set(x+.9,.12,z);cloudDummy.rotation.set(-Math.PI/2,0,0);cloudDummy.scale.set(c.s*4*fill,c.s*2.6*fill,1);cloudDummy.updateMatrix();cloudShadowMesh.setMatrixAt(i,cloudDummy.matrix);}
   }
   cloudMesh.instanceMatrix.needsUpdate=true;if(cloudShadowMesh)cloudShadowMesh.instanceMatrix.needsUpdate=true;
+  return true;
  }
  function updateLighting(dt,now){
+  // Burning/frost can wake the renderer without needing to rebuild a static sky.
+  if(lightingSettled&&!env.cycleEnabled&&env.weather!=='thunderstorm')return false;
   const targetTime=effectiveTime(env,Date.now());
   const diff=((targetTime-currentHour+36)%24)-12;
   currentHour=(currentHour+diff*(1-Math.exp(-dt*2))+24)%24;
@@ -410,7 +375,8 @@ export function createWorld(host,stage){
   if(wetPatches)wetPatches.material.opacity=accumulation.wet*.47;
   if(snowPatches)snowPatches.material.opacity=accumulation.snow*.83;
   if(sandPatches)sandPatches.material.opacity=accumulation.sand*.38;
-  if(scenicMaterials.length){
+  if(scenicMaterials.length&&needsSceneryRefresh(lastScenicWet,lastScenicSnow,accumulation.wet,accumulation.snow)){
+   lastScenicWet=accumulation.wet;lastScenicSnow=accumulation.snow;
    for(const m of scenicMaterials){
     m.mat.color.copy(m.base);
     if(accumulation.snow>.01&&['tree','rock','bush','mound','ruin','pillar'].includes(m.name))m.mat.color.lerp(fogTarget.setHex(0xd7e3ea),accumulation.snow*.32);
@@ -419,38 +385,65 @@ export function createWorld(host,stage){
   }
   // Soft shadow contrast: cloud-heavy skies don't create impossibly sharp
   // direct shadows, and moonlight retains weaker but readable form.
-  sun.castShadow=light.direct+light.moon>.13;
+  sun.castShadow=GRAPHICS_QUALITY[quality].shadows&&(light.direct+light.moon>.13);
   const night=light.daylight<.18;
   if(night!==nightStage){nightStage=night;stageShell?.classList.toggle('grim-night',night);}
   sun.shadow.bias=-.00045;
   // Rare brief flashes cast real light on terrain and props during lightning.
-  if(env.weather==='thunderstorm'&&currentStormIntensity>.35){
+  if(env.weather==='thunderstorm'&&currentStormIntensity>.35&&!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
    const spike=Math.max(0,Math.sin(now*.00044*18)*Math.sin(now*.00031*17));
    const flash=spike>.988?(spike-.988)*110*currentStormIntensity:0;
    ambient.intensity+=flash*.7;sun.intensity+=flash*1.8;
   }
-  return Math.abs(diff)>.015||Math.abs(currentCloud-env.cloudCover)>.01||Math.abs(currentFog-env.fog)>.01||Math.abs(currentStormIntensity-env.intensity)>.01||Math.abs(skyTop.r-sky.top[0])>.004||Math.abs(skyTop.g-sky.top[1])>.004||Math.abs(skyTop.b-sky.top[2])>.004;
+  const moving=Math.abs(diff)>.015||Math.abs(currentCloud-env.cloudCover)>.01||Math.abs(currentFog-env.fog)>.01||Math.abs(currentStormIntensity-env.intensity)>.01||Math.abs(skyTop.r-sky.top[0])>.004||Math.abs(skyTop.g-sky.top[1])>.004||Math.abs(skyTop.b-sky.top[2])>.004;
+  lightingSettled=!moving&&Math.abs(accumulation.wet-accTarget.wet)<.004&&Math.abs(accumulation.snow-accTarget.snow)<.004&&Math.abs(accumulation.sand-accTarget.sand)<.004;
+  return moving;
  }
  function rebuild(value){
   const nextEnv=normalizeEnvironment(value);
-  const next=JSON.stringify(nextEnv);if(next===signature)return;
+  const next=JSON.stringify(nextEnv);if(next===signature)return true;
   const oldW=fieldWidth,oldD=fieldDepth;
-  env=nextEnv;signature=next;updateCinematicSettings(env);
-  fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
-  const stable=JSON.stringify([env.ground,env.hills,env.variation,env.path,env.pathX,env.pathZ,env.pathAngle,env.pathWidth,env.pathEdge,env.props,env.density,env.seed,fieldWidth,fieldDepth]);
+  const stable=JSON.stringify([nextEnv.ground,nextEnv.hills,nextEnv.variation,nextEnv.path,nextEnv.pathX,nextEnv.pathZ,nextEnv.pathAngle,nextEnv.pathWidth,nextEnv.pathEdge,nextEnv.props,nextEnv.density,nextEnv.seed,nextEnv.terrainWidth,nextEnv.terrainDepth]);
   if(stable!==terrainSignature){
-   terrainSignature=stable;markerSignature='';clearRoot();weatherSystems=[];fogMeshes=[];
-   skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=wetPatches=snowPatches=sandPatches=null;scenicMaterials=[];
-   cloudClock=cloudUpdated=0;
-   const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
-   const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);makeWeatherGround(env,rnd);addAtmosphere(env,rnd,pal);
+   // Never destroy the working battlefield until a complete replacement has
+   // been generated. A bad preset/graphics context must not leave an empty TV.
+   const previous={root,env,fieldWidth,fieldDepth,skyMesh,sunBody,moonBody,sunHalo,moonHalo,starMesh,cloudMesh,cloudShadowMesh,terrainMaterial,wetPatches,snowPatches,sandPatches,scenicMaterials,clouds,cloudClock,cloudUpdated,fogMeshes,weatherSystems,background:scene.background,fog:scene.fog};
+   const nextRoot=new T.Group();root=nextRoot;
+   env=nextEnv;fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;
+   skyMesh=sunBody=moonBody=sunHalo=moonHalo=starMesh=cloudMesh=cloudShadowMesh=terrainMaterial=wetPatches=snowPatches=sandPatches=null;
+   scenicMaterials=[];clouds=[];fogMeshes=[];weatherSystems=[];cloudClock=cloudUpdated=0;
+   try{
+    const rnd=rngFactory(env.seed),pal=palettes[env.ground]||palettes.blank;
+    const terrain=makeTerrain(env,rnd,pal);addSurface(env,rnd,pal);addPaths(env,rnd,terrain);addProps(env,rnd,pal);makeWeatherGround(env,rnd);addAtmosphere(env,rnd,pal);
+   }catch(error){
+    disposeObject(nextRoot);
+    ({root,env,fieldWidth,fieldDepth,skyMesh,sunBody,moonBody,sunHalo,moonHalo,starMesh,cloudMesh,cloudShadowMesh,terrainMaterial,wetPatches,snowPatches,sandPatches,scenicMaterials,clouds,cloudClock,cloudUpdated,fogMeshes,weatherSystems}=previous);
+    scene.background=previous.background;scene.fog=previous.fog;
+    console.error('Project Grim: environment change failed; previous stage preserved.',error);
+    const status=document.getElementById?.('worldStatus');
+    if(status)status.textContent='3D WORLD · previous environment retained';
+    dirty=true;wake();return false;
+   }
+   commitSceneGroup(scene,previous.root,nextRoot,{retainTextures:[groundShadow]});
+   const status=document.getElementById?.('worldStatus');
+   if(status && status.textContent?.includes('previous environment retained'))status.textContent='3D WORLD';
+   terrainSignature=stable;markerSignature='';weatherBudget.elapsed=weatherBudget.pending=0;
+   lastScenicWet=lastScenicSnow=NaN;
    if(oldW!==fieldWidth||oldD!==fieldDepth)cameraPose();
-  }
+  }else{env=nextEnv;fieldWidth=env.terrainWidth;fieldDepth=env.terrainDepth;}
+  signature=next;lightingSettled=false;updateCinematicSettings(env);
   updateWeatherTarget();
-  dirty=true;projectionDirty=true;wake();
+  dirty=true;projectionDirty=true;wake();return true;
  }
+
  function setCards(placements,characters=[],combat=false){
   if(width!==stage.clientWidth||height!==stage.clientHeight)resize();
+  // Lighting/ambience edits don't change card anchors. Skip expensive marker
+  // rebuilds, visibility fitting and projection work for those updates.
+  const nextLayout=JSON.stringify([fieldWidth,fieldDepth,env.seed,env.variation,env.hills,
+   ...[...placements].map(([id,p])=>[id,p.worldX,p.worldZ,p.active,p.scale,p.side,p.rank])]);
+  if(nextLayout===lastCardLayoutSignature){nativeCards.setCards(anchors,characters,combat);return;}
+  lastCardLayoutSignature=nextLayout;
   anchors=[];
   for(const [id,p] of placements){
    const x=clamp(Number(p.worldX)||0,-fieldWidth*.5+1,fieldWidth*.5-1);
@@ -483,21 +476,21 @@ export function createWorld(host,stage){
   }
  }
  function cinematicStep(t,dt){
-  if(!cinematicEnabled||transition||t<cinematicPauseUntil)return false;
+  if(reducedMotion||!cinematicEnabled||transition||t<cinematicPauseUntil)return false;
   if(!cinematicStart)cinematicStart=t;
-  // A restrained side-to-side dolly/orbit, not a full spin. Fixed zoom means
-  // no automatic camera retreat and no sudden change in card size.
-  const phase=(t-cinematicStart)*.00022*cinematicSpeed;
-  const presetLimit=viewMode==='ground'?20:viewMode==='overhead'?28:24;
-  const desiredYaw=Math.sin(phase)*Math.min(presetLimit-2,12)*Math.PI/180;
-  const desiredPitch=Math.sin(phase*.68+.8)*1.7;
-  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*2.5);
-  const y0=yaw,p0=pitch;
+  // The director favors the active turn and rests between movements instead
+  // of sweeping constantly from one extreme to the other. Composition is
+  // still checked by enforceCardVisibility() after the pose is applied.
+  const phase=(t-cinematicStart)*.00016*cinematicSpeed;
+  const active=anchors.find(a=>a.active);
+  const {desiredYaw,desiredPitch,desiredGlide}=cinematicTargets(phase,active?.x||0);
+  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*1.8);
+  const y0=yaw,p0=pitch,g0=cinematicGlide;
   yaw+=(desiredYaw-yaw)*blend;pitch+=(desiredPitch-pitch)*blend;
-  if(Math.abs(yaw-y0)<1e-7&&Math.abs(pitch-p0)<1e-5)return false;
+  cinematicGlide+=(desiredGlide-cinematicGlide)*blend;
+  if(Math.abs(yaw-y0)<1e-7&&Math.abs(pitch-p0)<1e-5&&Math.abs(cinematicGlide-g0)<1e-5)return false;
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
-  const glide=Math.sin(phase*.53)*.55;
-  pose.position.x+=glide;pose.target.x+=glide;
+  pose.position.x+=cinematicGlide;pose.target.x+=cinematicGlide;
   applyCameraPose(camera,pose);target.copy(pose.target);fitRetreat=0;fitScale=1;
   projectionDirty=true;dirty=true;return true;
  }
@@ -520,9 +513,11 @@ export function createWorld(host,stage){
   const transitionMoving=updateLighting(dt,t);
   const accMoving=Object.entries(accumulationTarget(env,currentStormIntensity)).some(([key,value])=>Math.abs(accumulation[key]-value)>.008);
   const environmentMoving=weatherSystems.length>0||currentCloud>.015||env.cycleEnabled||transitionMoving||accMoving;
-  if(weatherSystems.length)weatherTick(t,dt);
-  if(cloudMesh && (currentCloud>.015||transitionMoving))cloudTick(dt,t);
-  if(fogMeshes.length)for(const m of fogMeshes)m.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
+  const weatherDt=advanceWeatherBudget(weatherBudget,dt,quality,weatherSystems.length>0);
+  if(weatherDt){weatherTick(t,weatherDt);weatherDrawFrames++;}
+  const cloudMoved=cloudMesh && (currentCloud>.015||transitionMoving)?cloudTick(dt,t):false;
+  const fogMoved=currentFog>.02&&Math.abs(env.windSpeed)>.001&&fogMeshes.length>0;
+  if(fogMoved)for(const m of fogMeshes)m.position.x=Math.sin(t*.00012)*.3*env.windSpeed;
   if(transition){
    const f=clamp((t-transition.start)/transition.duration,0,1),ease=f*f*(3-2*f);
    camera.position.lerpVectors(transition.fromPos,transition.toPos,ease);
@@ -533,21 +528,24 @@ export function createWorld(host,stage){
   const cinematicMoving=cinematicStep(t,dt);
   // Enforce visibility after transitions and cinematic movement as well as
   // manual zoom. There must never be a frame with a clipped card.
-  if(transitionMoving||transition||cinematicMoving||projectionDirty)enforceCardVisibility();
+  if(transition||cinematicMoving||projectionDirty)enforceCardVisibility();
   const cardFxMoving=nativeCards.needsAnimation(t);
   // Card-only FX frames need no environmental simulation or camera geometry.
   // Cap foil-only redraws to ~30 FPS, but keep normal camera/weather frames
   // unrestricted when movement actually demands them.
   const fxOnly=cardFxMoving && !dirty && !environmentMoving && !transition && !cinematicMoving;
-  if(fxOnly && t-lastFxFrame<33){frame=requestAnimationFrame(tick);return;}
-  if(dirty||environmentMoving||transition||cinematicMoving||cardFxMoving){
+  if(fxOnly && t-lastFxFrame<(quality==='low'?66:33)){frame=requestAnimationFrame(tick);return;}
+  // A scheduled frame is not necessarily a changed frame. Skip redundant
+  // WebGL draws between weather/cloud simulation steps.
+  const visiblyChanged=dirty||transitionMoving||accMoving||!!weatherDt||!!cloudMoved||!!fogMoved||!!env.cycleEnabled||transition||cinematicMoving||cardFxMoving;
+  if(visiblyChanged){
    if(projectionDirty){projectCards(t);projectionDirty=false;}
    else if(cardFxMoving)nativeCards.animate(t);
    if(cardFxMoving)lastFxFrame=t;
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),cardPerformance:nativeCards.getPerformanceStats(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
-  if(environmentMoving||transition||cinematicEnabled||cardFxMoving)frame=requestAnimationFrame(tick);
+  if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)frame=requestAnimationFrame(tick);
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
@@ -562,9 +560,29 @@ export function createWorld(host,stage){
   getOrbit(){return {yaw:yaw*180/Math.PI,pitch};},
   pauseCinematic(ms=10000){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);},
   setCinematic(enabled,speed){updateCinematicSettings({cinematicPan:enabled,cinematicSpeed:speed});return cinematicEnabled;},
+  setReducedMotion(enabled){
+    const next=!!enabled;
+    if(next===reducedMotion)return reducedMotion;
+    reducedMotion=next;
+    nativeCards.setReducedMotion(next);
+    if(next){transition=null;cinematicGlide=0;}
+    cameraPose(false);
+    projectionDirty=true;dirty=true;wake();
+    return reducedMotion;
+  },
+  getReducedMotion(){return reducedMotion;},
+  setQuality(next){
+   const normalized=normalizeGraphicsQuality(next);if(normalized===quality)return quality;
+   quality=normalized;renderer.shadowMap.enabled=GRAPHICS_QUALITY[quality].shadows;
+   sun.shadow.mapSize.set(GRAPHICS_QUALITY[quality].shadowSize,GRAPHICS_QUALITY[quality].shadowSize);
+   if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
+   for(const system of weatherSystems){root.remove(system.mesh);disposeObject(system.mesh);}
+   weatherSystems=[];weatherBudget.elapsed=weatherBudget.pending=0;lightingSettled=false;updateWeatherTarget();resize();dirty=true;wake();return quality;
+  },
+  getQuality(){return quality;},
   getCinematic(){return cinematicEnabled;},
   zoomTo(v){cinematicPauseUntil=performance.now()+10000;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
-  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);clearRoot();disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
+  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);disposeObject(root);scene.remove(root);disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };
 }
