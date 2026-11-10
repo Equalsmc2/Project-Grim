@@ -1,0 +1,17 @@
+{
+  "name": "project-qa-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "node --test unit/*.test.mjs",
+    "test:visual": "playwright test --grep @visual",
+    "baseline": "playwright test --grep @visual --update-snapshots",
+    "report": "playwright show-report artifacts/html",
+    "serve": "node scripts/serve.mjs",
+    "bedrock:report": "node scripts/bedrock-report.mjs"
+  },
+  "devDependencies": { "@playwright/test": "1.56.1" }
+}

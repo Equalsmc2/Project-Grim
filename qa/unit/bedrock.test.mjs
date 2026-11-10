@@ -1,0 +1,15 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { parseBedrockLog } from '../scripts/bedrock-report.mjs';
+const line = e => 'QA_EVENT ' + JSON.stringify({ schemaVersion: 1, runId: 'r1', ...e });
+const result = status => line({type:'test',id:'a',status});
+const end = line({type:'run-end',expected:1});
+test('only completed passes are green', () => assert.equal(parseBedrockLog(result('passed')+'\n'+end).status, 'passed'));
+test('launched is incomplete', () => assert.equal(parseBedrockLog(result('launched')+'\n'+end).status, 'incomplete'));
+test('skipped is incomplete', () => assert.equal(parseBedrockLog(result('skipped')+'\n'+end).status, 'incomplete'));
+test('failure remains failed', () => assert.equal(parseBedrockLog(result('failed')+'\n'+end).status, 'failed'));
+test('truncated log is rejected', () => assert.throws(() => parseBedrockLog(result('passed'))));
+test('missing tests are rejected', () => assert.throws(() => parseBedrockLog(end)));
+test('duplicate results are rejected', () => assert.throws(() => parseBedrockLog(result('passed')+'\n'+result('passed')+'\n'+line({type:'run-end',expected:2}))));
+test('mixed runs are rejected', () => assert.throws(() => parseBedrockLog(result('passed')+'\n'+line({type:'run-end',runId:'other',expected:1}))));
+test('malformed event is rejected', () => assert.throws(() => parseBedrockLog('QA_EVENT {')));
