@@ -7,9 +7,16 @@ $sourceDir = (Resolve-Path -LiteralPath $ArchivesFolder).ProviderPath
 $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 Add-Type -AssemblyName System.IO.Compression
 $done = 0; $missing = 0; $importedBytes = [long]0
+$archives = @(Get-ChildItem -LiteralPath $sourceDir -Filter '*.zip' -File)
 foreach($album in $manifest.albums){
- $zipFile = Join-Path $sourceDir $album.originalArchive
- if(-not (Test-Path -LiteralPath $zipFile -PathType Leaf)){
+ # Accept browser download suffixes like (1)/(3) and URL-escaped spaces.
+ $wanted = [IO.Path]::GetFileNameWithoutExtension([string]$album.originalArchive)
+ $zipFile = $null
+ foreach($candidate in $archives){
+  $normalized = [uri]::UnescapeDataString([string]$candidate.BaseName) -replace '\(\d+\)$',''
+  if($normalized -eq $wanted){$zipFile = $candidate.FullName;break}
+ }
+ if($null -eq $zipFile -or -not (Test-Path -LiteralPath $zipFile -PathType Leaf)){
    Write-Host ('[MISSING ARCHIVE] '+$album.originalArchive) -ForegroundColor Yellow
    $missing += [int]$album.expectedTracks
    continue

@@ -1327,3 +1327,18 @@ html,body{height:100%}
 .overview-environment-item strong{font-size:clamp(13px,1.25vw,18px);color:#eee;overflow-wrap:anywhere;text-transform:capitalize;line-height:1.3}
 @media(max-width:780px){.overview-environment-grid{min-height:140px}.overview-environment-item{min-height:70px}}
 @media(max-width:400px){.overview-environment-grid{gap:7px}.overview-environment-item{padding:9px}.overview-environment-item strong{font-size:12px}}
+
+/* Personal audio: functional import controls, kept outside the music list. */
+.music-import-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:4px 2px 2px}
+.music-import-row .music-import-action{cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.music-import-row .muted{font-size:11px;flex:1 1 160px}
+.music-import-row button{font-size:11px}
+.grim-stage-audio{max-width:min(570px,80vw)}
+.grim-stage-audio .stage-music-import{border:1px solid #585d60;background:#1b2023;color:#fff;cursor:pointer;border-radius:4px;padding:6px 8px;white-space:nowrap;font:inherit}
+.grim-stage-audio .stage-music-import:hover{background:#32383b}
+.grim-stage-audio .stage-music-import:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:650px){
+ .music-import-row{gap:6px}
+ .grim-stage-audio{max-width:calc(100vw - 16px)}
+ .grim-stage-audio .stage-music-import{padding:4px 6px}
+}

@@ -19,7 +19,7 @@ try {
  }
  assert(ready,'Local preview server did not start');
  const asset=await get('/assets/music/catalog.json');assert.equal(asset.status,200);
- assert.equal(JSON.parse(asset.body).tracks.length,230);
+ assert.equal(JSON.parse(asset.body).tracks.length,276);
  const r=await get('/assets/audio/rain.mp3',{Range:'bytes=0-31'});
  assert.equal(r.status,206);assert.equal(r.body.length,32);assert.match(r.headers['content-range'],/^bytes 0-31\//);
  assert.equal(r.headers['accept-ranges'],'bytes');

@@ -20,6 +20,21 @@
       "id": "majoras-mask",
       "name": "Majora's Mask",
       "tracks": 54
+    },
+    {
+      "id": "hollow-knight",
+      "name": "Hollow Knight",
+      "tracks": 26
+    },
+    {
+      "id": "dragon-quest",
+      "name": "Dragon Quest I & II",
+      "tracks": 19
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "tracks": 1
     }
   ],
   "folders": [
@@ -131,7 +146,7 @@
       "album": "dark-souls",
       "disc": "1",
       "number": 7,
-      "duration": 158.0,
+      "duration": 158,
       "folder": "bosses",
       "file": "assets/music/dark-souls/07-chaos-witch-quelaag.mp3"
     },
@@ -221,7 +236,7 @@
       "album": "dark-souls",
       "disc": "1",
       "number": 16,
-      "duration": 174.0,
+      "duration": 174,
       "folder": "bosses",
       "file": "assets/music/dark-souls/16-seath-the-scaleless.mp3"
     },
@@ -551,7 +566,7 @@
       "album": "elden-ring",
       "disc": "1",
       "number": 26,
-      "duration": 122.0,
+      "duration": 122,
       "folder": "exploration",
       "file": "assets/music/elden-ring/1-26-miquella-s-haligtree.mp3"
     },
@@ -691,7 +706,7 @@
       "album": "elden-ring",
       "disc": "2",
       "number": 7,
-      "duration": 76.0,
+      "duration": 76,
       "folder": "bosses",
       "file": "assets/music/elden-ring/2-07-red-wolf-of-radagon.mp3"
     },
@@ -721,7 +736,7 @@
       "album": "elden-ring",
       "disc": "2",
       "number": 10,
-      "duration": 109.0,
+      "duration": 109,
       "folder": "tension",
       "file": "assets/music/elden-ring/2-10-black-knives.mp3"
     },
@@ -921,7 +936,7 @@
       "album": "elden-ring",
       "disc": "2",
       "number": 30,
-      "duration": 357.0,
+      "duration": 357,
       "folder": "bosses",
       "file": "assets/music/elden-ring/2-30-beast-clergyman.mp3"
     },
@@ -931,7 +946,7 @@
       "album": "elden-ring",
       "disc": "2",
       "number": 31,
-      "duration": 233.0,
+      "duration": 233,
       "folder": "bosses",
       "file": "assets/music/elden-ring/2-31-dragonlord-placidusax.mp3"
     },
@@ -961,7 +976,7 @@
       "album": "elden-ring",
       "disc": "2",
       "number": 34,
-      "duration": 484.0,
+      "duration": 484,
       "folder": "story",
       "file": "assets/music/elden-ring/2-34-ending.mp3"
     },
@@ -971,7 +986,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 1,
-      "duration": 155.0,
+      "duration": 155,
       "folder": "story",
       "file": "assets/music/ocarina-of-time/01-title-theme.mp3"
     },
@@ -991,7 +1006,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 3,
-      "duration": 65.0,
+      "duration": 65,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/03-deku-tree.mp3"
     },
@@ -1031,7 +1046,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 7,
-      "duration": 8.0,
+      "duration": 8,
       "folder": "cues",
       "file": "assets/music/ocarina-of-time/07-open-treasure-box.mp3"
     },
@@ -1061,7 +1076,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 10,
-      "duration": 130.0,
+      "duration": 130,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/10-shop.mp3"
     },
@@ -1071,7 +1086,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 11,
-      "duration": 126.0,
+      "duration": 126,
       "folder": "combat",
       "file": "assets/music/ocarina-of-time/11-battle.mp3"
     },
@@ -1081,7 +1096,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 12,
-      "duration": 161.0,
+      "duration": 161,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/12-inside-the-deku-tree.mp3"
     },
@@ -1121,7 +1136,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 16,
-      "duration": 120.0,
+      "duration": 120,
       "folder": "story",
       "file": "assets/music/ocarina-of-time/16-legend-of-hyrule.mp3"
     },
@@ -1131,7 +1146,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 17,
-      "duration": 15.0,
+      "duration": 15,
       "folder": "cues",
       "file": "assets/music/ocarina-of-time/17-get-spiritual-stone.mp3"
     },
@@ -1151,7 +1166,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 19,
-      "duration": 293.0,
+      "duration": 293,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/19-hyrule-field-main-theme.mp3"
     },
@@ -1161,7 +1176,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 20,
-      "duration": 293.0,
+      "duration": 293,
       "folder": "combat",
       "file": "assets/music/ocarina-of-time/20-hyrule-field-battle.mp3"
     },
@@ -1181,7 +1196,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 22,
-      "duration": 94.0,
+      "duration": 94,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/22-market.mp3"
     },
@@ -1191,7 +1206,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 23,
-      "duration": 74.0,
+      "duration": 74,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/23-shooting-gallery.mp3"
     },
@@ -1201,7 +1216,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 24,
-      "duration": 57.0,
+      "duration": 57,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/24-hyrule-castle-courtyard.mp3"
     },
@@ -1231,7 +1246,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 27,
-      "duration": 97.0,
+      "duration": 97,
       "folder": "story",
       "file": "assets/music/ocarina-of-time/27-zelda-s-theme.mp3"
     },
@@ -1251,7 +1266,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 29,
-      "duration": 268.0,
+      "duration": 268,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/29-lon-lon-ranch.mp3"
     },
@@ -1271,7 +1286,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 31,
-      "duration": 97.0,
+      "duration": 97,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/31-kakariko-village.mp3"
     },
@@ -1381,7 +1396,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 42,
-      "duration": 99.0,
+      "duration": 99,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/42-potion-shop.mp3"
     },
@@ -1401,7 +1416,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 44,
-      "duration": 10.0,
+      "duration": 10,
       "folder": "cues",
       "file": "assets/music/ocarina-of-time/44-ocarina-song-of-time.mp3"
     },
@@ -1411,7 +1426,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 45,
-      "duration": 161.0,
+      "duration": 161,
       "folder": "dungeons",
       "file": "assets/music/ocarina-of-time/45-temple-of-time.mp3"
     },
@@ -1441,7 +1456,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 48,
-      "duration": 76.0,
+      "duration": 76,
       "folder": "bosses",
       "file": "assets/music/ocarina-of-time/48-ganondorf-s-theme.mp3"
     },
@@ -1461,7 +1476,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 50,
-      "duration": 12.0,
+      "duration": 12,
       "folder": "cues",
       "file": "assets/music/ocarina-of-time/50-medal-get-fanfare.mp3"
     },
@@ -1501,7 +1516,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 54,
-      "duration": 65.0,
+      "duration": 65,
       "folder": "exploration",
       "file": "assets/music/ocarina-of-time/54-ingo-s-theme.mp3"
     },
@@ -1521,7 +1536,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 56,
-      "duration": 196.0,
+      "duration": 196,
       "folder": "sanctuary",
       "file": "assets/music/ocarina-of-time/56-kakariko-village-orchestral-version.mp3"
     },
@@ -1581,7 +1596,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 62,
-      "duration": 210.0,
+      "duration": 210,
       "folder": "dungeons",
       "file": "assets/music/ocarina-of-time/62-fire-temple.mp3"
     },
@@ -1701,7 +1716,7 @@
       "album": "ocarina-of-time",
       "disc": "1",
       "number": 74,
-      "duration": 9.0,
+      "duration": 9,
       "folder": "cues",
       "file": "assets/music/ocarina-of-time/74-game-over.mp3"
     },
@@ -1831,7 +1846,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 1,
-      "duration": 134.0,
+      "duration": 134,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-01-mysterious-times-prelude.mp3"
     },
@@ -1841,7 +1856,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 2,
-      "duration": 172.0,
+      "duration": 172,
       "folder": "story",
       "file": "assets/music/majoras-mask/1-02-sonata-of-healing-strings-version.mp3"
     },
@@ -1851,7 +1866,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 3,
-      "duration": 174.0,
+      "duration": 174,
       "folder": "story",
       "file": "assets/music/majoras-mask/1-03-eternal-legend.mp3"
     },
@@ -1861,7 +1876,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 4,
-      "duration": 98.0,
+      "duration": 98,
       "folder": "dungeons",
       "file": "assets/music/majoras-mask/1-04-chamber-of-voices.mp3"
     },
@@ -1871,7 +1886,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 5,
-      "duration": 66.0,
+      "duration": 66,
       "folder": "combat",
       "file": "assets/music/majoras-mask/1-05-kendo.mp3"
     },
@@ -1891,7 +1906,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 7,
-      "duration": 142.0,
+      "duration": 142,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-07-mysterious-times-day-i.mp3"
     },
@@ -1901,7 +1916,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 8,
-      "duration": 118.0,
+      "duration": 118,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/1-08-jungle-cruise.mp3"
     },
@@ -1911,7 +1926,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 9,
-      "duration": 150.0,
+      "duration": 150,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/1-09-deku-castle.mp3"
     },
@@ -1921,7 +1936,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 10,
-      "duration": 166.0,
+      "duration": 166,
       "folder": "dungeons",
       "file": "assets/music/majoras-mask/1-10-woodfall-temple.mp3"
     },
@@ -1941,7 +1956,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 12,
-      "duration": 132.0,
+      "duration": 132,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/1-12-trader-s-song.mp3"
     },
@@ -1951,7 +1966,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 13,
-      "duration": 112.0,
+      "duration": 112,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-13-mysterious-times-day-ii.mp3"
     },
@@ -1961,7 +1976,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 14,
-      "duration": 162.0,
+      "duration": 162,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/1-14-goronia.mp3"
     },
@@ -1971,7 +1986,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 15,
-      "duration": 102.0,
+      "duration": 102,
       "folder": "story",
       "file": "assets/music/majoras-mask/1-15-freed-souls.mp3"
     },
@@ -1981,7 +1996,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 16,
-      "duration": 220.0,
+      "duration": 220,
       "folder": "dungeons",
       "file": "assets/music/majoras-mask/1-16-snowhead-temple.mp3"
     },
@@ -1991,7 +2006,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 17,
-      "duration": 100.0,
+      "duration": 100,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/1-17-hymn-of-storm.mp3"
     },
@@ -2001,7 +2016,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 18,
-      "duration": 88.0,
+      "duration": 88,
       "folder": "bosses",
       "file": "assets/music/majoras-mask/1-18-who-dares-wins.mp3"
     },
@@ -2011,7 +2026,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 19,
-      "duration": 94.0,
+      "duration": 94,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-19-mysterious-times-day-iii.mp3"
     },
@@ -2021,7 +2036,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 20,
-      "duration": 172.0,
+      "duration": 172,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/1-20-zora.mp3"
     },
@@ -2031,7 +2046,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 21,
-      "duration": 150.0,
+      "duration": 150,
       "folder": "combat",
       "file": "assets/music/majoras-mask/1-21-gerudo-pirates.mp3"
     },
@@ -2041,7 +2056,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 22,
-      "duration": 208.0,
+      "duration": 208,
       "folder": "dungeons",
       "file": "assets/music/majoras-mask/1-22-great-bay-temple.mp3"
     },
@@ -2051,7 +2066,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 23,
-      "duration": 98.0,
+      "duration": 98,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-23-witch-magic.mp3"
     },
@@ -2061,7 +2076,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 24,
-      "duration": 68.0,
+      "duration": 68,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/1-24-luck-fate.mp3"
     },
@@ -2071,7 +2086,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 25,
-      "duration": 262.0,
+      "duration": 262,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-25-the-last-day.mp3"
     },
@@ -2081,7 +2096,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 26,
-      "duration": 170.0,
+      "duration": 170,
       "folder": "tension",
       "file": "assets/music/majoras-mask/1-26-ikana.mp3"
     },
@@ -2091,7 +2106,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 27,
-      "duration": 174.0,
+      "duration": 174,
       "folder": "dungeons",
       "file": "assets/music/majoras-mask/1-27-stone-tower-temple.mp3"
     },
@@ -2101,7 +2116,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 28,
-      "duration": 104.0,
+      "duration": 104,
       "folder": "story",
       "file": "assets/music/majoras-mask/1-28-return-of-the-four.mp3"
     },
@@ -2121,7 +2136,7 @@
       "album": "majoras-mask",
       "disc": "1",
       "number": 30,
-      "duration": 154.0,
+      "duration": 154,
       "folder": "story",
       "file": "assets/music/majoras-mask/1-30-sonata-of-healing-piano-version.mp3"
     },
@@ -2131,7 +2146,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 1,
-      "duration": 72.0,
+      "duration": 72,
       "folder": "story",
       "file": "assets/music/majoras-mask/2-01-the-arrival-prelude.mp3"
     },
@@ -2141,7 +2156,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 2,
-      "duration": 150.0,
+      "duration": 150,
       "folder": "tension",
       "file": "assets/music/majoras-mask/2-02-majora.mp3"
     },
@@ -2151,7 +2166,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 3,
-      "duration": 106.0,
+      "duration": 106,
       "folder": "story",
       "file": "assets/music/majoras-mask/2-03-sonata-of-healing-kabuki-version.mp3"
     },
@@ -2161,7 +2176,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 4,
-      "duration": 96.0,
+      "duration": 96,
       "folder": "combat",
       "file": "assets/music/majoras-mask/2-04-dance-of-the-death.mp3"
     },
@@ -2171,7 +2186,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 5,
-      "duration": 98.0,
+      "duration": 98,
       "folder": "combat",
       "file": "assets/music/majoras-mask/2-05-fast-faster-epona.mp3"
     },
@@ -2181,7 +2196,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 6,
-      "duration": 258.0,
+      "duration": 258,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/2-06-epona-s-song-romani-version.mp3"
     },
@@ -2191,7 +2206,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 7,
-      "duration": 186.0,
+      "duration": 186,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/2-07-southern-swamp.mp3"
     },
@@ -2201,7 +2216,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 8,
-      "duration": 76.0,
+      "duration": 76,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/2-08-salia-s-song.mp3"
     },
@@ -2211,7 +2226,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 9,
-      "duration": 122.0,
+      "duration": 122,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/2-09-words-of-wisdom.mp3"
     },
@@ -2221,7 +2236,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 10,
-      "duration": 186.0,
+      "duration": 186,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/2-10-snowhead.mp3"
     },
@@ -2231,7 +2246,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 11,
-      "duration": 90.0,
+      "duration": 90,
       "folder": "combat",
       "file": "assets/music/majoras-mask/2-11-fast-faster-goron.mp3"
     },
@@ -2241,7 +2256,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 12,
-      "duration": 74.0,
+      "duration": 74,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/2-12-into-the-sunset.mp3"
     },
@@ -2251,7 +2266,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 13,
-      "duration": 148.0,
+      "duration": 148,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/2-13-great-bay-beach.mp3"
     },
@@ -2261,7 +2276,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 14,
-      "duration": 198.0,
+      "duration": 198,
       "folder": "tension",
       "file": "assets/music/majoras-mask/2-14-ikana.mp3"
     },
@@ -2271,7 +2286,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 15,
-      "duration": 170.0,
+      "duration": 170,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/2-15-elpmet-rewot-enots.mp3"
     },
@@ -2281,7 +2296,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 16,
-      "duration": 222.0,
+      "duration": 222,
       "folder": "bosses",
       "file": "assets/music/majoras-mask/2-16-mask-battle.mp3"
     },
@@ -2291,7 +2306,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 17,
-      "duration": 190.0,
+      "duration": 190,
       "folder": "bosses",
       "file": "assets/music/majoras-mask/2-17-incarnation-battle.mp3"
     },
@@ -2301,7 +2316,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 18,
-      "duration": 140.0,
+      "duration": 140,
       "folder": "bosses",
       "file": "assets/music/majoras-mask/2-18-magician-battle.mp3"
     },
@@ -2321,7 +2336,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 20,
-      "duration": 102.0,
+      "duration": 102,
       "folder": "story",
       "file": "assets/music/majoras-mask/2-20-zelda-s-lullaby.mp3"
     },
@@ -2331,7 +2346,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 21,
-      "duration": 260.0,
+      "duration": 260,
       "folder": "tension",
       "file": "assets/music/majoras-mask/2-21-mysterious-times-great-bay-party-mix.mp3"
     },
@@ -2341,7 +2356,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 22,
-      "duration": 264.0,
+      "duration": 264,
       "folder": "story",
       "file": "assets/music/majoras-mask/2-22-sonata-of-healing-healing-dub.mp3"
     },
@@ -2351,7 +2366,7 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 23,
-      "duration": 252.0,
+      "duration": 252,
       "folder": "exploration",
       "file": "assets/music/majoras-mask/2-23-ethernal-legend-princess-z-trigger-mix.mp3"
     },
@@ -2361,9 +2376,469 @@
       "album": "majoras-mask",
       "disc": "2",
       "number": 24,
-      "duration": 280.0,
+      "duration": 280,
       "folder": "sanctuary",
       "file": "assets/music/majoras-mask/2-24-salia-s-song-spooky-groovy-remix.mp3"
+    },
+    {
+      "id": "hollow-knight:01",
+      "title": "Enter Hallownest",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 1,
+      "duration": 89.7,
+      "folder": "story",
+      "file": "assets/music/hollow-knight/01-enter-hallownest.mp3"
+    },
+    {
+      "id": "hollow-knight:02",
+      "title": "Dirtmouth",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 2,
+      "duration": 115,
+      "folder": "sanctuary",
+      "file": "assets/music/hollow-knight/02-dirtmouth.mp3"
+    },
+    {
+      "id": "hollow-knight:03",
+      "title": "Crossroads",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 3,
+      "duration": 147.9,
+      "folder": "exploration",
+      "file": "assets/music/hollow-knight/03-crossroads.mp3"
+    },
+    {
+      "id": "hollow-knight:04",
+      "title": "False Knight",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 4,
+      "duration": 184.7,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/04-false-knight.mp3"
+    },
+    {
+      "id": "hollow-knight:05",
+      "title": "Greenpath",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 5,
+      "duration": 217,
+      "folder": "exploration",
+      "file": "assets/music/hollow-knight/05-greenpath.mp3"
+    },
+    {
+      "id": "hollow-knight:06",
+      "title": "Hornet",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 6,
+      "duration": 166.8,
+      "folder": "combat",
+      "file": "assets/music/hollow-knight/06-hornet.mp3"
+    },
+    {
+      "id": "hollow-knight:07",
+      "title": "Reflection",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 7,
+      "duration": 99.1,
+      "folder": "story",
+      "file": "assets/music/hollow-knight/07-reflection.mp3"
+    },
+    {
+      "id": "hollow-knight:08",
+      "title": "Mantis Lords",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 8,
+      "duration": 105.9,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/08-mantis-lords.mp3"
+    },
+    {
+      "id": "hollow-knight:09",
+      "title": "City of Tears",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 9,
+      "duration": 178.8,
+      "folder": "tension",
+      "file": "assets/music/hollow-knight/09-city-of-tears.mp3"
+    },
+    {
+      "id": "hollow-knight:10",
+      "title": "Dung Defender",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 10,
+      "duration": 127.1,
+      "folder": "combat",
+      "file": "assets/music/hollow-knight/10-dung-defender.mp3"
+    },
+    {
+      "id": "hollow-knight:11",
+      "title": "Crystal Peak",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 11,
+      "duration": 248.3,
+      "folder": "dungeons",
+      "file": "assets/music/hollow-knight/11-crystal-peak.mp3"
+    },
+    {
+      "id": "hollow-knight:12",
+      "title": "Fungal Wastes",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 12,
+      "duration": 184.4,
+      "folder": "exploration",
+      "file": "assets/music/hollow-knight/12-fungal-wastes.mp3"
+    },
+    {
+      "id": "hollow-knight:13",
+      "title": "Decisive Battle",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 13,
+      "duration": 125.9,
+      "folder": "combat",
+      "file": "assets/music/hollow-knight/13-decisive-battle.mp3"
+    },
+    {
+      "id": "hollow-knight:14",
+      "title": "Soul Sanctum",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 14,
+      "duration": 270.8,
+      "folder": "dungeons",
+      "file": "assets/music/hollow-knight/14-soul-sanctum.mp3"
+    },
+    {
+      "id": "hollow-knight:15",
+      "title": "Resting Grounds",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 15,
+      "duration": 132.4,
+      "folder": "sanctuary",
+      "file": "assets/music/hollow-knight/15-resting-grounds.mp3"
+    },
+    {
+      "id": "hollow-knight:16",
+      "title": "Queen's Gardens",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 16,
+      "duration": 106.2,
+      "folder": "exploration",
+      "file": "assets/music/hollow-knight/16-queen-s-gardens.mp3"
+    },
+    {
+      "id": "hollow-knight:17",
+      "title": "The White Lady",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 17,
+      "duration": 79.6,
+      "folder": "story",
+      "file": "assets/music/hollow-knight/17-the-white-lady.mp3"
+    },
+    {
+      "id": "hollow-knight:18",
+      "title": "Broken Vessel",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 18,
+      "duration": 119.3,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/18-broken-vessel.mp3"
+    },
+    {
+      "id": "hollow-knight:19",
+      "title": "Kingdom's Edge",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 19,
+      "duration": 142,
+      "folder": "exploration",
+      "file": "assets/music/hollow-knight/19-kingdom-s-edge.mp3"
+    },
+    {
+      "id": "hollow-knight:20",
+      "title": "Nosk",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 20,
+      "duration": 110.1,
+      "folder": "tension",
+      "file": "assets/music/hollow-knight/20-nosk.mp3"
+    },
+    {
+      "id": "hollow-knight:21",
+      "title": "Dream",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 21,
+      "duration": 121.5,
+      "folder": "tension",
+      "file": "assets/music/hollow-knight/21-dream.mp3"
+    },
+    {
+      "id": "hollow-knight:22",
+      "title": "Dream Battle",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 22,
+      "duration": 145.1,
+      "folder": "combat",
+      "file": "assets/music/hollow-knight/22-dream-battle.mp3"
+    },
+    {
+      "id": "hollow-knight:23",
+      "title": "White Palace",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 23,
+      "duration": 259,
+      "folder": "dungeons",
+      "file": "assets/music/hollow-knight/23-white-palace.mp3"
+    },
+    {
+      "id": "hollow-knight:24",
+      "title": "Sealed Vessel",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 24,
+      "duration": 345,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/24-sealed-vessel.mp3"
+    },
+    {
+      "id": "hollow-knight:25",
+      "title": "Radiance",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 25,
+      "duration": 137.9,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/25-radiance.mp3"
+    },
+    {
+      "id": "hollow-knight:26",
+      "title": "Hollow Knight",
+      "album": "hollow-knight",
+      "disc": "1",
+      "number": 26,
+      "duration": 96.9,
+      "folder": "bosses",
+      "file": "assets/music/hollow-knight/26-hollow-knight.mp3"
+    },
+    {
+      "id": "dragon-quest:01",
+      "title": "Overture March",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 1,
+      "duration": 241.9,
+      "folder": "story",
+      "file": "assets/music/dragon-quest/01-overture-march.mp3"
+    },
+    {
+      "id": "dragon-quest:02",
+      "title": "Château Ladutorm",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 2,
+      "duration": 208.2,
+      "folder": "sanctuary",
+      "file": "assets/music/dragon-quest/02-chateau-ladutorm.mp3"
+    },
+    {
+      "id": "dragon-quest:03",
+      "title": "People",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 3,
+      "duration": 217.8,
+      "folder": "sanctuary",
+      "file": "assets/music/dragon-quest/03-people.mp3"
+    },
+    {
+      "id": "dragon-quest:04",
+      "title": "Unknown World",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 4,
+      "duration": 129.9,
+      "folder": "exploration",
+      "file": "assets/music/dragon-quest/04-unknown-world.mp3"
+    },
+    {
+      "id": "dragon-quest:05",
+      "title": "Fight",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 5,
+      "duration": 134.6,
+      "folder": "combat",
+      "file": "assets/music/dragon-quest/05-fight.mp3"
+    },
+    {
+      "id": "dragon-quest:06",
+      "title": "Dungeons",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 6,
+      "duration": 223.4,
+      "folder": "dungeons",
+      "file": "assets/music/dragon-quest/06-dungeons.mp3"
+    },
+    {
+      "id": "dragon-quest:07",
+      "title": "King Dragon",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 7,
+      "duration": 190.3,
+      "folder": "bosses",
+      "file": "assets/music/dragon-quest/07-king-dragon.mp3"
+    },
+    {
+      "id": "dragon-quest:08",
+      "title": "Finale",
+      "album": "dragon-quest",
+      "disc": "I",
+      "number": 8,
+      "duration": 164.8,
+      "folder": "story",
+      "file": "assets/music/dragon-quest/08-finale.mp3"
+    },
+    {
+      "id": "dragon-quest:09",
+      "title": "Dragon Quest March",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 9,
+      "duration": 102.4,
+      "folder": "story",
+      "file": "assets/music/dragon-quest/09-dragon-quest-march.mp3"
+    },
+    {
+      "id": "dragon-quest:10",
+      "title": "Only Lonely Boy",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 10,
+      "duration": 164.2,
+      "folder": "exploration",
+      "file": "assets/music/dragon-quest/10-only-lonely-boy.mp3"
+    },
+    {
+      "id": "dragon-quest:11",
+      "title": "Pastoral - Catastrophe",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 11,
+      "duration": 203.7,
+      "folder": "tension",
+      "file": "assets/music/dragon-quest/11-pastoral-catastrophe.mp3"
+    },
+    {
+      "id": "dragon-quest:12",
+      "title": "Château",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 12,
+      "duration": 185.5,
+      "folder": "sanctuary",
+      "file": "assets/music/dragon-quest/12-chateau.mp3"
+    },
+    {
+      "id": "dragon-quest:13",
+      "title": "Town",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 13,
+      "duration": 212.6,
+      "folder": "sanctuary",
+      "file": "assets/music/dragon-quest/13-town.mp3"
+    },
+    {
+      "id": "dragon-quest:14",
+      "title": "Fright in Dungeon - Devil's Tower",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 14,
+      "duration": 244.7,
+      "folder": "dungeons",
+      "file": "assets/music/dragon-quest/14-fright-in-dungeon-devil-s-tower.mp3"
+    },
+    {
+      "id": "dragon-quest:15",
+      "title": "Requiem",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 15,
+      "duration": 131.3,
+      "folder": "story",
+      "file": "assets/music/dragon-quest/15-requiem.mp3"
+    },
+    {
+      "id": "dragon-quest:16",
+      "title": "Endless World",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 16,
+      "duration": 346,
+      "folder": "exploration",
+      "file": "assets/music/dragon-quest/16-endless-world.mp3"
+    },
+    {
+      "id": "dragon-quest:17",
+      "title": "Beyong the Waves",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 17,
+      "duration": 136.4,
+      "folder": "exploration",
+      "file": "assets/music/dragon-quest/17-beyong-the-waves.mp3"
+    },
+    {
+      "id": "dragon-quest:18",
+      "title": "Deathfight - Dead or Alive",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 18,
+      "duration": 238.6,
+      "folder": "bosses",
+      "file": "assets/music/dragon-quest/18-deathfight-dead-or-alive.mp3"
+    },
+    {
+      "id": "dragon-quest:19",
+      "title": "My Road My Journey",
+      "album": "dragon-quest",
+      "disc": "II",
+      "number": 19,
+      "duration": 252,
+      "folder": "story",
+      "file": "assets/music/dragon-quest/19-my-road-my-journey.mp3"
+    },
+    {
+      "id": "other:01",
+      "title": "Dance with STEEL BALL RUN",
+      "album": "other",
+      "disc": "1",
+      "number": 1,
+      "duration": 287.3,
+      "folder": "combat",
+      "file": "assets/music/other/01-dance-with-steel-ball-run.mp3"
     }
   ]
 }

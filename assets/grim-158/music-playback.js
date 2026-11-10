@@ -1,5 +1,6 @@
 // Project Grim music: deterministic shared playback. No audio bytes in campaign/Firebase.
 import {MUSIC_CATALOG} from './music-catalog.js';
+import {getMusicPlaybackUrl} from './music-local.js';
 export const TRACKS=Object.freeze(MUSIC_CATALOG.tracks);
 export const TRACK_MAP=new Map(TRACKS.map(t=>[t.id,t]));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -55,7 +56,7 @@ export function formatDuration(seconds){
 export function createMusicPlayer({onStatus=()=>{},onProgress=()=>{},fadeMs=600}={}){
  let enabled=false,music=normalizeMusic(),current=null,fading=null,raf=0,disposed=false,seq=0;
  const status=(type,detail)=>{if(!disposed)onStatus(type,detail);};
- function cleanup(entry){if(!entry)return;entry.audio.pause();entry.audio.removeAttribute('src');entry.audio.load?.();}
+ function cleanup(entry){if(!entry)return;entry.audio.pause();entry.audio.removeAttribute('src');entry.audio.load?.();entry.release?.();}
  function clearFade(){if(raf)cancelAnimationFrame(raf);raf=0;}
  function stop(){clearFade();cleanup(fading);fading=null;cleanup(current);current=null;}
  function volumeFade(){
@@ -75,6 +76,7 @@ export function createMusicPlayer({onStatus=()=>{},onProgress=()=>{},fadeMs=600}
   if(!enabled){return result;}
   if(!nextTrack){if(current||fading)stop();status('off');return result;}
   if(current?.id===nextTrack.id){
+   current.audio.loop=music.repeat==='one';
    if(Math.abs((current.audio.volume||0)-music.volume)>.002){current.audio.volume=music.volume;}
    // Set position only when a remote edit creates a genuinely different timeline.
    const elapsed=Math.abs((current.audio.currentTime||0)-result.offset);
@@ -83,24 +85,28 @@ export function createMusicPlayer({onStatus=()=>{},onProgress=()=>{},fadeMs=600}
   }
   clearFade();cleanup(fading);fading=current;current=null;
   const audio=new Audio();audio.preload='metadata';audio.loop=music.repeat==='one';audio.volume=0;
-  audio.src=musicSource(nextTrack);
   const token=++seq;
-  current={audio,id:nextTrack.id};
+  current={audio,id:nextTrack.id,release:null,local:false};
   audio.addEventListener('loadedmetadata',()=>{
    if(disposed||token!==seq||current?.audio!==audio)return;
    const offset=resolveMusic(music,Date.now()).offset;
    if(offset>0.2){try{audio.currentTime=Math.min(offset,Math.max(0,(audio.duration||offset)-.3));}catch{}}
   });
-  audio.addEventListener('error',()=>{if(current?.audio===audio)status('missing',nextTrack);});
+  audio.addEventListener('error',()=>{if(current?.audio===audio)status(current.local&&audio.error?.code===4?'unsupported':'missing',nextTrack);});
   status('loading',nextTrack);
-  let promise;
-  try{promise=audio.play();}catch(e){promise=Promise.reject(e);}
-  Promise.resolve(promise).then(()=>{
+  (async()=>{
+   const source=await getMusicPlaybackUrl(nextTrack);
+   if(disposed||token!==seq||current?.audio!==audio){source.release();return;}
+   current.release=source.release;
+   current.local=source.local;
+   audio.src=source.url;
+   await audio.play();
    if(disposed||token!==seq||current?.audio!==audio)return;
    status('playing',nextTrack);volumeFade();
-  }).catch(e=>{
+  })().catch(e=>{
    if(disposed||token!==seq||current?.audio!==audio)return;
    if(e?.name==='NotAllowedError'){enabled=false;stop();status('blocked');}
+   else if(e?.name==='NotSupportedError')status('unsupported',nextTrack);
    else status('missing',nextTrack);
   });
   onProgress(result);return result;

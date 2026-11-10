@@ -11,7 +11,7 @@ echo This installs your personal soundtrack archives into the local site.
 echo It does NOT upload or publish music to GitHub.
 echo.
 set "ARCHIVE_FOLDER="
-set /p "ARCHIVE_FOLDER=Paste the folder containing the four soundtrack ZIPs: "
+set /p "ARCHIVE_FOLDER=Paste the folder containing your soundtrack ZIPs: "
 if not defined ARCHIVE_FOLDER goto :cancel
 set "ARCHIVE_FOLDER=%ARCHIVE_FOLDER:"=%"
 if not exist "%ARCHIVE_FOLDER%\." (

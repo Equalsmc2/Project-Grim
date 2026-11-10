@@ -1,4 +1,5 @@
 import {createMusicPlayer,resolveMusic} from './music-playback.js';
+import {importMusicArchives,musicArchiveStatus} from './music-local.js';
 import {normalizeGraphicsQuality} from './graphics-quality.js';
 import {normalizeMotionChoice,reduceMotion,MOTION_STORAGE_KEY} from './presentation-preferences.js';
 import {AMBIENCE_TRACKS,createAmbiencePlayer} from './ambience.js';
@@ -195,7 +196,8 @@ window.addEventListener('pagehide',()=>{if(tiltFrame)cancelAnimationFrame(tiltFr
 const soundToggle=$('stageSoundToggle'),soundLabel=$('stageSoundLabel');
 let stageAudioState=getState(),musicIssue='',musicActuallyPlaying=false;
 const stageMusic=createMusicPlayer({onStatus:(kind,track)=>{
- if(kind==='missing')musicIssue='Music file unavailable on this site';
+ if(kind==='missing')musicIssue='Music unavailable · load its ZIP on this device';
+ else if(kind==='unsupported')musicIssue='This browser cannot decode the selected audio';
  else if(kind==='blocked')musicIssue='Click Enable sound to start music';
  else if(kind==='playing'||kind==='loading'||kind==='off')musicIssue='';
  musicActuallyPlaying=kind==='playing';
@@ -221,6 +223,22 @@ soundToggle.addEventListener('click',()=>{
  if(stageSound.enabled||stageMusic.enabled){stageSound.disable();stageMusic.disable();}
  else {stageSound.enable();stageMusic.enable();stageMusic.sync(getState().music);}
  refreshStageSoundLabel();
+});
+const stageMusicInput=$('stageMusicArchiveInput');
+stageMusicInput.addEventListener('change',async()=>{
+ const files=stageMusicInput.files;
+ if(!files?.length)return;
+ stageMusicInput.disabled=true;
+ try{
+  const outcome=await importMusicArchives(files,message=>{soundLabel.textContent=message;});
+  const status=await musicArchiveStatus();
+  musicIssue=outcome.errors.length?outcome.errors.join('; '):'';
+  if(!outcome.errors.length)soundLabel.textContent='Loaded '+outcome.tracks+' tracks · '+status.tracks+' stored on this device';
+  // Retry a previously missing soundtrack after importing.
+  if(outcome.tracks&&stageMusic.enabled){stageMusic.disable();stageMusic.enable();stageMusic.sync(getState().music);}
+  setTimeout(refreshStageSoundLabel,2500);
+ }catch(error){musicIssue='Could not load ZIP: '+(error?.message||String(error));refreshStageSoundLabel();}
+ finally{stageMusicInput.value='';stageMusicInput.disabled=false;}
 });
 subscribe(s=>{
  stageAudioState=s;stageMusic.sync(s.music);

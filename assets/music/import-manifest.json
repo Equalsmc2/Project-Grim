@@ -24,6 +24,24 @@
       "name": "Majora's Mask",
       "originalArchive": "the-legend-of-zelda-majoras-mask-original-soundtrack.zip",
       "expectedTracks": 54
+    },
+    {
+      "id": "hollow-knight",
+      "name": "Hollow Knight",
+      "originalArchive": "hollow-knight-original-soundtrack_2017.zip",
+      "expectedTracks": 26
+    },
+    {
+      "id": "dragon-quest",
+      "name": "Dragon Quest I & II",
+      "originalArchive": "dqiiss.zip",
+      "expectedTracks": 19
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "originalArchive": "Other.zip",
+      "expectedTracks": 1
     }
   ],
   "tracks": [
@@ -1636,6 +1654,328 @@
       "file": "assets/music/majoras-mask/2-24-salia-s-song-spooky-groovy-remix.mp3",
       "sourceEntry": "Disc 2/24 - Salia's Song (Spooky Groovy Remix).mp3",
       "bytes": 6658555
+    },
+    {
+      "id": "hollow-knight:01",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/01-enter-hallownest.mp3",
+      "sourceEntry": "01 - Enter Hallownest.mp3",
+      "bytes": 3666096
+    },
+    {
+      "id": "hollow-knight:02",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/02-dirtmouth.mp3",
+      "sourceEntry": "02 - Dirtmouth.mp3",
+      "bytes": 4676512
+    },
+    {
+      "id": "hollow-knight:03",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/03-crossroads.mp3",
+      "sourceEntry": "03 - Crossroads.mp3",
+      "bytes": 5992039
+    },
+    {
+      "id": "hollow-knight:04",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/04-false-knight.mp3",
+      "sourceEntry": "04 - False Knight.mp3",
+      "bytes": 7462210
+    },
+    {
+      "id": "hollow-knight:05",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/05-greenpath.mp3",
+      "sourceEntry": "05 - Greenpath.mp3",
+      "bytes": 8756839
+    },
+    {
+      "id": "hollow-knight:06",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/06-hornet.mp3",
+      "sourceEntry": "06 - Hornet.mp3",
+      "bytes": 6746455
+    },
+    {
+      "id": "hollow-knight:07",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/07-reflection.mp3",
+      "sourceEntry": "07 - Reflection.mp3",
+      "bytes": 4042259
+    },
+    {
+      "id": "hollow-knight:08",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/08-mantis-lords.mp3",
+      "sourceEntry": "08 - Mantis Lords.mp3",
+      "bytes": 4310798
+    },
+    {
+      "id": "hollow-knight:09",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/09-city-of-tears.mp3",
+      "sourceEntry": "09 - City of Tears.mp3",
+      "bytes": 7227108
+    },
+    {
+      "id": "hollow-knight:10",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/10-dung-defender.mp3",
+      "sourceEntry": "10 - Dung Defender.mp3",
+      "bytes": 5162390
+    },
+    {
+      "id": "hollow-knight:11",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/11-crystal-peak.mp3",
+      "sourceEntry": "11 - Crystal Peak.mp3",
+      "bytes": 10009671
+    },
+    {
+      "id": "hollow-knight:12",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/12-fungal-wastes.mp3",
+      "sourceEntry": "12 - Fungal Wastes.mp3",
+      "bytes": 7452806
+    },
+    {
+      "id": "hollow-knight:13",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/13-decisive-battle.mp3",
+      "sourceEntry": "13 - Decisive Battle.mp3",
+      "bytes": 5110145
+    },
+    {
+      "id": "hollow-knight:14",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/14-soul-sanctum.mp3",
+      "sourceEntry": "14 - Soul Sanctum.mp3",
+      "bytes": 10908284
+    },
+    {
+      "id": "hollow-knight:15",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/15-resting-grounds.mp3",
+      "sourceEntry": "15 - Resting Grounds.mp3",
+      "bytes": 5372414
+    },
+    {
+      "id": "hollow-knight:16",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/16-queen-s-gardens.mp3",
+      "sourceEntry": "16 - Queen's Gardens.mp3",
+      "bytes": 4326471
+    },
+    {
+      "id": "hollow-knight:17",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/17-the-white-lady.mp3",
+      "sourceEntry": "17 - The White Lady.mp3",
+      "bytes": 3261720
+    },
+    {
+      "id": "hollow-knight:18",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/18-broken-vessel.mp3",
+      "sourceEntry": "18 - Broken Vessel.mp3",
+      "bytes": 4849965
+    },
+    {
+      "id": "hollow-knight:19",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/19-kingdom-s-edge.mp3",
+      "sourceEntry": "19 - Kingdom's Edge.mp3",
+      "bytes": 5754847
+    },
+    {
+      "id": "hollow-knight:20",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/20-nosk.mp3",
+      "sourceEntry": "20 - Nosk.mp3",
+      "bytes": 4479026
+    },
+    {
+      "id": "hollow-knight:21",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/21-dream.mp3",
+      "sourceEntry": "21 - Dream.mp3",
+      "bytes": 4934602
+    },
+    {
+      "id": "hollow-knight:22",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/22-dream-battle.mp3",
+      "sourceEntry": "22 - Dream Battle.mp3",
+      "bytes": 5881280
+    },
+    {
+      "id": "hollow-knight:23",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/23-white-palace.mp3",
+      "sourceEntry": "23 - White Palace.mp3",
+      "bytes": 10435990
+    },
+    {
+      "id": "hollow-knight:24",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/24-sealed-vessel.mp3",
+      "sourceEntry": "24 - Sealed Vessel.mp3",
+      "bytes": 13877884
+    },
+    {
+      "id": "hollow-knight:25",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/25-radiance.mp3",
+      "sourceEntry": "25 - Radiance.mp3",
+      "bytes": 5592888
+    },
+    {
+      "id": "hollow-knight:26",
+      "album": "hollow-knight",
+      "file": "assets/music/hollow-knight/26-hollow-knight.mp3",
+      "sourceEntry": "26 - Hollow Knight.mp3",
+      "bytes": 3951353
+    },
+    {
+      "id": "dragon-quest:01",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/01-overture-march.mp3",
+      "sourceEntry": "01 - Koichi Sugiyama - Dragon Quest I - Overture March.mp3",
+      "bytes": 5544399
+    },
+    {
+      "id": "dragon-quest:02",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/02-chateau-ladutorm.mp3",
+      "sourceEntry": "02 - Koichi Sugiyama - Dragon Quest I - Château Ladutorm.mp3",
+      "bytes": 4813038
+    },
+    {
+      "id": "dragon-quest:03",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/03-people.mp3",
+      "sourceEntry": "03 - Koichi Sugiyama - Dragon Quest I - People.mp3",
+      "bytes": 5027048
+    },
+    {
+      "id": "dragon-quest:04",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/04-unknown-world.mp3",
+      "sourceEntry": "04 - Koichi Sugiyama - Dragon Quest I - Unknown World.mp3",
+      "bytes": 3044677
+    },
+    {
+      "id": "dragon-quest:05",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/05-fight.mp3",
+      "sourceEntry": "05 - Koichi Sugiyama - Dragon Quest I - Fight.mp3",
+      "bytes": 3140934
+    },
+    {
+      "id": "dragon-quest:06",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/06-dungeons.mp3",
+      "sourceEntry": "06 - Koichi Sugiyama - Dragon Quest I - Dungeons.mp3",
+      "bytes": 5107268
+    },
+    {
+      "id": "dragon-quest:07",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/07-king-dragon.mp3",
+      "sourceEntry": "07 - Koichi Sugiyama - Dragon Quest I - King Dragon.mp3",
+      "bytes": 4280600
+    },
+    {
+      "id": "dragon-quest:08",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/08-finale.mp3",
+      "sourceEntry": "08 - Koichi Sugiyama - Dragon Quest I - Finale.mp3",
+      "bytes": 3738372
+    },
+    {
+      "id": "dragon-quest:09",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/09-dragon-quest-march.mp3",
+      "sourceEntry": "09 - Koichi Sugiyama - Dragon Quest II - Dragon Quest March.mp3",
+      "bytes": 2334840
+    },
+    {
+      "id": "dragon-quest:10",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/10-only-lonely-boy.mp3",
+      "sourceEntry": "10 - Koichi Sugiyama - Dragon Quest II - Only Lonely Boy.mp3",
+      "bytes": 3644789
+    },
+    {
+      "id": "dragon-quest:11",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/11-pastoral-catastrophe.mp3",
+      "sourceEntry": "11 - Koichi Sugiyama - Dragon Quest II - Pastoral - Catastrophe.mp3",
+      "bytes": 4672719
+    },
+    {
+      "id": "dragon-quest:12",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/12-chateau.mp3",
+      "sourceEntry": "12 - Koichi Sugiyama - Dragon Quest II - Château.mp3",
+      "bytes": 4369117
+    },
+    {
+      "id": "dragon-quest:13",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/13-town.mp3",
+      "sourceEntry": "13 - Koichi Sugiyama - Dragon Quest II - Town.mp3",
+      "bytes": 4932520
+    },
+    {
+      "id": "dragon-quest:14",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/14-fright-in-dungeon-devil-s-tower.mp3",
+      "sourceEntry": "14 - Koichi Sugiyama - Dragon Quest II - Fright in Dungeon - Devil's Tower.mp3",
+      "bytes": 5683557
+    },
+    {
+      "id": "dragon-quest:15",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/15-requiem.mp3",
+      "sourceEntry": "15 - Koichi Sugiyama - Dragon Quest II - Requiem.mp3",
+      "bytes": 3051300
+    },
+    {
+      "id": "dragon-quest:16",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/16-endless-world.mp3",
+      "sourceEntry": "16 - Koichi Sugiyama - Dragon Quest II - Endless World.mp3",
+      "bytes": 7959772
+    },
+    {
+      "id": "dragon-quest:17",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/17-beyong-the-waves.mp3",
+      "sourceEntry": "17 - Koichi Sugiyama - Dragon Quest II - Beyong the Waves.mp3",
+      "bytes": 3244008
+    },
+    {
+      "id": "dragon-quest:18",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/18-deathfight-dead-or-alive.mp3",
+      "sourceEntry": "18 - Koichi Sugiyama - Dragon Quest II - Deathfight - Dead or Alive.mp3",
+      "bytes": 5555188
+    },
+    {
+      "id": "dragon-quest:19",
+      "album": "dragon-quest",
+      "file": "assets/music/dragon-quest/19-my-road-my-journey.mp3",
+      "sourceEntry": "19 - Koichi Sugiyama - Dragon Quest II - My Road My Journey.mp3",
+      "bytes": 5797749
+    },
+    {
+      "id": "other:01",
+      "album": "other",
+      "file": "assets/music/other/01-dance-with-steel-ball-run.mp3",
+      "sourceEntry": "Other/Dance with STEEL BALL RUN.mp3",
+      "bytes": 4530419
     }
   ]
 }

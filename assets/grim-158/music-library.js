@@ -1,6 +1,7 @@
 import {getState,updateState,subscribe,escapeHtml} from './state.js';
 import {MUSIC_CATALOG} from './music-catalog.js';
 import {TRACKS,TRACK_MAP,playlistTracks,resolveMusic,formatDuration,createMusicPlayer} from './music-playback.js';
+import {getMusicPlaybackUrl,importMusicArchives,musicArchiveStatus,clearMusicArchives} from './music-local.js';
 
 const $=id=>document.getElementById(id);
 const albums=new Map(MUSIC_CATALOG.albums.map(a=>[a.id,a]));
@@ -8,11 +9,12 @@ const folders=[{id:'all',name:'All tracks',type:'all',count:TRACKS.length},
  ...MUSIC_CATALOG.albums.map(a=>({id:'album:'+a.id,name:a.name,type:'album',count:a.tracks})),
  ...MUSIC_CATALOG.folders.map(f=>({id:'mood:'+f.id,name:f.name,type:'mood',count:TRACKS.filter(t=>t.folder===f.id).length})),
  {id:'favorites',name:'Favorites',type:'favorites',count:0}];
-let currentFolder='all',query='',favorites=new Set(),preview=null,monitorEnabled=false,shuffle=false,renderedTracksKey=null;
+let currentFolder='all',query='',favorites=new Set(),preview=null,previewSource=null,previewToken=0,monitorEnabled=false,shuffle=false,renderedTracksKey=null;
 try{favorites=new Set(JSON.parse(localStorage.getItem('grim:music:favorites')||'[]').filter(x=>TRACK_MAP.has(x)));}catch{}
 try{shuffle=localStorage.getItem('grim:music:shuffle')==='1';}catch{}
 const monitor=createMusicPlayer({onStatus:(type,t)=>{
- if(type==='missing')$('musicNotice').textContent='Music file missing. Run IMPORT-MUSIC.bat with the original soundtrack ZIPs.';
+ if(type==='missing')$('musicNotice').textContent='Track unavailable. Load its soundtrack ZIP into this browser, or install it on a private local server.';
+ else if(type==='unsupported')$('musicNotice').textContent='This browser cannot decode the selected audio. Try Chrome or Edge.';
  else if(type==='blocked')$('musicNotice').textContent='Browser blocked playback; click Monitor again.';
  else if(type==='playing')$('musicNotice').textContent='DM monitor on · shared stage remains independently controlled';
 }});
@@ -56,16 +58,52 @@ function chooseAdjacent(dir){
  const target=shuffle?list[Math.floor(Math.random()*list.length)]:list[(idx+dir+list.length)%list.length];
  if(target)change({trackId:target.id,playing:true,startedAt:Date.now(),pausedAt:0},`Music: ${target.title}`);
 }
-function cuePreview(track){
+async function cuePreview(track){
+ const token=++previewToken;
  if(preview){preview.pause();preview.removeAttribute('src');preview.load();preview=null;}
+ if(previewSource){previewSource.release();previewSource=null;}
  if(!track){$('musicPreviewState').textContent='Preview stopped';return;}
- const source=new URL('../../'+track.file,import.meta.url).href;
- const audio=new Audio();audio.src=source;audio.volume=.55;audio.preload='metadata';
- preview=audio;
- $('musicPreviewState').textContent='Previewing '+track.title;
- audio.onended=()=>{if(preview===audio)cuePreview(null);};
- audio.onerror=()=>{if(preview===audio){cuePreview(null);$('musicPreviewState').textContent='MP3 missing · run importer';}};
- audio.play().catch(()=>{if(preview===audio){cuePreview(null);$('musicPreviewState').textContent='Click to allow local preview';}});
+ $('musicPreviewState').textContent='Loading '+track.title+'…';
+ try{
+  const source=await getMusicPlaybackUrl(track);
+  if(token!==previewToken){source.release();return;}
+  previewSource=source;
+  const audio=new Audio();audio.src=source.url;audio.volume=.55;audio.preload='metadata';
+  preview=audio;
+  $('musicPreviewState').textContent='Previewing '+track.title;
+  audio.onended=()=>{if(preview===audio)cuePreview(null);};
+  audio.onerror=()=>{if(preview===audio){cuePreview(null);$('musicPreviewState').textContent='Track unavailable · load its ZIP';}};
+  await audio.play();
+ }catch(error){
+  if(token===previewToken){cuePreview(null);$('musicPreviewState').textContent=error?.name==='NotAllowedError'?'Click Preview to allow sound':'Cannot play this track: '+(error?.message||'unknown error');}
+ }
+}
+async function refreshMusicImports(){
+ try{
+  const status=await musicArchiveStatus();
+  $('musicLocalStatus').textContent=status.tracks+' / '+TRACKS.length+' tracks stored in this browser';
+ }catch(error){$('musicLocalStatus').textContent='Local music storage unavailable: '+(error?.message||error);}
+}
+function bindMusicImports(){
+ const input=$('musicArchiveInput'),clear=$('musicArchiveClear'),status=$('musicLocalStatus');
+ input.addEventListener('change',async()=>{
+  if(!input.files?.length)return;
+  input.disabled=true;clear.disabled=true;
+  try{
+   const result=await importMusicArchives(input.files,message=>{status.textContent=message;});
+   await refreshMusicImports();
+   const message=result.albums.length?'Loaded '+result.tracks+' tracks ('+result.albums.join(', ')+')':'No soundtracks loaded';
+   $('musicNotice').textContent=message+(result.errors.length?' · '+result.errors.join('; '):'');
+   if(monitorEnabled){monitor.disable();monitor.enable();monitor.sync(getState().music);}
+  }catch(error){$('musicNotice').textContent='Import failed: '+(error?.message||String(error));}
+  finally{input.value='';input.disabled=false;clear.disabled=false;}
+ });
+ clear.addEventListener('click',async()=>{
+  if(!window.confirm('Remove locally stored soundtrack ZIPs from this browser?'))return;
+  try{await clearMusicArchives();await refreshMusicImports();$('musicNotice').textContent='Local soundtrack ZIPs removed.';}
+  catch(error){$('musicNotice').textContent='Cannot clear local music: '+(error?.message||String(error));}
+ });
+ refreshMusicImports();
 }
 function renderNow(){
  const state=getState(),m=state.music||{},position=resolveMusic(m),selected=TRACK_MAP.get(m.trackId),shown=position.track||selected;
@@ -81,6 +119,7 @@ function renderNow(){
  $('musicShuffle').classList.toggle('selected',shuffle);
 }
 export function initMusicLibrary(){
+ bindMusicImports();
  $('musicSearch').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderTracks();});
  $('musicFolders').addEventListener('click',e=>{const b=e.target.closest('[data-folder]');if(b)selectFolder(b.dataset.folder);});
  $('musicTracks').addEventListener('click',e=>{

@@ -6,11 +6,11 @@ import {MUSIC_CATALOG} from '../assets/grim-158/music-catalog.js';
 import {TRACKS,TRACK_MAP,normalizeMusic,playlistTracks,resolveMusic,formatDuration,musicSource,createMusicPlayer} from '../assets/grim-158/music-playback.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const groups=new Map(MUSIC_CATALOG.albums.map(a=>[a.id,a]));
-assert.equal(MUSIC_CATALOG.albums.length,4);
-assert.equal(TRACKS.length,230);
+assert.equal(MUSIC_CATALOG.albums.length,7);
+assert.equal(TRACKS.length,276);
 assert.equal(TRACK_MAP.size,TRACKS.length,'All tracks have unique stable IDs');
 for(const a of MUSIC_CATALOG.albums)assert.equal(TRACKS.filter(t=>t.album===a.id).length,a.tracks);
-assert.deepEqual(MUSIC_CATALOG.albums.map(x=>x.tracks),[23,67,86,54]);
+assert.deepEqual(MUSIC_CATALOG.albums.map(x=>x.tracks),[23,67,86,54,26,19,1]);
 for(const t of TRACKS){
  assert(groups.has(t.album));
  assert(t.duration>=0 && Number.isFinite(t.duration));
@@ -45,8 +45,8 @@ const hosting=JSON.parse(readFileSync(path.join(root,'firebase.json'),'utf8'));
 assert(hosting.hosting.ignore.includes('assets/music/**'));
 for(const f of ['IMPORT-MUSIC.bat','tools/import_music.ps1','assets/music/import-manifest.json'])assert(existsSync(path.join(root,f)));
 const manifest=JSON.parse(readFileSync(path.join(root,'assets/music/import-manifest.json'),'utf8'));
-assert.equal(manifest.tracks.length,230);
-assert.equal(new Set(manifest.tracks.map(t=>t.file)).size,230);
+assert.equal(manifest.tracks.length,276);
+assert.equal(new Set(manifest.tracks.map(t=>t.file)).size,276);
 
 // Simulated HTMLAudioElement playback: track changes must not upload or rebuild catalog.
 const queue=[],instances=[];
@@ -73,4 +73,4 @@ assert.equal(player.currentTrack,b.id);
 assert.equal(instances.length,2);
 player.disable();assert.equal(player.currentTrack,null);
 player.dispose();
-console.log('PASS: 230 catalogued songs, 4 games, scene folders, stable IDs, shared playback clock, gesture-gating, installer and private-by-default media deployment.');
+console.log('PASS: 276 catalogued songs, 7 albums, scene folders, stable IDs, shared playback clock, gesture-gating, installer and private-by-default media deployment.');

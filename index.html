@@ -10,7 +10,7 @@
   <main class="stage-main" id="stageMain">
     <div class="stage-background" aria-hidden="true"></div>
     <span id="worldStatus" role="status">Starting 3D…</span>
-    <div class="grim-stage-audio" role="group" aria-label="Ambient audio controls"><button type="button" id="stageSoundToggle" title="Audio can only start after a click">▶ Enable sound</button><span id="stageSoundLabel" role="status" aria-live="polite">Ambience off</span></div>
+    <div class="grim-stage-audio" role="group" aria-label="Audio controls"><button type="button" id="stageSoundToggle" title="Audio can only start after a click">▶ Enable sound</button><span id="stageSoundLabel" role="status" aria-live="polite">Ambience off</span><label class="stage-music-import" for="stageMusicArchiveInput" title="Add personal soundtracks to this browser">Load music</label><input id="stageMusicArchiveInput" type="file" accept=".zip,application/zip" multiple hidden aria-label="Select personal soundtrack ZIPs"></div>
     <div class="view-controls stage-only-ui" aria-label="Battlefield presentation controls" role="group">
       <button class="view-button" data-camera-view="tactical" aria-pressed="false" title="Three-quarter tactical camera [1]">Tactical</button>
       <button class="view-button active" data-camera-view="ground" aria-pressed="true" title="Low cinematic camera [2]">Ground</button>
