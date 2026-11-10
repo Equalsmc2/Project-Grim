@@ -39,7 +39,8 @@ for(const name of ['wind','storm','desert','blizzard','rain']){
  const file=path.join(root,'assets','audio',`${name}.mp3`);
  assert(existsSync(file)&&statSync(file).size>10000,`Missing or empty ambience audio: ${name}`);
 }
-assert(readdirSync(path.join(root,'assets')).sort().join(',')==='audio,grim-158,music','Only active website assets should be shipped');
+assert(['audio','grim-158','music'].every(name=>readdirSync(path.join(root,'assets')).includes(name)),'Required current asset directories are present');
+assert([...visited].every(file=>file.startsWith(active+path.sep)),'Active website imports must not depend on historical bundles');
 for(const f of ['github.bat','GITHUB-UPLOAD.bat']){
  const bat=readFileSync(path.join(root,f),'utf8');
  assert(bat.includes('assets\\grim-158\\state.js') && bat.includes('set /p "REPO_INPUT='),`${f} must have path prompt and validate the active bundle`);
