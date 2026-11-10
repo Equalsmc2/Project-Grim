@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-156/vendor/three.module.js';
-import {calculateCameraPose,applyCameraPose} from '../assets/grim-156/camera-frame.js';
-import {fitAllCardsInView} from '../assets/grim-156/card-framing.js';
-import {cardPixelSize,worldHeightForPixels,CARD_WIDTH_PX,CARD_HEIGHT_PX} from '../assets/grim-156/native-cards.js';
+import * as T from '../assets/grim-158/vendor/three.module.js';
+import {calculateCameraPose,applyCameraPose} from '../assets/grim-158/camera-frame.js';
+import {fitAllCardsInView} from '../assets/grim-158/card-framing.js';
+import {cardPixelSize,worldHeightForPixels,CARD_WIDTH_PX,CARD_HEIGHT_PX} from '../assets/grim-158/native-cards.js';
 
 const env={terrainWidth:32,terrainDepth:20,hills:'flat',seed:7301,variation:0};
 const terrain=()=>0;

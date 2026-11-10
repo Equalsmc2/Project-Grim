@@ -14,7 +14,7 @@ import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-CSS = (ROOT / 'assets/grim-156/styles.css').read_text(encoding='utf-8')
+CSS = (ROOT / 'assets/grim-158/styles.css').read_text(encoding='utf-8')
 
 try:
     from playwright.sync_api import sync_playwright
@@ -27,10 +27,10 @@ EXE = (os.environ.get('GRIM_CHROMIUM_PATH') or shutil.which('chromium')
 
 def static_html(page):
     html = (ROOT / page).read_text(encoding='utf-8')
-    html = html.replace('<link rel="stylesheet" href="assets/grim-156/styles.css">',
+    html = html.replace('<link rel="stylesheet" href="assets/grim-158/styles.css">',
                         '<style>' + CSS + '</style>')
-    html = html.replace('<script type="module" src="assets/grim-156/dm.js"></script>', '')
-    html = html.replace('<script type="module" src="assets/grim-156/stage.js"></script>', '')
+    html = html.replace('<script type="module" src="assets/grim-158/dm.js"></script>', '')
+    html = html.replace('<script type="module" src="assets/grim-158/stage.js"></script>', '')
     return html
 
 with sync_playwright() as pw:

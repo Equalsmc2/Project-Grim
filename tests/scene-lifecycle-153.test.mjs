@@ -5,7 +5,7 @@ import {mkdtempSync,rmSync,cpSync,writeFileSync,readFileSync} from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
-import {disposeSceneGraph,commitSceneGroup} from '../assets/grim-156/scene-resources.js';
+import {disposeSceneGraph,commitSceneGroup} from '../assets/grim-158/scene-resources.js';
 
 let geoCalls=0,matCalls=0,texCalls=0,instanceCalls=0;
 const sharedGeo={dispose(){geoCalls++;}};
@@ -23,7 +23,7 @@ const previous={traverse(){}};const next={traverse(){}};
 commitSceneGroup(scene,previous,next);
 assert.deepEqual(operations,[['add',next],['remove',previous]],'The replacement must be installed before the previous scene is removed');
 
-const source=path.resolve('assets/grim-156');
+const source=path.resolve('assets/grim-158');
 const tmp=mkdtempSync(path.join(os.tmpdir(),'grim153-lifecycle-'));
 const fakeRenderer=`
 export * from './vendor/three.module.js';

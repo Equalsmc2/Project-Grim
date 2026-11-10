@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {cinematicTargets} from '../assets/grim-156/cinematic-director.js';
+import {cinematicTargets} from '../assets/grim-158/cinematic-director.js';
 const tolerance=1e-10;
 for(const x of [-100,-30,-6,0,2,6,30,100,Infinity,NaN]){
  for(const phase of [0,.3,1,6.2,8.7,23.8]){

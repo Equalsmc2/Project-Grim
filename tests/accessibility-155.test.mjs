@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import * as T from '../assets/grim-156/vendor/three.module.js';
-import {MOTION_STORAGE_KEY,normalizeMotionChoice,reduceMotion,nextNavigationIndex,smoothScrollBehavior} from '../assets/grim-156/presentation-preferences.js';
-import {createNativeCardLayer} from '../assets/grim-156/native-cards.js';
+import * as T from '../assets/grim-158/vendor/three.module.js';
+import {MOTION_STORAGE_KEY,normalizeMotionChoice,reduceMotion,nextNavigationIndex,smoothScrollBehavior} from '../assets/grim-158/presentation-preferences.js';
+import {createNativeCardLayer} from '../assets/grim-158/native-cards.js';
 
 assert.equal(MOTION_STORAGE_KEY,'grim:motion:v1');
 for (const v of [null,undefined,'bad',''])assert.equal(normalizeMotionChoice(v),'system');
@@ -34,7 +34,7 @@ cards.setReducedMotion(true);
 assert.equal(cards.entries.get('p1').shatter,null,'Enabling reduced motion cleans up in-flight fragments');
 cards.dispose();
 
-const asset=new URL('../assets/grim-156/',import.meta.url);
+const asset=new URL('../assets/grim-158/',import.meta.url);
 const world=readFileSync(new URL('world.js',asset),'utf8');
 const stage=readFileSync(new URL('stage.js',asset),'utf8');
 const dm=readFileSync(new URL('dm.js',asset),'utf8');

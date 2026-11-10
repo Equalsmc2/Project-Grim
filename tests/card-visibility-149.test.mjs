@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {clampZoomToCards} from '../assets/grim-156/camera-guard.js';
-import {cardVisualData,damageSeverity,fractureLayout,paintCard} from '../assets/grim-156/native-cards.js';
+import {clampZoomToCards} from '../assets/grim-158/camera-guard.js';
+import {cardVisualData,damageSeverity,fractureLayout,paintCard} from '../assets/grim-158/native-cards.js';
 const env={terrainWidth:32,terrainDepth:20,hills:'flat',seed:7301,variation:.35};
 const at=(xs)=>xs.flatMap(x=>[-5.2,5.2].map(z=>({x,z,layout:{scale:.72},active:false})));
 const params={width:1920,height:925,mode:'ground',env,landscapeHeight:()=>0};
@@ -25,8 +25,8 @@ const ctx={clearRect(){},setTransform(){transforms++},save(){},restore(){},begin
 paintCard(ctx,data,null,1000);
 assert.equal(transforms,0,'Native card finishes must not replace the caller\'s correct texture transform');
 assert(strokes>10,'Burning finish draws visible rim/flame outlines');
-const world=readFileSync(new URL('../assets/grim-156/world.js',import.meta.url),'utf8');
-const stage=readFileSync(new URL('../assets/grim-156/stage.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-158/world.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../assets/grim-158/stage.js',import.meta.url),'utf8');
 assert(world.includes('clampZoomToCards')&&world.includes('zoom=fitCardsZoom(zoom)'),'World camera enforces card-safe zoom');
 assert(stage.includes('zoom=world.zoomTo(zoom)'),'Stage uses actual permitted zoom');
 console.log('PASS: visible burning, stable portrait-only laminate fractures, and camera/card-safe zoom limits.');

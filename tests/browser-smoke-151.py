@@ -58,8 +58,8 @@ try:
                 sys.exit(2)
             raise
         dm.goto(origin+'/dm.html', wait_until='domcontentloaded', timeout=20000)
-        assert 'VISUAL QA 1.5.6' in stage.locator('.build-chip').inner_text()
-        assert 'VISUAL QA 1.5.6' in dm.locator('.build-chip').inner_text()
+        assert 'DESIGN REFINEMENT 1.5.8' in stage.locator('.build-chip').inner_text()
+        assert 'DESIGN REFINEMENT 1.5.8' in dm.locator('.build-chip').inner_text()
         dm.locator('#liveCombatButton').click()
         stage.wait_for_function("document.getElementById('stageModeLabel')?.textContent==='COMBAT MODE'", timeout=10000)
         stage.screenshot(path=str(OUT/'stage-combat.png'))

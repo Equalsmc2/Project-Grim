@@ -4,7 +4,7 @@ import {mkdtempSync,rmSync,cpSync,writeFileSync,readFileSync} from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {pathToFileURL} from 'node:url';
-import {createWeatherBudget,advanceWeatherBudget,weatherInterval,needsSceneryRefresh} from '../assets/grim-156/render-budget.js';
+import {createWeatherBudget,advanceWeatherBudget,weatherInterval,needsSceneryRefresh} from '../assets/grim-158/render-budget.js';
 
 for(const [quality,hz] of [['low',20],['balanced',30],['high',45]]){
   assert(Math.abs(weatherInterval(quality)-1/hz)<1e-8);
@@ -23,7 +23,7 @@ assert(needsSceneryRefresh(NaN,NaN,0,0));
 assert(!needsSceneryRefresh(.4,.2,.4003,.201));
 assert(needsSceneryRefresh(.4,.2,.42,.2));
 
-const live=path.resolve('assets/grim-156');
+const live=path.resolve('assets/grim-158');
 const tmp=mkdtempSync(path.join(os.tmpdir(),'grim152-weather-'));
 const fakeRenderer=`
 export * from './vendor/three.module.js';

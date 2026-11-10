@@ -1,3 +1,13 @@
+# Project Grim 1.5.8 — Design Refinement
+
+This release reapplies the project's design principles: balanced space, minimal scrolling, purposeful text and controls, a dark monochrome foundation, and no redundant decoration. The DM overview now shows live environment facts instead of a fake scene preview. Music and other long lists use their available panel space. **No campaign reset or login change is required.**
+
+**Download:** Use the full ZIP for a new installation; use the smaller website-only ZIP if your Git repository already has the five ambience recordings. Extract the ZIP and run `github.bat`; it prompts for the existing Project-Grim Git folder and confirms before copying or pushing. The upload script skips missing ambience files without deleting the ones already installed.
+
+**Important:** Game soundtrack recordings remain local-only, as in 1.5.7. See `MUSIC_SETUP.md` for the importer and hosting limitations. See `DESIGN_PRINCIPLES.md` for the permanent UX contract and `RELEASE_NOTES_1.5.8.md` / `TEST_REPORT_1.5.8.md` for verification.
+
+---
+
 # Project Grim 1.5.7 — Music Library
 
 Four soundtrack catalogs (230 tracks), album/music-scene browsing, shared DM music controls, and optional local soundtrack importer. MP3 media is deliberately not bundled into the public website archive. See MUSIC_SETUP.md.

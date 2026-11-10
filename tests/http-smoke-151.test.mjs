@@ -26,13 +26,13 @@ try{
   await new Promise(r=>setTimeout(r,45));
  }
  assert(online,`Local preview server failed to start: ${output}`);
- for(const [target,mime] of [['/','text/html'],['/dm.html','text/html'],['/assets/grim-156/stage.js','text/javascript'],['/assets/grim-156/styles.css','text/css'],['/assets/audio/rain.mp3','audio/mpeg']]){
+ for(const [target,mime] of [['/','text/html'],['/dm.html','text/html'],['/assets/grim-158/stage.js','text/javascript'],['/assets/grim-158/styles.css','text/css'],['/assets/audio/rain.mp3','audio/mpeg']]){
   const r=await raw(target,'HEAD');
   assert.equal(r.status,200,`Missing response: ${target}`);
   assert(r.headers['content-type'].startsWith(mime),`Wrong MIME for ${target}`);
   assert.equal(r.body.length,0);
  }
- const page=await raw('/');assert(page.body.toString().includes('VISUAL QA 1.5.6'));
+ const page=await raw('/');assert(page.body.toString().includes('DESIGN REFINEMENT 1.5.8'));
  assert.equal((await raw('/%ZZ')).status,400,'Malformed percent encoding returns 400 instead of crashing server');
  for(const bad of ['/.env','/.git/config','/README.md','/tests/state.test.cjs','/%2e%2e/%2eenv','/assets/%2e%2e/%2eenv']){
   assert.equal((await raw(bad)).status,404,`Sensitive or out-of-scope file exposed: ${bad}`);

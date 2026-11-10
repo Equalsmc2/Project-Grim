@@ -1,0 +1,2369 @@
+{
+  "version": 1,
+  "albums": [
+    {
+      "id": "dark-souls",
+      "name": "Dark Souls",
+      "tracks": 23
+    },
+    {
+      "id": "elden-ring",
+      "name": "Elden Ring",
+      "tracks": 67
+    },
+    {
+      "id": "ocarina-of-time",
+      "name": "Ocarina of Time",
+      "tracks": 86
+    },
+    {
+      "id": "majoras-mask",
+      "name": "Majora's Mask",
+      "tracks": 54
+    }
+  ],
+  "folders": [
+    {
+      "id": "exploration",
+      "name": "Exploration",
+      "description": "Open landscapes, forests, and journeys"
+    },
+    {
+      "id": "sanctuary",
+      "name": "Sanctuaries & Towns",
+      "description": "Rest, conversation, and safe locations"
+    },
+    {
+      "id": "dungeons",
+      "name": "Dungeons & Mystery",
+      "description": "Temples, ruins, caverns, and uncertainty"
+    },
+    {
+      "id": "combat",
+      "name": "Combat",
+      "description": "Encounters and sudden danger"
+    },
+    {
+      "id": "bosses",
+      "name": "Boss Encounters",
+      "description": "Monumental and climactic battles"
+    },
+    {
+      "id": "tension",
+      "name": "Tension & Horror",
+      "description": "Unease, looming threats, and dark settings"
+    },
+    {
+      "id": "story",
+      "name": "Story & Ceremony",
+      "description": "Important scenes, memories, and endings"
+    },
+    {
+      "id": "cues",
+      "name": "Short Cues",
+      "description": "Fanfare, victory, transitions, and stingers"
+    }
+  ],
+  "tracks": [
+    {
+      "id": "dark-souls:01",
+      "title": "Prologue",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 1,
+      "duration": 225.6,
+      "folder": "story",
+      "file": "assets/music/dark-souls/01-prologue.mp3"
+    },
+    {
+      "id": "dark-souls:02",
+      "title": "Firelink Shrine",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 2,
+      "duration": 176.6,
+      "folder": "sanctuary",
+      "file": "assets/music/dark-souls/02-firelink-shrine.mp3"
+    },
+    {
+      "id": "dark-souls:03",
+      "title": "Taurus Demon",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 3,
+      "duration": 159.3,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/03-taurus-demon.mp3"
+    },
+    {
+      "id": "dark-souls:04",
+      "title": "Bell Gargoyle",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 4,
+      "duration": 205.7,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/04-bell-gargoyle.mp3"
+    },
+    {
+      "id": "dark-souls:05",
+      "title": "Pinwheel",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 5,
+      "duration": 177.4,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/05-pinwheel.mp3"
+    },
+    {
+      "id": "dark-souls:06",
+      "title": "Gaping Dragon",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 6,
+      "duration": 136.1,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/06-gaping-dragon.mp3"
+    },
+    {
+      "id": "dark-souls:07",
+      "title": "Chaos Witch Quelaag",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 7,
+      "duration": 158.0,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/07-chaos-witch-quelaag.mp3"
+    },
+    {
+      "id": "dark-souls:08",
+      "title": "Daughters of Chaos",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 8,
+      "duration": 174.7,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/08-daughters-of-chaos.mp3"
+    },
+    {
+      "id": "dark-souls:09",
+      "title": "Iron Golem",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 9,
+      "duration": 170.2,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/09-iron-golem.mp3"
+    },
+    {
+      "id": "dark-souls:10",
+      "title": "Ornstein & Smough",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 10,
+      "duration": 184.8,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/10-ornstein-smough.mp3"
+    },
+    {
+      "id": "dark-souls:11",
+      "title": "Gwynevere, Princess of Sunlight",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 11,
+      "duration": 201.5,
+      "folder": "sanctuary",
+      "file": "assets/music/dark-souls/11-gwynevere-princess-of-sunlight.mp3"
+    },
+    {
+      "id": "dark-souls:12",
+      "title": "Great Grey Wolf Sif",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 12,
+      "duration": 198.4,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/12-great-grey-wolf-sif.mp3"
+    },
+    {
+      "id": "dark-souls:13",
+      "title": "Ceaseless Discharge",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 13,
+      "duration": 182.5,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/13-ceaseless-discharge.mp3"
+    },
+    {
+      "id": "dark-souls:14",
+      "title": "Centipede Demon",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 14,
+      "duration": 169.5,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/14-centipede-demon.mp3"
+    },
+    {
+      "id": "dark-souls:15",
+      "title": "Four Kings",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 15,
+      "duration": 166.6,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/15-four-kings.mp3"
+    },
+    {
+      "id": "dark-souls:16",
+      "title": "Seath the Scaleless",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 16,
+      "duration": 174.0,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/16-seath-the-scaleless.mp3"
+    },
+    {
+      "id": "dark-souls:17",
+      "title": "Gravelord Nito",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 17,
+      "duration": 163.4,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/17-gravelord-nito.mp3"
+    },
+    {
+      "id": "dark-souls:18",
+      "title": "Bed of Chaos",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 18,
+      "duration": 180.3,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/18-bed-of-chaos.mp3"
+    },
+    {
+      "id": "dark-souls:19",
+      "title": "The Ancient Dragon",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 19,
+      "duration": 220.1,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/19-the-ancient-dragon.mp3"
+    },
+    {
+      "id": "dark-souls:20",
+      "title": "Crossbreed Priscilla",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 20,
+      "duration": 189.2,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/20-crossbreed-priscilla.mp3"
+    },
+    {
+      "id": "dark-souls:21",
+      "title": "Dark Sun Gwyndolin",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 21,
+      "duration": 179.2,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/21-dark-sun-gwyndolin.mp3"
+    },
+    {
+      "id": "dark-souls:22",
+      "title": "Gwyn, Lord of Cinder",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 22,
+      "duration": 217.3,
+      "folder": "bosses",
+      "file": "assets/music/dark-souls/22-gwyn-lord-of-cinder.mp3"
+    },
+    {
+      "id": "dark-souls:23",
+      "title": "Nameless Song",
+      "album": "dark-souls",
+      "disc": "1",
+      "number": 23,
+      "duration": 398.4,
+      "folder": "story",
+      "file": "assets/music/dark-souls/23-nameless-song.mp3"
+    },
+    {
+      "id": "elden-ring:1-01",
+      "title": "Elden Ring",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 1,
+      "duration": 98.4,
+      "folder": "story",
+      "file": "assets/music/elden-ring/1-01-elden-ring.mp3"
+    },
+    {
+      "id": "elden-ring:1-02",
+      "title": "Opening",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 2,
+      "duration": 189.9,
+      "folder": "story",
+      "file": "assets/music/elden-ring/1-02-opening.mp3"
+    },
+    {
+      "id": "elden-ring:1-03",
+      "title": "Character Creation",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 3,
+      "duration": 165.5,
+      "folder": "story",
+      "file": "assets/music/elden-ring/1-03-character-creation.mp3"
+    },
+    {
+      "id": "elden-ring:1-04",
+      "title": "Limgrave",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 4,
+      "duration": 191.1,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-04-limgrave.mp3"
+    },
+    {
+      "id": "elden-ring:1-05",
+      "title": "Caves",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 5,
+      "duration": 170.6,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-05-caves.mp3"
+    },
+    {
+      "id": "elden-ring:1-06",
+      "title": "Tunnels",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 6,
+      "duration": 139.4,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-06-tunnels.mp3"
+    },
+    {
+      "id": "elden-ring:1-07",
+      "title": "Stormveil Castle",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 7,
+      "duration": 132.1,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-07-stormveil-castle.mp3"
+    },
+    {
+      "id": "elden-ring:1-08",
+      "title": "Roundtable Hold",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 8,
+      "duration": 141.2,
+      "folder": "sanctuary",
+      "file": "assets/music/elden-ring/1-08-roundtable-hold.mp3"
+    },
+    {
+      "id": "elden-ring:1-09",
+      "title": "Liurnia of the Lakes",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 9,
+      "duration": 180.9,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-09-liurnia-of-the-lakes.mp3"
+    },
+    {
+      "id": "elden-ring:1-10",
+      "title": "Great Underground Rivers",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 10,
+      "duration": 159.7,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-10-great-underground-rivers.mp3"
+    },
+    {
+      "id": "elden-ring:1-11",
+      "title": "Eternal City",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 11,
+      "duration": 208.8,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-11-eternal-city.mp3"
+    },
+    {
+      "id": "elden-ring:1-12",
+      "title": "Academy of Raya Lucaria",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 12,
+      "duration": 118.5,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-12-academy-of-raya-lucaria.mp3"
+    },
+    {
+      "id": "elden-ring:1-13",
+      "title": "Caelid",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 13,
+      "duration": 224.6,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-13-caelid.mp3"
+    },
+    {
+      "id": "elden-ring:1-14",
+      "title": "Old Castle",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 14,
+      "duration": 236.4,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-14-old-castle.mp3"
+    },
+    {
+      "id": "elden-ring:1-15",
+      "title": "Altus Plateau",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 15,
+      "duration": 177.8,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-15-altus-plateau.mp3"
+    },
+    {
+      "id": "elden-ring:1-16",
+      "title": "Catacombs",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 16,
+      "duration": 113.7,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-16-catacombs.mp3"
+    },
+    {
+      "id": "elden-ring:1-17",
+      "title": "Leyndell, Royal Capital",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 17,
+      "duration": 197.1,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-17-leyndell-royal-capital.mp3"
+    },
+    {
+      "id": "elden-ring:1-18",
+      "title": "Subterranean Shunning-Grounds",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 18,
+      "duration": 149.9,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-18-subterranean-shunning-grounds.mp3"
+    },
+    {
+      "id": "elden-ring:1-19",
+      "title": "Mt. Gelmir",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 19,
+      "duration": 163.9,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-19-mt-gelmir.mp3"
+    },
+    {
+      "id": "elden-ring:1-20",
+      "title": "Volcano Manor",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 20,
+      "duration": 151.6,
+      "folder": "sanctuary",
+      "file": "assets/music/elden-ring/1-20-volcano-manor.mp3"
+    },
+    {
+      "id": "elden-ring:1-21",
+      "title": "Prison Town",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 21,
+      "duration": 159.2,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-21-prison-town.mp3"
+    },
+    {
+      "id": "elden-ring:1-22",
+      "title": "Mountaintops of the Giants",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 22,
+      "duration": 203.2,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-22-mountaintops-of-the-giants.mp3"
+    },
+    {
+      "id": "elden-ring:1-23",
+      "title": "Divine Tower",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 23,
+      "duration": 174.4,
+      "folder": "dungeons",
+      "file": "assets/music/elden-ring/1-23-divine-tower.mp3"
+    },
+    {
+      "id": "elden-ring:1-24",
+      "title": "Crumbling Farum Azula",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 24,
+      "duration": 221.2,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-24-crumbling-farum-azula.mp3"
+    },
+    {
+      "id": "elden-ring:1-25",
+      "title": "Consecrated Snowfield",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 25,
+      "duration": 157.5,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-25-consecrated-snowfield.mp3"
+    },
+    {
+      "id": "elden-ring:1-26",
+      "title": "Miquella's Haligtree",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 26,
+      "duration": 122.0,
+      "folder": "exploration",
+      "file": "assets/music/elden-ring/1-26-miquella-s-haligtree.mp3"
+    },
+    {
+      "id": "elden-ring:1-27",
+      "title": "Elphael",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 27,
+      "duration": 135.1,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/1-27-elphael.mp3"
+    },
+    {
+      "id": "elden-ring:1-28",
+      "title": "Formidable Foe I",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 28,
+      "duration": 147.2,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-28-formidable-foe-i.mp3"
+    },
+    {
+      "id": "elden-ring:1-29",
+      "title": "Formidable Foe II",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 29,
+      "duration": 85.2,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-29-formidable-foe-ii.mp3"
+    },
+    {
+      "id": "elden-ring:1-30",
+      "title": "Invader",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 30,
+      "duration": 110.2,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-30-invader.mp3"
+    },
+    {
+      "id": "elden-ring:1-31",
+      "title": "Old Warriors",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 31,
+      "duration": 114.2,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-31-old-warriors.mp3"
+    },
+    {
+      "id": "elden-ring:1-32",
+      "title": "Erdtree Knights",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 32,
+      "duration": 166.8,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-32-erdtree-knights.mp3"
+    },
+    {
+      "id": "elden-ring:1-33",
+      "title": "Fallen Knights",
+      "album": "elden-ring",
+      "disc": "1",
+      "number": 33,
+      "duration": 352.9,
+      "folder": "combat",
+      "file": "assets/music/elden-ring/1-33-fallen-knights.mp3"
+    },
+    {
+      "id": "elden-ring:2-01",
+      "title": "The Immured",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 1,
+      "duration": 101.5,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-01-the-immured.mp3"
+    },
+    {
+      "id": "elden-ring:2-02",
+      "title": "The Accursed",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 2,
+      "duration": 78.5,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-02-the-accursed.mp3"
+    },
+    {
+      "id": "elden-ring:2-03",
+      "title": "Grave Wardens",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 3,
+      "duration": 148.8,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-03-grave-wardens.mp3"
+    },
+    {
+      "id": "elden-ring:2-04",
+      "title": "Death's Kindred",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 4,
+      "duration": 113.4,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-04-death-s-kindred.mp3"
+    },
+    {
+      "id": "elden-ring:2-05",
+      "title": "Dragon",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 5,
+      "duration": 92.5,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-05-dragon.mp3"
+    },
+    {
+      "id": "elden-ring:2-06",
+      "title": "Fallingstar Beast",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 6,
+      "duration": 112.1,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-06-fallingstar-beast.mp3"
+    },
+    {
+      "id": "elden-ring:2-07",
+      "title": "Red Wolf of Radagon",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 7,
+      "duration": 76.0,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-07-red-wolf-of-radagon.mp3"
+    },
+    {
+      "id": "elden-ring:2-08",
+      "title": "Erdtree Avatar",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 8,
+      "duration": 186.2,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-08-erdtree-avatar.mp3"
+    },
+    {
+      "id": "elden-ring:2-09",
+      "title": "Godskin Apostles",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 9,
+      "duration": 274.4,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-09-godskin-apostles.mp3"
+    },
+    {
+      "id": "elden-ring:2-10",
+      "title": "Black Knives",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 10,
+      "duration": 109.0,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-10-black-knives.mp3"
+    },
+    {
+      "id": "elden-ring:2-11",
+      "title": "Margit, the Fell Omen",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 11,
+      "duration": 223.4,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-11-margit-the-fell-omen.mp3"
+    },
+    {
+      "id": "elden-ring:2-12",
+      "title": "Omen Illusion",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 12,
+      "duration": 111.9,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-12-omen-illusion.mp3"
+    },
+    {
+      "id": "elden-ring:2-13",
+      "title": "Lord's Apparition",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 13,
+      "duration": 108.6,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-13-lord-s-apparition.mp3"
+    },
+    {
+      "id": "elden-ring:2-14",
+      "title": "Regal Ancestor Spirit",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 14,
+      "duration": 248.9,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-14-regal-ancestor-spirit.mp3"
+    },
+    {
+      "id": "elden-ring:2-15",
+      "title": "Astel, Naturalborn of the Void",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 15,
+      "duration": 265.1,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-15-astel-naturalborn-of-the-void.mp3"
+    },
+    {
+      "id": "elden-ring:2-16",
+      "title": "Ancient Dragon Lansseax",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 16,
+      "duration": 123.5,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-16-ancient-dragon-lansseax.mp3"
+    },
+    {
+      "id": "elden-ring:2-17",
+      "title": "Lichdragon Fortissax",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 17,
+      "duration": 328.4,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-17-lichdragon-fortissax.mp3"
+    },
+    {
+      "id": "elden-ring:2-18",
+      "title": "Song of Lament",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 18,
+      "duration": 46.6,
+      "folder": "cues",
+      "file": "assets/music/elden-ring/2-18-song-of-lament.mp3"
+    },
+    {
+      "id": "elden-ring:2-19",
+      "title": "Morgott, the Omen King",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 19,
+      "duration": 230.8,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-19-morgott-the-omen-king.mp3"
+    },
+    {
+      "id": "elden-ring:2-20",
+      "title": "Bloody Fingers",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 20,
+      "duration": 107.6,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-20-bloody-fingers.mp3"
+    },
+    {
+      "id": "elden-ring:2-21",
+      "title": "Mohg, Lord of Blood",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 21,
+      "duration": 262.2,
+      "folder": "tension",
+      "file": "assets/music/elden-ring/2-21-mohg-lord-of-blood.mp3"
+    },
+    {
+      "id": "elden-ring:2-22",
+      "title": "Godrick the Grafted",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 22,
+      "duration": 288.2,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-22-godrick-the-grafted.mp3"
+    },
+    {
+      "id": "elden-ring:2-23",
+      "title": "Malenia, Blade of Miquella",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 23,
+      "duration": 224.3,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-23-malenia-blade-of-miquella.mp3"
+    },
+    {
+      "id": "elden-ring:2-24",
+      "title": "Song of Honor",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 24,
+      "duration": 69.6,
+      "folder": "story",
+      "file": "assets/music/elden-ring/2-24-song-of-honor.mp3"
+    },
+    {
+      "id": "elden-ring:2-25",
+      "title": "Starscourge Radahn",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 25,
+      "duration": 368.3,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-25-starscourge-radahn.mp3"
+    },
+    {
+      "id": "elden-ring:2-26",
+      "title": "Recusants",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 26,
+      "duration": 120.6,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-26-recusants.mp3"
+    },
+    {
+      "id": "elden-ring:2-27",
+      "title": "God-Devouring Serpent",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 27,
+      "duration": 269.6,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-27-god-devouring-serpent.mp3"
+    },
+    {
+      "id": "elden-ring:2-28",
+      "title": "Rennala, Queen of the Full Moo",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 28,
+      "duration": 286.1,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-28-rennala-queen-of-the-full-moo.mp3"
+    },
+    {
+      "id": "elden-ring:2-29",
+      "title": "Fire Giant",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 29,
+      "duration": 212.5,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-29-fire-giant.mp3"
+    },
+    {
+      "id": "elden-ring:2-30",
+      "title": "Beast Clergyman",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 30,
+      "duration": 357.0,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-30-beast-clergyman.mp3"
+    },
+    {
+      "id": "elden-ring:2-31",
+      "title": "Dragonlord Placidusax",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 31,
+      "duration": 233.0,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-31-dragonlord-placidusax.mp3"
+    },
+    {
+      "id": "elden-ring:2-32",
+      "title": "Godfrey, First Elden Lord",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 32,
+      "duration": 196.9,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-32-godfrey-first-elden-lord.mp3"
+    },
+    {
+      "id": "elden-ring:2-33",
+      "title": "The Final Battle",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 33,
+      "duration": 298.5,
+      "folder": "bosses",
+      "file": "assets/music/elden-ring/2-33-the-final-battle.mp3"
+    },
+    {
+      "id": "elden-ring:2-34",
+      "title": "Ending",
+      "album": "elden-ring",
+      "disc": "2",
+      "number": 34,
+      "duration": 484.0,
+      "folder": "story",
+      "file": "assets/music/elden-ring/2-34-ending.mp3"
+    },
+    {
+      "id": "ocarina-of-time:01",
+      "title": "Title Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 1,
+      "duration": 155.0,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/01-title-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:02",
+      "title": "Enter Ganondorf",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 2,
+      "duration": 11.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/02-enter-ganondorf.mp3"
+    },
+    {
+      "id": "ocarina-of-time:03",
+      "title": "Deku Tree",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 3,
+      "duration": 65.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/03-deku-tree.mp3"
+    },
+    {
+      "id": "ocarina-of-time:04",
+      "title": "Fairy Flying",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 4,
+      "duration": 38.5,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/04-fairy-flying.mp3"
+    },
+    {
+      "id": "ocarina-of-time:05",
+      "title": "House",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 5,
+      "duration": 66.5,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/05-house.mp3"
+    },
+    {
+      "id": "ocarina-of-time:06",
+      "title": "Kokiri Forest",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 6,
+      "duration": 108.8,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/06-kokiri-forest.mp3"
+    },
+    {
+      "id": "ocarina-of-time:07",
+      "title": "Open Treasure Box",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 7,
+      "duration": 8.0,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/07-open-treasure-box.mp3"
+    },
+    {
+      "id": "ocarina-of-time:08",
+      "title": "Item Catch",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 8,
+      "duration": 2.6,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/08-item-catch.mp3"
+    },
+    {
+      "id": "ocarina-of-time:09",
+      "title": "Small Item Catch",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 9,
+      "duration": 2.5,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/09-small-item-catch.mp3"
+    },
+    {
+      "id": "ocarina-of-time:10",
+      "title": "Shop",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 10,
+      "duration": 130.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/10-shop.mp3"
+    },
+    {
+      "id": "ocarina-of-time:11",
+      "title": "Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 11,
+      "duration": 126.0,
+      "folder": "combat",
+      "file": "assets/music/ocarina-of-time/11-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:12",
+      "title": "Inside the Deku Tree",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 12,
+      "duration": 161.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/12-inside-the-deku-tree.mp3"
+    },
+    {
+      "id": "ocarina-of-time:13",
+      "title": "Boss Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 13,
+      "duration": 154.5,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/13-boss-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:14",
+      "title": "Boss Clear",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 14,
+      "duration": 11.7,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/14-boss-clear.mp3"
+    },
+    {
+      "id": "ocarina-of-time:15",
+      "title": "Get Heart Container",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 15,
+      "duration": 3.5,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/15-get-heart-container.mp3"
+    },
+    {
+      "id": "ocarina-of-time:16",
+      "title": "Legend of Hyrule",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 16,
+      "duration": 120.0,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/16-legend-of-hyrule.mp3"
+    },
+    {
+      "id": "ocarina-of-time:17",
+      "title": "Get Spiritual Stone",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 17,
+      "duration": 15.0,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/17-get-spiritual-stone.mp3"
+    },
+    {
+      "id": "ocarina-of-time:18",
+      "title": "Get Fairy Ocarina",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 18,
+      "duration": 8.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/18-get-fairy-ocarina.mp3"
+    },
+    {
+      "id": "ocarina-of-time:19",
+      "title": "Hyrule Field Main Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 19,
+      "duration": 293.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/19-hyrule-field-main-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:20",
+      "title": "Hyrule Field Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 20,
+      "duration": 293.0,
+      "folder": "combat",
+      "file": "assets/music/ocarina-of-time/20-hyrule-field-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:21",
+      "title": "Kaepora Gaebora's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 21,
+      "duration": 117.5,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/21-kaepora-gaebora-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:22",
+      "title": "Market",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 22,
+      "duration": 94.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/22-market.mp3"
+    },
+    {
+      "id": "ocarina-of-time:23",
+      "title": "Shooting Gallery",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 23,
+      "duration": 74.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/23-shooting-gallery.mp3"
+    },
+    {
+      "id": "ocarina-of-time:24",
+      "title": "Hyrule Castle Courtyard",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 24,
+      "duration": 57.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/24-hyrule-castle-courtyard.mp3"
+    },
+    {
+      "id": "ocarina-of-time:25",
+      "title": "Enter Zelda",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 25,
+      "duration": 4.3,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/25-enter-zelda.mp3"
+    },
+    {
+      "id": "ocarina-of-time:26",
+      "title": "Ocarina ~Zelda's Lullaby~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 26,
+      "duration": 9.7,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/26-ocarina-zelda-s-lullaby.mp3"
+    },
+    {
+      "id": "ocarina-of-time:27",
+      "title": "Zelda's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 27,
+      "duration": 97.0,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/27-zelda-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:28",
+      "title": "Ocarina ~Epona's Theme~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 28,
+      "duration": 7.2,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/28-ocarina-epona-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:29",
+      "title": "Lon Lon Ranch",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 29,
+      "duration": 268.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/29-lon-lon-ranch.mp3"
+    },
+    {
+      "id": "ocarina-of-time:30",
+      "title": "Mini Game",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 30,
+      "duration": 60.5,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/30-mini-game.mp3"
+    },
+    {
+      "id": "ocarina-of-time:31",
+      "title": "Kakariko Village",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 31,
+      "duration": 97.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/31-kakariko-village.mp3"
+    },
+    {
+      "id": "ocarina-of-time:32",
+      "title": "Ocarina ~Sun's Song~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 32,
+      "duration": 4.6,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/32-ocarina-sun-s-song.mp3"
+    },
+    {
+      "id": "ocarina-of-time:33",
+      "title": "Hyrule Field Morning Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 33,
+      "duration": 31.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/33-hyrule-field-morning-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:34",
+      "title": "Goron City",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 34,
+      "duration": 150.2,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/34-goron-city.mp3"
+    },
+    {
+      "id": "ocarina-of-time:35",
+      "title": "Ocarina ~Saria's Song~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 35,
+      "duration": 5.7,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/35-ocarina-saria-s-song.mp3"
+    },
+    {
+      "id": "ocarina-of-time:36",
+      "title": "Lost Woods",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 36,
+      "duration": 76.9,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/36-lost-woods.mp3"
+    },
+    {
+      "id": "ocarina-of-time:37",
+      "title": "Dodongo's Cavern",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 37,
+      "duration": 201.6,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/37-dodongo-s-cavern.mp3"
+    },
+    {
+      "id": "ocarina-of-time:38",
+      "title": "Middle Boss Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 38,
+      "duration": 133.3,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/38-middle-boss-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:39",
+      "title": "Dinosaur Boss Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 39,
+      "duration": 131.3,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/39-dinosaur-boss-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:40",
+      "title": "Zora's Domain",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 40,
+      "duration": 160.5,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/40-zora-s-domain.mp3"
+    },
+    {
+      "id": "ocarina-of-time:41",
+      "title": "Great Fairy's Fountain",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 41,
+      "duration": 60.4,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/41-great-fairy-s-fountain.mp3"
+    },
+    {
+      "id": "ocarina-of-time:42",
+      "title": "Potion Shop",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 42,
+      "duration": 99.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/42-potion-shop.mp3"
+    },
+    {
+      "id": "ocarina-of-time:43",
+      "title": "Inside Jabu-Jabu's Belly",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 43,
+      "duration": 219.3,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/43-inside-jabu-jabu-s-belly.mp3"
+    },
+    {
+      "id": "ocarina-of-time:44",
+      "title": "Ocarina ~Song Of Time~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 44,
+      "duration": 10.0,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/44-ocarina-song-of-time.mp3"
+    },
+    {
+      "id": "ocarina-of-time:45",
+      "title": "Temple of Time",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 45,
+      "duration": 161.0,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/45-temple-of-time.mp3"
+    },
+    {
+      "id": "ocarina-of-time:46",
+      "title": "Open Door of Temple of Time",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 46,
+      "duration": 13.7,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/46-open-door-of-temple-of-time.mp3"
+    },
+    {
+      "id": "ocarina-of-time:47",
+      "title": "Master Sword",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 47,
+      "duration": 11.1,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/47-master-sword.mp3"
+    },
+    {
+      "id": "ocarina-of-time:48",
+      "title": "Ganondorf's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 48,
+      "duration": 76.0,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/48-ganondorf-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:49",
+      "title": "Chamber of Sages",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 49,
+      "duration": 165.6,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/49-chamber-of-sages.mp3"
+    },
+    {
+      "id": "ocarina-of-time:50",
+      "title": "Medal Get Fanfare",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 50,
+      "duration": 12.0,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/50-medal-get-fanfare.mp3"
+    },
+    {
+      "id": "ocarina-of-time:51",
+      "title": "Sheik's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 51,
+      "duration": 62.5,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/51-sheik-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:52",
+      "title": "Horse Race",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 52,
+      "duration": 92.2,
+      "folder": "combat",
+      "file": "assets/music/ocarina-of-time/52-horse-race.mp3"
+    },
+    {
+      "id": "ocarina-of-time:53",
+      "title": "Horse Race Goal",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 53,
+      "duration": 3.6,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/53-horse-race-goal.mp3"
+    },
+    {
+      "id": "ocarina-of-time:54",
+      "title": "Ingo's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 54,
+      "duration": 65.0,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/54-ingo-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:55",
+      "title": "Escape from Lon Lon Ranch",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 55,
+      "duration": 7.2,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/55-escape-from-lon-lon-ranch.mp3"
+    },
+    {
+      "id": "ocarina-of-time:56",
+      "title": "Kakariko Village Orchestral Version",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 56,
+      "duration": 196.0,
+      "folder": "sanctuary",
+      "file": "assets/music/ocarina-of-time/56-kakariko-village-orchestral-version.mp3"
+    },
+    {
+      "id": "ocarina-of-time:57",
+      "title": "Ocarina ~Song of Storms~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 57,
+      "duration": 4.7,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/57-ocarina-song-of-storms.mp3"
+    },
+    {
+      "id": "ocarina-of-time:58",
+      "title": "Windmill Hut",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 58,
+      "duration": 94.3,
+      "folder": "tension",
+      "file": "assets/music/ocarina-of-time/58-windmill-hut.mp3"
+    },
+    {
+      "id": "ocarina-of-time:59",
+      "title": "Minuet of Forest",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 59,
+      "duration": 15.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/59-minuet-of-forest.mp3"
+    },
+    {
+      "id": "ocarina-of-time:60",
+      "title": "Forest Temple",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 60,
+      "duration": 218.1,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/60-forest-temple.mp3"
+    },
+    {
+      "id": "ocarina-of-time:61",
+      "title": "Bolero of Fire",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 61,
+      "duration": 19.2,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/61-bolero-of-fire.mp3"
+    },
+    {
+      "id": "ocarina-of-time:62",
+      "title": "Fire Temple",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 62,
+      "duration": 210.0,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/62-fire-temple.mp3"
+    },
+    {
+      "id": "ocarina-of-time:63",
+      "title": "Ice Cavern",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 63,
+      "duration": 82.4,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/63-ice-cavern.mp3"
+    },
+    {
+      "id": "ocarina-of-time:64",
+      "title": "Serenade of Water",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 64,
+      "duration": 17.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/64-serenade-of-water.mp3"
+    },
+    {
+      "id": "ocarina-of-time:65",
+      "title": "Water Temple",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 65,
+      "duration": 322.4,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/65-water-temple.mp3"
+    },
+    {
+      "id": "ocarina-of-time:66",
+      "title": "Nocturne of Shadow",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 66,
+      "duration": 20.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/66-nocturne-of-shadow.mp3"
+    },
+    {
+      "id": "ocarina-of-time:67",
+      "title": "Prelude of Light",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 67,
+      "duration": 16.6,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/67-prelude-of-light.mp3"
+    },
+    {
+      "id": "ocarina-of-time:68",
+      "title": "Shadow Temple",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 68,
+      "duration": 184.8,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/68-shadow-temple.mp3"
+    },
+    {
+      "id": "ocarina-of-time:69",
+      "title": "Gerudo Valley",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 69,
+      "duration": 176.5,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/69-gerudo-valley.mp3"
+    },
+    {
+      "id": "ocarina-of-time:70",
+      "title": "Spirit Temple",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 70,
+      "duration": 292.6,
+      "folder": "dungeons",
+      "file": "assets/music/ocarina-of-time/70-spirit-temple.mp3"
+    },
+    {
+      "id": "ocarina-of-time:71",
+      "title": "Requiem of Spirit",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 71,
+      "duration": 22.5,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/71-requiem-of-spirit.mp3"
+    },
+    {
+      "id": "ocarina-of-time:72",
+      "title": "Kotake & Koume's Theme",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 72,
+      "duration": 96.6,
+      "folder": "exploration",
+      "file": "assets/music/ocarina-of-time/72-kotake-koume-s-theme.mp3"
+    },
+    {
+      "id": "ocarina-of-time:73",
+      "title": "Meet Zelda Again",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 73,
+      "duration": 96.7,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/73-meet-zelda-again.mp3"
+    },
+    {
+      "id": "ocarina-of-time:74",
+      "title": "Game Over",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 74,
+      "duration": 9.0,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/74-game-over.mp3"
+    },
+    {
+      "id": "ocarina-of-time:75",
+      "title": "Ganon's Castle Bridge",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 75,
+      "duration": 20.2,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/75-ganon-s-castle-bridge.mp3"
+    },
+    {
+      "id": "ocarina-of-time:76",
+      "title": "Ganon's Castle Underground",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 76,
+      "duration": 171.5,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/76-ganon-s-castle-underground.mp3"
+    },
+    {
+      "id": "ocarina-of-time:77",
+      "title": "Inside Ganon's Castle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 77,
+      "duration": 369.5,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/77-inside-ganon-s-castle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:78",
+      "title": "Ganondorf Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 78,
+      "duration": 146.4,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/78-ganondorf-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:79",
+      "title": "Escape from Ganon's Castle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 79,
+      "duration": 85.5,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/79-escape-from-ganon-s-castle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:80",
+      "title": "Last Battle",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 80,
+      "duration": 170.6,
+      "folder": "bosses",
+      "file": "assets/music/ocarina-of-time/80-last-battle.mp3"
+    },
+    {
+      "id": "ocarina-of-time:81",
+      "title": "Seal of Six Sages",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 81,
+      "duration": 27.9,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/81-seal-of-six-sages.mp3"
+    },
+    {
+      "id": "ocarina-of-time:82",
+      "title": "Ocarina of Time ~Zelda's Ocarina~",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 82,
+      "duration": 31.6,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/82-ocarina-of-time-zelda-s-ocarina.mp3"
+    },
+    {
+      "id": "ocarina-of-time:83",
+      "title": "End Credits A",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 83,
+      "duration": 164.4,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/83-end-credits-a.mp3"
+    },
+    {
+      "id": "ocarina-of-time:84",
+      "title": "End Credits B",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 84,
+      "duration": 154.4,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/84-end-credits-b.mp3"
+    },
+    {
+      "id": "ocarina-of-time:85",
+      "title": "End Credits C",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 85,
+      "duration": 68.1,
+      "folder": "story",
+      "file": "assets/music/ocarina-of-time/85-end-credits-c.mp3"
+    },
+    {
+      "id": "ocarina-of-time:86",
+      "title": "End Credits D",
+      "album": "ocarina-of-time",
+      "disc": "1",
+      "number": 86,
+      "duration": 52.2,
+      "folder": "cues",
+      "file": "assets/music/ocarina-of-time/86-end-credits-d.mp3"
+    },
+    {
+      "id": "majoras-mask:1-01",
+      "title": "Mysterious Times (Prelude)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 1,
+      "duration": 134.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-01-mysterious-times-prelude.mp3"
+    },
+    {
+      "id": "majoras-mask:1-02",
+      "title": "Sonata Of Healing (Strings Version)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 2,
+      "duration": 172.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/1-02-sonata-of-healing-strings-version.mp3"
+    },
+    {
+      "id": "majoras-mask:1-03",
+      "title": "Eternal Legend",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 3,
+      "duration": 174.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/1-03-eternal-legend.mp3"
+    },
+    {
+      "id": "majoras-mask:1-04",
+      "title": "Chamber of Voices",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 4,
+      "duration": 98.0,
+      "folder": "dungeons",
+      "file": "assets/music/majoras-mask/1-04-chamber-of-voices.mp3"
+    },
+    {
+      "id": "majoras-mask:1-05",
+      "title": "Kendo",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 5,
+      "duration": 66.0,
+      "folder": "combat",
+      "file": "assets/music/majoras-mask/1-05-kendo.mp3"
+    },
+    {
+      "id": "majoras-mask:1-06",
+      "title": "Fairy Magic",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 6,
+      "duration": 62.1,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-06-fairy-magic.mp3"
+    },
+    {
+      "id": "majoras-mask:1-07",
+      "title": "Mysterious Times (Day I)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 7,
+      "duration": 142.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-07-mysterious-times-day-i.mp3"
+    },
+    {
+      "id": "majoras-mask:1-08",
+      "title": "Jungle Cruise",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 8,
+      "duration": 118.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-08-jungle-cruise.mp3"
+    },
+    {
+      "id": "majoras-mask:1-09",
+      "title": "Deku Castle",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 9,
+      "duration": 150.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-09-deku-castle.mp3"
+    },
+    {
+      "id": "majoras-mask:1-10",
+      "title": "Woodfall Temple",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 10,
+      "duration": 166.0,
+      "folder": "dungeons",
+      "file": "assets/music/majoras-mask/1-10-woodfall-temple.mp3"
+    },
+    {
+      "id": "majoras-mask:1-11",
+      "title": "Killa Ohmaz",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 11,
+      "duration": 94.9,
+      "folder": "bosses",
+      "file": "assets/music/majoras-mask/1-11-killa-ohmaz.mp3"
+    },
+    {
+      "id": "majoras-mask:1-12",
+      "title": "Trader's Song",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 12,
+      "duration": 132.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/1-12-trader-s-song.mp3"
+    },
+    {
+      "id": "majoras-mask:1-13",
+      "title": "Mysterious Times (Day II)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 13,
+      "duration": 112.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-13-mysterious-times-day-ii.mp3"
+    },
+    {
+      "id": "majoras-mask:1-14",
+      "title": "Goronia",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 14,
+      "duration": 162.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/1-14-goronia.mp3"
+    },
+    {
+      "id": "majoras-mask:1-15",
+      "title": "Freed Souls",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 15,
+      "duration": 102.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/1-15-freed-souls.mp3"
+    },
+    {
+      "id": "majoras-mask:1-16",
+      "title": "Snowhead Temple",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 16,
+      "duration": 220.0,
+      "folder": "dungeons",
+      "file": "assets/music/majoras-mask/1-16-snowhead-temple.mp3"
+    },
+    {
+      "id": "majoras-mask:1-17",
+      "title": "Hymn Of Storm",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 17,
+      "duration": 100.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-17-hymn-of-storm.mp3"
+    },
+    {
+      "id": "majoras-mask:1-18",
+      "title": "Who Dares, Wins!",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 18,
+      "duration": 88.0,
+      "folder": "bosses",
+      "file": "assets/music/majoras-mask/1-18-who-dares-wins.mp3"
+    },
+    {
+      "id": "majoras-mask:1-19",
+      "title": "Mysterious Times (Day III)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 19,
+      "duration": 94.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-19-mysterious-times-day-iii.mp3"
+    },
+    {
+      "id": "majoras-mask:1-20",
+      "title": "Zora",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 20,
+      "duration": 172.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/1-20-zora.mp3"
+    },
+    {
+      "id": "majoras-mask:1-21",
+      "title": "Gerudo Pirates",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 21,
+      "duration": 150.0,
+      "folder": "combat",
+      "file": "assets/music/majoras-mask/1-21-gerudo-pirates.mp3"
+    },
+    {
+      "id": "majoras-mask:1-22",
+      "title": "Great Bay Temple",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 22,
+      "duration": 208.0,
+      "folder": "dungeons",
+      "file": "assets/music/majoras-mask/1-22-great-bay-temple.mp3"
+    },
+    {
+      "id": "majoras-mask:1-23",
+      "title": "Witch Magic",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 23,
+      "duration": 98.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-23-witch-magic.mp3"
+    },
+    {
+      "id": "majoras-mask:1-24",
+      "title": "Luck & Fate",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 24,
+      "duration": 68.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-24-luck-fate.mp3"
+    },
+    {
+      "id": "majoras-mask:1-25",
+      "title": "The Last Day",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 25,
+      "duration": 262.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-25-the-last-day.mp3"
+    },
+    {
+      "id": "majoras-mask:1-26",
+      "title": "Ikana",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 26,
+      "duration": 170.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/1-26-ikana.mp3"
+    },
+    {
+      "id": "majoras-mask:1-27",
+      "title": "Stone Tower Temple",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 27,
+      "duration": 174.0,
+      "folder": "dungeons",
+      "file": "assets/music/majoras-mask/1-27-stone-tower-temple.mp3"
+    },
+    {
+      "id": "majoras-mask:1-28",
+      "title": "Return Of The Four",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 28,
+      "duration": 104.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/1-28-return-of-the-four.mp3"
+    },
+    {
+      "id": "majoras-mask:1-29",
+      "title": "Tatl & Tael",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 29,
+      "duration": 78.1,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/1-29-tatl-tael.mp3"
+    },
+    {
+      "id": "majoras-mask:1-30",
+      "title": "Sonata Of Healing (Piano Version)",
+      "album": "majoras-mask",
+      "disc": "1",
+      "number": 30,
+      "duration": 154.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/1-30-sonata-of-healing-piano-version.mp3"
+    },
+    {
+      "id": "majoras-mask:2-01",
+      "title": "The Arrival (Prelude)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 1,
+      "duration": 72.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/2-01-the-arrival-prelude.mp3"
+    },
+    {
+      "id": "majoras-mask:2-02",
+      "title": "Majora",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 2,
+      "duration": 150.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/2-02-majora.mp3"
+    },
+    {
+      "id": "majoras-mask:2-03",
+      "title": "Sonata Of Healing (Kabuki Version)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 3,
+      "duration": 106.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/2-03-sonata-of-healing-kabuki-version.mp3"
+    },
+    {
+      "id": "majoras-mask:2-04",
+      "title": "Dance Of The Death",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 4,
+      "duration": 96.0,
+      "folder": "combat",
+      "file": "assets/music/majoras-mask/2-04-dance-of-the-death.mp3"
+    },
+    {
+      "id": "majoras-mask:2-05",
+      "title": "Fast, Faster, Epona",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 5,
+      "duration": 98.0,
+      "folder": "combat",
+      "file": "assets/music/majoras-mask/2-05-fast-faster-epona.mp3"
+    },
+    {
+      "id": "majoras-mask:2-06",
+      "title": "Epona's Song (Romani Version)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 6,
+      "duration": 258.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/2-06-epona-s-song-romani-version.mp3"
+    },
+    {
+      "id": "majoras-mask:2-07",
+      "title": "Southern Swamp",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 7,
+      "duration": 186.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/2-07-southern-swamp.mp3"
+    },
+    {
+      "id": "majoras-mask:2-08",
+      "title": "Salia's Song",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 8,
+      "duration": 76.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/2-08-salia-s-song.mp3"
+    },
+    {
+      "id": "majoras-mask:2-09",
+      "title": "Words Of Wisdom",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 9,
+      "duration": 122.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/2-09-words-of-wisdom.mp3"
+    },
+    {
+      "id": "majoras-mask:2-10",
+      "title": "Snowhead",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 10,
+      "duration": 186.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/2-10-snowhead.mp3"
+    },
+    {
+      "id": "majoras-mask:2-11",
+      "title": "Fast, Faster, Goron",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 11,
+      "duration": 90.0,
+      "folder": "combat",
+      "file": "assets/music/majoras-mask/2-11-fast-faster-goron.mp3"
+    },
+    {
+      "id": "majoras-mask:2-12",
+      "title": "Into The Sunset",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 12,
+      "duration": 74.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/2-12-into-the-sunset.mp3"
+    },
+    {
+      "id": "majoras-mask:2-13",
+      "title": "Great Bay Beach",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 13,
+      "duration": 148.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/2-13-great-bay-beach.mp3"
+    },
+    {
+      "id": "majoras-mask:2-14",
+      "title": "Ikana",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 14,
+      "duration": 198.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/2-14-ikana.mp3"
+    },
+    {
+      "id": "majoras-mask:2-15",
+      "title": "Elpmet Rewot Enots",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 15,
+      "duration": 170.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/2-15-elpmet-rewot-enots.mp3"
+    },
+    {
+      "id": "majoras-mask:2-16",
+      "title": "Mask Battle",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 16,
+      "duration": 222.0,
+      "folder": "bosses",
+      "file": "assets/music/majoras-mask/2-16-mask-battle.mp3"
+    },
+    {
+      "id": "majoras-mask:2-17",
+      "title": "Incarnation Battle",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 17,
+      "duration": 190.0,
+      "folder": "bosses",
+      "file": "assets/music/majoras-mask/2-17-incarnation-battle.mp3"
+    },
+    {
+      "id": "majoras-mask:2-18",
+      "title": "Magician Battle",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 18,
+      "duration": 140.0,
+      "folder": "bosses",
+      "file": "assets/music/majoras-mask/2-18-magician-battle.mp3"
+    },
+    {
+      "id": "majoras-mask:2-19",
+      "title": "Finale",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 19,
+      "duration": 370.9,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/2-19-finale.mp3"
+    },
+    {
+      "id": "majoras-mask:2-20",
+      "title": "Zelda's Lullaby",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 20,
+      "duration": 102.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/2-20-zelda-s-lullaby.mp3"
+    },
+    {
+      "id": "majoras-mask:2-21",
+      "title": "Mysterious Times (Great Bay Party Mix)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 21,
+      "duration": 260.0,
+      "folder": "tension",
+      "file": "assets/music/majoras-mask/2-21-mysterious-times-great-bay-party-mix.mp3"
+    },
+    {
+      "id": "majoras-mask:2-22",
+      "title": "Sonata Of Healing (Healing Dub)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 22,
+      "duration": 264.0,
+      "folder": "story",
+      "file": "assets/music/majoras-mask/2-22-sonata-of-healing-healing-dub.mp3"
+    },
+    {
+      "id": "majoras-mask:2-23",
+      "title": "Ethernal Legend (Princess ''Z'' Trigger Mix)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 23,
+      "duration": 252.0,
+      "folder": "exploration",
+      "file": "assets/music/majoras-mask/2-23-ethernal-legend-princess-z-trigger-mix.mp3"
+    },
+    {
+      "id": "majoras-mask:2-24",
+      "title": "Salia's Song (Spooky Groovy Remix)",
+      "album": "majoras-mask",
+      "disc": "2",
+      "number": 24,
+      "duration": 280.0,
+      "folder": "sanctuary",
+      "file": "assets/music/majoras-mask/2-24-salia-s-song-spooky-groovy-remix.mp3"
+    }
+  ]
+}

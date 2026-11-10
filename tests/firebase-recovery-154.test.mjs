@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 const temp=mkdtempSync(path.join(tmpdir(),'grim-firebase-154-'));
-const src=path.resolve('assets/grim-156');
+const src=path.resolve('assets/grim-158');
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
   cpSync(path.join(src,'cloud-outbox.js'),path.join(temp,'cloud-outbox.js'));

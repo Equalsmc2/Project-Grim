@@ -1,32 +1,46 @@
 {
-  "release": "1.5.6",
+  "release": "1.5.8",
   "cases": {
     "dm-overview-desktop": {
       "width": 1440,
       "height": 900,
       "file": "dm-overview-desktop.png",
-      "sha256": "8b7455f77a6768431936501dc2a69c652456be04311d01d95fd61ced259c704f",
+      "sha256": "1464a691c94718dbeb0f01518ad371e8e49d456ee98e2bfecff761434bbaeb3b",
       "scrollWidth": 1440
     },
     "dm-environment-tablet": {
       "width": 768,
       "height": 860,
       "file": "dm-environment-tablet.png",
-      "sha256": "febf26223b43f5c325b555283161e998d7183319766d7a0f38170740542733b0",
+      "sha256": "358c27dac380cbd194e3e40857fdf3d1404782cf722c9d96082eda9d3fbffc9f",
       "scrollWidth": 768
     },
     "dm-combat-mobile": {
       "width": 390,
       "height": 844,
       "file": "dm-combat-mobile.png",
-      "sha256": "d860fc5ecf4d211c4cf2c5e33e9b74bd911c6bcf68e920d462f14946a62f0202",
+      "sha256": "265de99dc7441df4b7d02db8d9af24a8be7ec0dc1a649fba235d82bd6f452b7b",
+      "scrollWidth": 390
+    },
+    "dm-music-desktop": {
+      "width": 1440,
+      "height": 900,
+      "file": "dm-music-desktop.png",
+      "sha256": "31c314e5b520c4beb0d83465bd5688fd01dc02ea20cc67c321f9ec954be689d9",
+      "scrollWidth": 1440
+    },
+    "dm-music-mobile": {
+      "width": 390,
+      "height": 844,
+      "file": "dm-music-mobile.png",
+      "sha256": "157bd18fb9dcbc252f34790e8443b3bff9506478e501cdf3327cdbbdefcb517f",
       "scrollWidth": 390
     },
     "stage-scene-desktop": {
       "width": 1440,
       "height": 900,
       "file": "stage-scene-desktop.png",
-      "sha256": "d5d8bb979158a16c1b8f55c55b684fdc1d3608adc103dbf26500abe96750c6b3",
+      "sha256": "478966fa6cf88befd3cf436639935cfcdb75b210a8c392fcd15a6c4628e5ec64",
       "scrollWidth": 1440
     },
     "stage-combat-mobile": {

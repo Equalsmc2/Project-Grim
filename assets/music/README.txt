@@ -1,0 +1,1 @@
+Optional music folders. The MP3 files are NOT bundled in the public website package. Use IMPORT-MUSIC.bat with the original four ZIP archives to install them locally, then deploy only if you have the rights to host the recordings.

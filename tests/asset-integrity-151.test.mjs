@@ -3,7 +3,7 @@ import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const active=path.join(root,'assets','grim-156');
+const active=path.join(root,'assets','grim-158');
 const htmls=['index.html','dm.html'];
 const importRe=/\b(?:from\s*|import\s*\()\s*['"](\.[^'"?]+)['"]/g;
 const failures=[],visited=new Set();let links=0;
@@ -31,18 +31,18 @@ for(const name of htmls){
   assert(existsSync(dest),`Missing link in ${name}: ${m[1]}`);
   if(dest.endsWith('.js'))check(dest);
  }
- assert(content.includes('grim-156/'),`${name} must use the cache-distinct active bundle`);
- assert(content.includes('VISUAL QA 1.5.6'),`${name} must show the active release label`);
+ assert(content.includes('grim-158/'),`${name} must use the cache-distinct active bundle`);
+ assert(content.includes('DESIGN REFINEMENT 1.5.8'),`${name} must show the active release label`);
 }
 for(const f of ['state.js','world.js','native-cards.js','camera-frame.js','camera-guard.js','card-framing.js','graphics-quality.js','environment-editor.js','environment-history.js','scene-backup.js','cloud-outbox.js'])check(path.join(active,f));
 for(const name of ['wind','storm','desert','blizzard','rain']){
  const file=path.join(root,'assets','audio',`${name}.mp3`);
  assert(existsSync(file)&&statSync(file).size>10000,`Missing or empty ambience audio: ${name}`);
 }
-assert(readdirSync(path.join(root,'assets')).sort().join(',')==='audio,grim-156','Only active website assets should be shipped');
+assert(readdirSync(path.join(root,'assets')).sort().join(',')==='audio,grim-158,music','Only active website assets should be shipped');
 for(const f of ['github.bat','GITHUB-UPLOAD.bat']){
  const bat=readFileSync(path.join(root,f),'utf8');
- assert(bat.includes('assets\\grim-156\\state.js') && bat.includes('set /p "REPO_INPUT='),`${f} must have path prompt and validate the active bundle`);
+ assert(bat.includes('assets\\grim-158\\state.js') && bat.includes('set /p "REPO_INPUT='),`${f} must have path prompt and validate the active bundle`);
 }
 assert.equal(failures.length,0,failures.join('\n'));
 console.log(`PASS: both pages, ${visited.size} linked JavaScript modules, ${links} relative imports, five MP3s and uploader path validation.`);

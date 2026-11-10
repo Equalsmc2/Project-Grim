@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BASE = ROOT / 'tests' / 'visual-baselines'
 OUT = ROOT / 'qa-reports' / 'visual'
-ACTIVE = 'grim-156'
+ACTIVE = 'grim-158'
 CSS_PATH = ROOT / 'assets' / ACTIVE / 'styles.css'
 CARDS_PATH = ROOT / 'assets' / ACTIVE / 'native-cards.js'
 
@@ -37,6 +37,8 @@ CASES = [
     ('dm-overview-desktop', 'dm.html', 1440, 900, 'overview'),
     ('dm-environment-tablet', 'dm.html', 768, 860, 'environment'),
     ('dm-combat-mobile', 'dm.html', 390, 844, 'combat'),
+    ('dm-music-desktop', 'dm.html', 1440, 900, 'music'),
+    ('dm-music-mobile', 'dm.html', 390, 844, 'music'),
     ('stage-scene-desktop', 'index.html', 1440, 900, 'scene'),
     ('stage-combat-mobile', 'index.html', 390, 844, 'combat'),
     ('card-finishes', 'cards', 1330, 530, 'cards'),
@@ -56,6 +58,7 @@ def static_html(name: str) -> str:
                     '', source)
     if f'assets/{ACTIVE}/styles.css' in source:
         raise AssertionError('CSS was not inlined: visual fixture depends on network')
+    source = re.sub(r'<script[^>]+type="module"[^>]*>.*?</script>', '', source, flags=re.DOTALL)
     return source
 
 
@@ -127,10 +130,17 @@ def activate_dm(page, section: str):
       for(const el of document.querySelectorAll('.nav-button[data-section]')){
         el.classList.toggle('active',el.dataset.section===section);
       }
-      const title={overview:'Overview',environment:'Environment',combat:'Combat control'};
+      const title={overview:'Overview',environment:'Environment',combat:'Combat control',music:'Music library'};
       const header=document.querySelector('#pageTitle');if(header)header.textContent=title[section]||section;
       // Populate sections whose rows are normally rendered by DM JavaScript.
       // These are deterministic visual fixtures, NOT a simulated Firebase session.
+      if(section==='overview'){
+        document.querySelector('#metrics').innerHTML=[['STAGE','SCENE','Scene or combat'],['COMBATANTS','6','4 players · 2 enemies'],['COMBAT ROUND','3','Active: Seren Voss'],['WOUNDED','2','Below maximum HP']].map(([label,value,detail])=>`<div class="metric"><span>${label}</span><strong>${value}</strong><small>${detail}</small></div>`).join('');
+        document.querySelector('#overviewSceneTitle').textContent='Training Grid';
+        document.querySelector('#overviewSceneDesc').textContent='Neutral environment for checking your layout and camera.';
+        document.querySelector('#overviewEnvironment').innerHTML=[['GROUND','Stone / Flat'],['WEATHER','Rain'],['TIME','18:00'],['MUSIC','Playing']].map(([label,value])=>`<div class="overview-environment-item"><small>${label}</small><strong>${value}</strong></div>`).join('');
+        document.querySelector('#activityLog').innerHTML='<div class="activity"><time>19:06</time><span>Environment changed</span></div><div class="activity"><time>19:03</time><span>Turn advanced</span></div>';
+      }
       if(section==='environment'){
         document.querySelector('#environmentEditor').innerHTML=`
           <div class="grim-scene-snapshots"><div class="grim-snap-head"><div><strong>Prepared scenes</strong><p class="helper">Save terrain, weather, lighting, ambience and scene labels.</p></div><span>2 / 12</span></div>
@@ -144,6 +154,35 @@ def activate_dm(page, section: str):
             <div class="environment-grid atmosphere-controls"><label class="field"><span>Time of day</span><input type="range" value="75"></label><label class="field"><span>Cloud coverage</span><input type="range" value="45"></label><label class="field"><span>Weather</span><select><option>Rain</option></select></label><label class="field"><span>Fog</span><input type="range" value="25"></label></div>
           </div>
           <div class="grim-ambience-panel"><div class="grim-ambience-heading"><div><span class="eyebrow">STAGE AUDIO</span><h3>Ambience</h3></div></div><div class="grim-ambience-controls"><label class="field"><span>Stage ambience</span><select><option>Gentle rain</option></select></label><label class="field"><span>Volume</span><input type="range" value="55"></label><button class="button button-secondary">Preview</button></div></div>`;
+      }
+      if(section==='music'){
+        const labels=[['All tracks','230'],['Dark Souls','23'],['Elden Ring','67'],['Ocarina of Time','86'],["Majora's Mask",'54'],['Exploration','31'],['Sanctuaries & Towns','23'],['Combat','14'],['Boss Encounters','57'],['Tension & Horror','24'],['Favorites','0']];
+        const folderHost=document.querySelector('#musicFolders');
+        labels.forEach(([name,count],i)=>{
+          if([0,5,10].includes(i)){const h=document.createElement('div');h.className='music-group-label';h.textContent=i===0?'LIBRARY':i===5?'BY SCENE':'PERSONAL';folderHost.append(h);}
+          const b=document.createElement('button');b.className='music-folder'+(i===1?' selected':'');b.innerHTML='<span></span><small></small>';b.querySelector('span').textContent=name;b.querySelector('small').textContent=count;folderHost.append(b);
+        });
+        const trackList=document.querySelector('#musicTracks');
+        const titles=['Prologue','Firelink Shrine','Taurus Demon','Bell Gargoyle','Pinwheel','Gaping Dragon','Chaos Witch Quelaag','Daughters of Chaos','Iron Golem','Ornstein & Smough'];
+        titles.forEach((title,i)=>{
+           const row=document.createElement('div');row.className='music-track'+(i===1?' now':'');
+           const play=document.createElement('button');play.className='music-track-play';
+           const num=document.createElement('span');num.className='music-track-no';num.textContent=String(i+1).padStart(2,'0');
+           const info=document.createElement('span');info.className='music-track-info';
+           const strong=document.createElement('strong');strong.textContent=title;
+           const small=document.createElement('small');small.textContent='Dark Souls · '+(i<2?'sanctuary':'bosses');
+           info.append(strong,small);play.append(num,info);row.append(play);
+           const time=document.createElement('span');time.className='music-track-time';time.textContent=(2+i%5)+':36';row.append(time);
+           const preview=document.createElement('button');preview.className='music-track-action';preview.textContent='▶';row.append(preview);
+           const fav=document.createElement('button');fav.className='music-track-action';fav.textContent='☆';row.append(fav);
+           trackList.append(row);
+        });
+        document.querySelector('#musicFolderTitle').textContent='Dark Souls';
+        document.querySelector('#musicCount').textContent='23 tracks';
+        document.querySelector('#musicNowTitle').textContent='Firelink Shrine';
+        document.querySelector('#musicNowAlbum').textContent='Dark Souls';
+        document.querySelector('#musicNowTime').textContent='1:16 / 2:56';
+        document.querySelector('#musicProgress').value=422;
       }
       if(section==='combat'){
         document.querySelector('#dmRound').textContent='3';
@@ -231,7 +270,7 @@ def run(argv=None):
         return 0
     if args.update_baselines:BASE.mkdir(parents=True,exist_ok=True)
     exe = shutil.which('chromium') or shutil.which('google-chrome') or shutil.which('chromium-browser')
-    errors=[];manifest={'release':'1.5.6','cases':{}}
+    errors=[];manifest={'release':'1.5.8','cases':{}}
     with sync_playwright() as pw:
         options={'headless':True,'args':['--no-sandbox','--disable-gpu','--force-device-scale-factor=1']}
         if exe:options['executable_path']=exe

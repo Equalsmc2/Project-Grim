@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {GRAPHICS_QUALITY,graphicsPixelRatio,weatherParticleCount,normalizeGraphicsQuality} from '../assets/grim-156/graphics-quality.js';
-import {makeSceneSnapshot,insertSceneSnapshot,normalizeSceneSnapshots,applySceneSnapshot} from '../assets/grim-156/scene-snapshots.js';
+import {GRAPHICS_QUALITY,graphicsPixelRatio,weatherParticleCount,normalizeGraphicsQuality} from '../assets/grim-158/graphics-quality.js';
+import {makeSceneSnapshot,insertSceneSnapshot,normalizeSceneSnapshots,applySceneSnapshot} from '../assets/grim-158/scene-snapshots.js';
 
 const original={sceneId:'chapel',sceneOverrides:{chapel:{name:'Chapel',description:'A dark chapel'}},environment:{ground:'snow',weather:'blizzard',hills:'mountains',timeOfDay:23,ambience:'wind',density:.4},combat:{round:8,activeId:'hero'},mode:'combat',characters:[{id:'hero',hp:3,conditions:['Burning']}],sceneSnapshots:[]};
 const snap=makeSceneSnapshot(original,'Moonlit Chapel','scene-1');
@@ -23,9 +23,9 @@ assert.equal(normalizeGraphicsQuality('invalid'),'balanced');
 assert(graphicsPixelRatio('low',1600,900,2)<graphicsPixelRatio('high',1600,900,2));
 assert(graphicsPixelRatio('high',4000,2600,2)<1,'Large screens use a pixel budget');
 assert(weatherParticleCount('blizzard','low')<weatherParticleCount('blizzard','high'));
-const world=readFileSync(new URL('../assets/grim-156/world.js',import.meta.url),'utf8');
-const stage=readFileSync(new URL('../assets/grim-156/stage.js',import.meta.url),'utf8');
-const editor=readFileSync(new URL('../assets/grim-156/environment-editor.js',import.meta.url),'utf8');
+const world=readFileSync(new URL('../assets/grim-158/world.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../assets/grim-158/stage.js',import.meta.url),'utf8');
+const editor=readFileSync(new URL('../assets/grim-158/environment-editor.js',import.meta.url),'utf8');
 assert(world.includes('setQuality(next)')&&stage.includes('stageQuality'),'Quality selection wired through to renderer');
 assert(world.includes('nextLayout===lastCardLayoutSignature'),'Unchanged card anchors skip redundant fitting');
 assert(world.includes('const active=anchors.find(a=>a.active)'),'Cinematic director responds to active combatant');

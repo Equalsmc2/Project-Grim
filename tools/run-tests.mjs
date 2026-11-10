@@ -11,7 +11,7 @@ const quick=args.has('--quick');
 const reportDir=path.join(root,'qa-reports');
 const testDir=path.join(root,'tests');
 const all=readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')||n.endsWith('.test.cjs')).sort();
-const selected=quick?all.filter(n=>['asset-integrity-151.test.mjs','history-151.test.mjs','http-smoke-151.test.mjs','session-stress-151.test.mjs','render-budget-152.test.mjs','preset-rebuild.test.mjs','cloud-outbox-154.test.mjs','scene-backup-154.test.mjs','firebase-recovery-154.test.mjs','accessibility-155.test.mjs'].includes(n)):all;
+const selected=quick?all.filter(n=>['asset-integrity-151.test.mjs','history-151.test.mjs','http-smoke-151.test.mjs','session-stress-151.test.mjs','render-budget-152.test.mjs','preset-rebuild.test.mjs','cloud-outbox-154.test.mjs','scene-backup-154.test.mjs','firebase-recovery-154.test.mjs','accessibility-155.test.mjs','music-157.test.mjs'].includes(n)):all;
 const timeoutMs=Number(process.env.GRIM_TEST_TIMEOUT_MS)||90000;
 const started=new Date();
 function run(test){
@@ -37,7 +37,7 @@ for(const test of selected){
  if(!result.ok)console.error((result.stderr+'\n'+result.stdout).trim().slice(-1800));
 }
 const ended=new Date();
-const summary={release:'1.5.6',start:started.toISOString(),end:ended.toISOString(),mode:quick?'quick':'full',total:results.length,passed:results.filter(r=>r.ok).length,failed:results.filter(r=>!r.ok).length,browserVisualQA:'NOT RUN (optional manual browser smoke test)',results};
+const summary={release:'1.5.8',start:started.toISOString(),end:ended.toISOString(),mode:quick?'quick':'full',total:results.length,passed:results.filter(r=>r.ok).length,failed:results.filter(r=>!r.ok).length,browserVisualQA:'NOT RUN (optional manual browser smoke test)',results};
 mkdirSync(reportDir,{recursive:true});
 writeFileSync(path.join(reportDir,'last-run.json'),JSON.stringify(summary,null,2)+'\n');
 const lines=[`# Project Grim ${summary.release} — QA results`,'',`Mode: ${summary.mode}`,`Completed: ${summary.end}`,`Tests: ${summary.passed}/${summary.total} passing`,'','| Test | Result | Time |','|---|---|---:|',...results.map(r=>`| ${r.test} | ${r.ok?'PASS':'FAIL'} | ${r.ms} ms |`),'','Browser visuals/FPS/Firebase live connection: **not verified by this runner**.','',`Full machine-readable results: \`qa-reports/last-run.json\`.`];

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import {makeSceneSnapshot,normalizeSceneSnapshots,applySceneSnapshot} from '../assets/grim-156/scene-snapshots.js';
-import {exportSceneBackup,parseSceneBackup,mergeSceneBackups,MAX_SCENE_BACKUP_BYTES} from '../assets/grim-156/scene-backup.js';
-import {createEnvironmentHistoryController,applyEnvironmentHistory} from '../assets/grim-156/environment-history.js';
+import {makeSceneSnapshot,normalizeSceneSnapshots,applySceneSnapshot} from '../assets/grim-158/scene-snapshots.js';
+import {exportSceneBackup,parseSceneBackup,mergeSceneBackups,MAX_SCENE_BACKUP_BYTES} from '../assets/grim-158/scene-backup.js';
+import {createEnvironmentHistoryController,applyEnvironmentHistory} from '../assets/grim-158/environment-history.js';
 const makeState=(name,id)=>({environment:{preset:name,ground:name==='Snow'?'snow':'grass',weather:'none',density:.3},sceneId:id,sceneOverrides:{[id]:{name}},mode:'combat',combat:{round:11,activeId:'hero'},characters:[{id:'hero',hp:4,maxHp:30,initiative:19,conditions:['Frozen']}],sceneSnapshots:[]});
 const a=makeSceneSnapshot(makeState('Forest','chapel'),'Forest','forest');
 const b=makeSceneSnapshot(makeState('Snow','forest'),'Snow','snow');

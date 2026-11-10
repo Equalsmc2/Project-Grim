@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createCloudOutbox,retryDelay,isPermissionFailure} from '../assets/grim-156/cloud-outbox.js';
+import {createCloudOutbox,retryDelay,isPermissionFailure} from '../assets/grim-158/cloud-outbox.js';
 const micro=()=>new Promise(resolve=>setImmediate(resolve));
 function clock(){
   let id=0;const timers=new Map();

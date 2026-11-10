@@ -1,3 +1,12 @@
+## 1.5.8 — Design Refinement
+
+- Replaced the oversized fake scene-preview sigil with useful ground, weather, time and music status on the DM Overview.
+- Removed redundant UI-test and prototype labels, repeated headings, stale version references and decorative captions while preserving functional warnings and status.
+- Balanced desktop Music library proportions and contained scrolling inside the track list, with narrow-screen layouts still scrollable when needed.
+- Added `DESIGN_PRINCIPLES.md` and a design-contract regression test so new updates can't casually reintroduce UI filler or violate the core requirements.
+- Kept all previous combat, native 3D card, atmosphere, Music library, Firebase and GitHub workflows compatible.
+- Updated the path-prompt uploader to support audio-free ZIPs without deleting existing ambience.
+
 ## 1.5.6 — Visual Regression Foundation
 
 - Added six pinned Chromium screenshot baselines for DM/stage viewport layouts and real 2D card-finish painting.

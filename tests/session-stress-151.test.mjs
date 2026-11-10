@@ -1,19 +1,19 @@
 // Deterministic integration simulation: formation + camera + real native card
 // objects + animated statuses + HP/turn changes. Does not fake a browser FPS.
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-156/vendor/three.module.js';
-import {calculateCameraPose,applyCameraPose} from '../assets/grim-156/camera-frame.js';
-import {fitAllCardsInView} from '../assets/grim-156/card-framing.js';
-import {createNativeCardLayer} from '../assets/grim-156/native-cards.js';
-import {normalizeEnvironment,PRESETS,ENV_DEFAULT} from '../assets/grim-156/environment-state.js';
+import * as T from '../assets/grim-158/vendor/three.module.js';
+import {calculateCameraPose,applyCameraPose} from '../assets/grim-158/camera-frame.js';
+import {fitAllCardsInView} from '../assets/grim-158/card-framing.js';
+import {createNativeCardLayer} from '../assets/grim-158/native-cards.js';
+import {normalizeEnvironment,PRESETS,ENV_DEFAULT} from '../assets/grim-158/environment-state.js';
 
 // formation imports state.js; give it the real browser storage API shape.
 const values=new Map();
 globalThis.localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v))};
 globalThis.window={addEventListener(){}};
 globalThis.BroadcastChannel=undefined;
-const {planFormation}=await import('../assets/grim-156/formation.js');
-const {orderedCharacters}=await import('../assets/grim-156/state.js');
+const {planFormation}=await import('../assets/grim-158/formation.js');
+const {orderedCharacters}=await import('../assets/grim-158/state.js');
 const ctx={
  clearRect(){},setTransform(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},quadraticCurveTo(){},closePath(){},fill(){},stroke(){},clip(){},fillRect(){},fillText(){},drawImage(){},
  createLinearGradient(){return {addColorStop(){}}},createRadialGradient(){return {addColorStop(){}}},measureText(s){return {width:String(s).length*8}}

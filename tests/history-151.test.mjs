@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import {captureEnvironmentHistory,applyEnvironmentHistory} from '../assets/grim-156/environment-history.js';
-import {makeSceneSnapshot,applySceneSnapshot} from '../assets/grim-156/scene-snapshots.js';
-import {normalizeEnvironment} from '../assets/grim-156/environment-state.js';
+import {captureEnvironmentHistory,applyEnvironmentHistory} from '../assets/grim-158/environment-history.js';
+import {makeSceneSnapshot,applySceneSnapshot} from '../assets/grim-158/scene-snapshots.js';
+import {normalizeEnvironment} from '../assets/grim-158/environment-state.js';
 
 const state={
  sceneId:'chapel',sceneOverrides:{chapel:{name:'Original chapel',description:'C',ambience:'Quiet'},forest:{name:'Canopy'}},

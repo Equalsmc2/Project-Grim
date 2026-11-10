@@ -1203,3 +1203,127 @@ html,body{height:100%}
 @media (min-width:561px) and (max-width:900px){
  .stage-app .view-controls{top:60px}
 }
+
+/* Grim 1.5.7 — Music library: compact, tactile, utilitarian. */
+.music-heading{margin-bottom:14px}
+.music-total{align-self:center;font:700 10px var(--mono);letter-spacing:.07em;color:#a6a6a6;white-space:nowrap}
+.music-workspace{display:grid;grid-template-columns:minmax(155px,214px) minmax(0,1fr);padding:0!important;overflow:hidden;min-height:0;height:clamp(330px,46vh,535px);background:#101010!important;border-color:#383838!important}
+.music-folders{padding:12px 8px 18px;overflow-y:auto;min-height:0;min-width:0;border-right:1px solid #323232;background:#0c0c0c}
+.music-group-label{font:700 9px var(--mono);color:#8a8a8a;letter-spacing:.12em;padding:13px 9px 6px}
+.music-group-label:first-child{padding-top:4px}
+.music-folder{display:flex;gap:7px;align-items:center;justify-content:space-between;min-width:0;width:100%;padding:9px 10px;border-radius:3px;background:transparent;color:#bcbcbc;font-size:11px;font-weight:600;text-align:left;cursor:pointer}
+.music-folder span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.music-folder small{font:10px var(--mono);color:#777}
+.music-folder:hover{background:#222;color:#fff}
+.music-folder.selected{background:#e6e6e6;color:#101010}
+.music-folder.selected small{color:#555}
+.music-list-column{display:flex;flex-direction:column;min-width:0;min-height:0}
+.music-list-head{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #343434;background:#151515}
+.music-list-head h3{font-size:17px;line-height:1.3;margin:0 0 2px;color:#f7f7f7}
+.music-list-head .muted{font:10px var(--mono);color:#888}
+.music-search{flex:0 1 255px;min-width:115px}
+.music-search input{display:block;width:100%;border:1px solid #4d4d4d;border-radius:3px;background:#090909;color:#fff;padding:10px 12px;font-size:11px;outline:none}
+.music-search input:focus{border-color:#ddd}
+.music-tracks{overflow-y:auto;overscroll-behavior:contain;min-height:0;flex:1;padding:4px 8px 12px}
+.music-track{display:flex;align-items:center;gap:7px;min-height:56px;padding:5px 7px;border-bottom:1px solid #262626;color:#e5e5e5}
+.music-track:hover{background:#1b1b1b}
+.music-track.now{background:#202020;box-shadow:inset 2px 0 #f2f2f2}
+.music-track-play{display:flex;gap:12px;align-items:center;flex:1;min-width:0;min-height:46px;text-align:left;color:#e5e5e5;background:transparent;cursor:pointer}
+.music-track-no{font:700 10px var(--mono);color:#848484;flex:none;min-width:20px}
+.music-track-info{min-width:0;flex:1}
+.music-track-info strong{display:block;font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-track-info small{display:block;margin-top:4px;font:10px var(--mono);color:#8e8e8e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-track-time{flex:none;font:11px var(--mono);color:#999;min-width:42px;text-align:right}
+.music-track-action{width:28px;height:30px;flex:none;font-size:16px;background:transparent;color:#a6a6a6;border-radius:3px;cursor:pointer}
+.music-track-action:hover,.music-track-action.favorite{color:#fff;background:#303030}
+.music-empty{color:#aaa;padding:30px 16px;font-size:12px}
+.music-player-panel{display:grid;grid-template-columns:56px minmax(120px,1fr) minmax(190px,1.7fr) minmax(140px,1.2fr);align-items:center;gap:16px;padding:16px!important;margin-bottom:0!important;background:#151515!important;border:1px solid #3f3f3f!important}
+.music-now-cover{width:56px;height:66px;display:grid;place-items:center;border:1px solid #626262;border-radius:4px;background:linear-gradient(130deg,#333,#101010 63%);font-size:23px;color:#d7d7d7}
+.music-now-details{display:flex;flex-direction:column;gap:4px;min-width:0}
+.music-now-details strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.music-now-details small{font:10px var(--mono);color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-now-controls{min-width:0;display:flex;flex-direction:column;gap:9px}
+.music-buttons{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.music-buttons button{background:#242424;color:#ddd;border:1px solid #474747;border-radius:3px;padding:8px 10px;min-height:33px;font:700 11px var(--sans);white-space:nowrap;cursor:pointer}
+.music-buttons button:hover{border-color:#ccc;color:#fff}
+.music-buttons button.music-primary{background:#f2f2f2;color:#111;border-color:#eee}
+.music-buttons button.selected{background:#555;color:#fff}
+.music-timeline{display:flex;align-items:center;gap:8px}
+.music-timeline input{flex:1;min-width:25px}
+.music-timeline span{font:10px var(--mono);white-space:nowrap;color:#aaa}
+.music-tools{min-width:0;display:flex;flex-direction:column;gap:8px}
+.music-tools .music-buttons button{padding:6px 8px;min-height:27px;font-size:10px}
+.music-tools label{display:flex;align-items:center;gap:6px;color:#b7b7b7;font-size:10px}
+.music-tools label input[type=range]{flex:1;min-width:30px}
+.music-tools label input[type=checkbox]{flex:none}
+.music-tools label span{font:10px var(--mono)}
+.music-bottom-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px}
+.music-bottom-row p{font:10px/1.5 var(--mono);color:#a4a4a4;margin:0}
+.music-preview-controls{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.music-preview-controls .muted{font-size:10px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1100px){.music-player-panel{grid-template-columns:52px minmax(120px,1fr) minmax(220px,1.4fr)}.music-tools{grid-column:2/-1;flex-direction:row;align-items:center;gap:15px;flex-wrap:wrap}.music-tools label{min-width:125px}}
+@media(max-width:720px){.music-total{display:none}.music-workspace{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:min(62vh,520px)}.music-folders{display:flex;gap:5px;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;border-right:0;border-bottom:1px solid #343434;padding:7px}.music-group-label{display:none}.music-folder{width:auto;min-width:max-content;padding:8px 11px;gap:7px}.music-list-head{padding:11px 12px}.music-player-panel{grid-template-columns:46px 1fr;gap:9px;padding:11px!important}.music-now-cover{width:46px;height:52px}.music-now-controls,.music-tools{grid-column:1/-1}.music-tools{flex-direction:row;flex-wrap:wrap}.music-bottom-row{flex-wrap:wrap}}
+@media(max-width:390px){.music-track-info small{display:none}.music-track-time{font-size:10px;min-width:36px}.music-track-play{gap:6px}.music-track{gap:3px;padding:3px}.music-track-action{width:25px}}
+
+/* 1.5.8 — functional layout, minimal labels and low-scroll presentation.
+   Preserve narrow-screen scrolling when necessary for access to real controls. */
+:root{--ui-gap:12px;--ui-pad:16px}
+.dm-topbar{padding:12px 18px;min-height:64px}
+.dm-topbar h1{margin:0;line-height:1.18}
+.dm-section.active{gap:var(--ui-gap)}
+.dm-section[data-section=overview] .metric-grid{margin:0}
+.dm-section[data-section=overview] .overview-grid{flex:1;min-height:0}
+.dm-section[data-section=overview] .overview-grid>.panel{min-height:0}
+.dm-section[data-section=overview] .quick-row{flex:0 0 auto}
+/* Section name already appears as the page h1 in the toolbar. Keep actions, not repeated headlines. */
+.dm-section[data-section=environment]>.section-heading,
+.dm-section[data-section=settings]>.section-heading,
+.dm-section[data-section=music]>.section-heading{display:none}
+.dm-section[data-section=scene]>.section-heading>div:first-child,
+.dm-section[data-section=combat]>.section-heading>div:first-child,
+.dm-section[data-section=cast]>.section-heading>div:first-child{display:none}
+.dm-section[data-section=scene]>.section-heading,
+.dm-section[data-section=combat]>.section-heading,
+.dm-section[data-section=cast]>.section-heading{min-height:0;justify-content:flex-end}
+.dm-section[data-section=scene]>.section-heading{align-items:center}
+/* The track list takes remaining height; browsing scrolls locally, not the entire DM page. */
+.dm-section[data-section=music] .music-workspace{flex:1 1 auto;height:auto;min-height:0;margin:0}
+.dm-section[data-section=music] .music-player-panel{flex:0 0 auto;grid-template-columns:minmax(145px,1fr) minmax(220px,1.7fr) minmax(160px,1.2fr);gap:12px}
+.dm-section[data-section=music] .music-now-cover{display:none}
+.dm-section[data-section=music] .music-bottom-row{flex:0 0 auto;padding:4px 2px;min-height:24px}
+.dm-section[data-section=music] .music-list-head{padding:12px 14px}
+.dm-section[data-section=music] .music-list-head h3{font-size:16px}
+.dm-section[data-section=music] .music-track{min-height:48px}
+.dm-section[data-section=music] .music-track-play{min-height:42px}
+/* Only the useful stage labels remain. No release/debug captions on the battlefield. */
+.stage-bottom-left,.stage-bottom-right{display:none!important}
+.stage-app .scene-info{padding:10px 14px}
+.stage-app .scene-info h1{margin:0 0 7px}
+.stage-app .scene-info p{max-width:610px}
+/* Calm grayscale focus and larger actions only where controls are dense. */
+:where(.dm-page,.stage-page) :is(button,input,select,textarea):focus-visible{outline:2px solid #f2f2f2;outline-offset:2px}
+.dm-sidebar .nav-button{border-radius:3px}
+@media (max-width:1100px){
+ .dm-section[data-section=music] .music-player-panel{grid-template-columns:minmax(135px,1fr) minmax(180px,1.5fr)}
+ .dm-section[data-section=music] .music-tools{grid-column:1/-1;justify-content:space-between}
+}
+@media (max-width:780px), (max-height:620px){
+ .dm-topbar{min-height:0;padding:12px}
+ .dm-main{padding:12px}
+ .dm-section[data-section=music] .music-workspace{height:min(58vh,500px);min-height:240px;flex:none}
+}
+@media (max-width:720px){
+ .dm-section[data-section=music] .music-workspace{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+ .dm-section[data-section=music] .music-player-panel{grid-template-columns:minmax(0,1fr);gap:8px}
+ .dm-section[data-section=music] .music-now-controls,.dm-section[data-section=music] .music-tools{grid-column:1}
+ .dm-section[data-section=music] .music-now-details strong{font-size:15px}
+}
+
+/* A useful environment summary replaces the oversized fake scene sigil. */
+.overview-environment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;flex:1 1 auto;align-content:stretch;min-height:0;margin:4px 0 10px}
+.overview-environment-item{border:1px solid #303030;background:#131313;padding:clamp(10px,1.2vw,18px);display:flex;flex-direction:column;justify-content:center;gap:9px;min-width:0}
+.overview-environment-item small{font:700 10px var(--mono);color:#b8b8b8;letter-spacing:.035em}
+.overview-environment-item strong{font-size:clamp(13px,1.25vw,18px);color:#eee;overflow-wrap:anywhere;text-transform:capitalize;line-height:1.3}
+@media(max-width:780px){.overview-environment-grid{min-height:140px}.overview-environment-item{min-height:70px}}
+@media(max-width:400px){.overview-environment-grid{gap:7px}.overview-environment-item{padding:9px}.overview-environment-item strong{font-size:12px}}

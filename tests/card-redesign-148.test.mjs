@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../assets/grim-156/vendor/three.module.js';
-import {CARD_WIDTH_PX,CARD_HEIGHT_PX,TEXTURE_WIDTH,TEXTURE_HEIGHT,roundedCardFaceGeometry,roundedCardShape,cardVisualData,paintCard,createNativeCardLayer} from '../assets/grim-156/native-cards.js';
+import * as T from '../assets/grim-158/vendor/three.module.js';
+import {CARD_WIDTH_PX,CARD_HEIGHT_PX,TEXTURE_WIDTH,TEXTURE_HEIGHT,roundedCardFaceGeometry,roundedCardShape,cardVisualData,paintCard,createNativeCardLayer} from '../assets/grim-158/native-cards.js';
 
 assert(CARD_HEIGHT_PX/CARD_WIDTH_PX >= 1.60,'Cards should be a tall 1:1.6+ silhouette');
 assert.equal(TEXTURE_WIDTH/CARD_WIDTH_PX,TEXTURE_HEIGHT/CARD_HEIGHT_PX,'Texture must have uniform pixel density');
