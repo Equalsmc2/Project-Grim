@@ -16,7 +16,7 @@
 - Fixed a real 768px DM layout bug where the entire dashboard was pushed offscreen by the sidebar.
 - Added optional local Chromium HTML/CSS viewport verification covering seven viewport sizes on both pages.
 - Preserved existing cards, camera framing, game state, Firebase workflow, ambience, and visuals outside layout/accessibility changes.
-- Cache-safe active assets: `assets/grim-156`.
+- Cache-safe active assets: `assets/grim-157`.
 
 ## 1.5.4 — DM Workflow Reliability
 
@@ -260,3 +260,11 @@ Automatic cinematic camera orbit and tilt; removes intermittent raster mask gene
 - Adds graceful 2D fallback, GPU resource disposal, capped instance counts and hidden-page animation pause.
 - Fixes the inherited uploader's missing-asset check to target the active version; retains folder prompt, Git review/push and optional Firebase Hosting deploy.
 - Includes full source, local Three.js license, campaign regression tests and a detailed verification report.
+
+## 1.5.7 — Music Library
+
+- Added DM Music page grouped by game with scene categories, searchable tracks, local preview, favorites and compact transport controls.
+- Catalogued 230 tracks from four user-provided soundtrack archives. Added stable track IDs and synchronized playback selection via existing campaign state.
+- Added gesture-gated Stage music player, track progression and local-only DM monitor; ambience only ducks when music is actually playing.
+- Added local soundtrack ZIP installer and local HTTP byte-range seeking. Commercial game soundtracks excluded from GitHub/Firebase hosting by default.
+- New tests for music catalog, playback clock, audio permissions, and HTTP seeking.

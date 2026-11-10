@@ -7,3 +7,9 @@ node_modules/
 
 # Local QA output; never upload browser screenshots or test reports by default
 qa-reports/
+
+# Third-party original game soundtracks: user-owned/local only, never git-add.
+/assets/music/*/*.mp3
+/assets/music/*/*.ogg
+/assets/music/*/*.wav
+/assets/music/*/*.flac

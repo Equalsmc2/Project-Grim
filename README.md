@@ -1,3 +1,7 @@
+# Project Grim 1.5.7 — Music Library
+
+Four soundtrack catalogs (230 tracks), album/music-scene browsing, shared DM music controls, and optional local soundtrack importer. MP3 media is deliberately not bundled into the public website archive. See MUSIC_SETUP.md.
+
 # Project Grim 1.5.6 — Visual Regression Foundation
 
 **Current release:** a reproducible screenshot regression system for the DM dashboard, stage controls and native canvas card art. Adds six pinned screenshot baselines, a visual-diff report, explicit baseline approval, and a Windows `RUN-VISUAL-TESTS.bat` runner. No intentional visual redesign, gameplay change, saved-state migration or Firebase account change.

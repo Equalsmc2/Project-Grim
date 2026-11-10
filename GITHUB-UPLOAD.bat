@@ -78,7 +78,7 @@ if not exist "%SOURCE_ROOT%\index.html" (
     echo Extract the FULL ZIP before running the BAT.
     goto :done
 )
-if not exist "%SOURCE_ROOT%\assets\grim-156\state.js" (
+if not exist "%SOURCE_ROOT%\assets\grim-157\state.js" (
     echo [ERROR] Missing website assets. Extract the FULL ZIP first.
     goto :done
 )
@@ -91,9 +91,15 @@ if errorlevel 2 goto :done
 echo.
 echo Copying Project Grim site files...
 rem Copy only known site root files. Never copy the .git folder or all Downloads.
-robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "package.json" "RUN-TESTS.bat" "RUN-VISUAL-TESTS.bat" "RELEASE_NOTES_1.5.6.md" "TEST_REPORT_1.5.6.md" "RELEASE_NOTES_1.5.1.md" "RELEASE_NOTES_1.5.2.md" "RELEASE_NOTES_1.5.3.md" "TEST_REPORT_1.5.3.md" "RELEASE_NOTES_1.5.4.md" "TEST_REPORT_1.5.4.md" "RELEASE_NOTES_1.5.5.md" "TEST_REPORT_1.5.5.md" "TEST_REPORT_1.5.2.md" "TEST_REPORT_1.5.1.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "RELEASE_NOTES_1.4.6.md" "TEST_REPORT_1.4.6.md" "RELEASE_NOTES_1.4.7.md" "TEST_REPORT_1.4.7.md" "RELEASE_NOTES_1.4.8.md" "TEST_REPORT_1.4.8.md" "RELEASE_NOTES_1.4.9.md" "TEST_REPORT_1.4.9.md" "RELEASE_NOTES_1.4.11.md" "TEST_REPORT_1.4.11.md" "RELEASE_NOTES_1.4.12.md" "TEST_REPORT_1.4.12.md" "RELEASE_NOTES_1.4.13.md" "TEST_REPORT_1.4.13.md" "RELEASE_NOTES_1.5.md" "TEST_REPORT_1.5.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+robocopy "%SOURCE_ROOT%" "%REPO%" "index.html" "dm.html" "server.js" "README.md" "CHANGELOG.md" "package.json" "RUN-TESTS.bat" "RUN-VISUAL-TESTS.bat" "IMPORT-MUSIC.bat" "MUSIC_SETUP.md" "RELEASE_NOTES_1.5.6.md" "RELEASE_NOTES_1.5.7.md" "TEST_REPORT_1.5.7.md" "TEST_REPORT_1.5.6.md" "RELEASE_NOTES_1.5.1.md" "RELEASE_NOTES_1.5.2.md" "RELEASE_NOTES_1.5.3.md" "TEST_REPORT_1.5.3.md" "RELEASE_NOTES_1.5.4.md" "TEST_REPORT_1.5.4.md" "RELEASE_NOTES_1.5.5.md" "TEST_REPORT_1.5.5.md" "TEST_REPORT_1.5.2.md" "TEST_REPORT_1.5.1.md" "RELEASE_NOTES_1.4.md" "RELEASE_NOTES_1.4.2.md" "RELEASE_NOTES_1.4.3.md" "RELEASE_NOTES_1.4.4.md" "RELEASE_NOTES_1.4.6.md" "TEST_REPORT_1.4.6.md" "RELEASE_NOTES_1.4.7.md" "TEST_REPORT_1.4.7.md" "RELEASE_NOTES_1.4.8.md" "TEST_REPORT_1.4.8.md" "RELEASE_NOTES_1.4.9.md" "TEST_REPORT_1.4.9.md" "RELEASE_NOTES_1.4.11.md" "TEST_REPORT_1.4.11.md" "RELEASE_NOTES_1.4.12.md" "TEST_REPORT_1.4.12.md" "RELEASE_NOTES_1.4.13.md" "TEST_REPORT_1.4.13.md" "RELEASE_NOTES_1.5.md" "TEST_REPORT_1.5.md" "TEST_REPORT.md" "RUN-GRIM.bat" "github.bat" "GITHUB-UPLOAD.bat" ".gitignore" ".firebaserc" "firebase.json" "firebase-rtdb.rules.json" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
-robocopy "%SOURCE_ROOT%\assets" "%REPO%\assets" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+rem The original commercial soundtrack recordings are local-only by default.
+rem Copy app code and the existing ambience files, never assets/music audio.
+robocopy "%SOURCE_ROOT%\assets\grim-157" "%REPO%\assets\grim-157" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+if errorlevel 8 goto :copy_failed
+robocopy "%SOURCE_ROOT%\assets\audio" "%REPO%\assets\audio" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+if errorlevel 8 goto :copy_failed
+robocopy "%SOURCE_ROOT%\assets\music" "%REPO%\assets\music" "catalog.json" "import-manifest.json" "README.txt" /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 robocopy "%SOURCE_ROOT%\docs" "%REPO%\docs" /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
@@ -111,13 +117,13 @@ goto :cleanup_legacy
 rem Optional removal of old, inactive bundles after the new files are copied.
 rem Only these known Project Grim version folders are eligible for deletion.
 :cleanup_legacy
-if not exist "%REPO%\assets\grim-156\state.js" (
-    echo [ERROR] Project Grim 1.5.6 is not installed, refusing to remove old bundles.
+if not exist "%REPO%\assets\grim-157\state.js" (
+    echo [ERROR] Project Grim 1.5.7 is not installed, refusing to remove old bundles.
     goto :done
 )
 echo.
 echo Cleanup option: remove inactive older Grim asset versions from this repository?
-echo The current grim-156 assets, campaign data and Git history are untouched.
+echo The current grim-157 assets, campaign data and Git history are untouched.
 choice /c YN /n /m "Remove old version asset directories? [Y/N] "
 if errorlevel 2 goto :review_git
 if exist "%REPO%\assets\dark-040\" rmdir /S /Q "%REPO%\assets\dark-040"
@@ -176,7 +182,7 @@ if errorlevel 2 (
     goto :done
 )
 
-"%GIT_EXE%" -C "%REPO%" add --all
+"%GIT_EXE%" -c gc.auto=0 -c maintenance.auto=false -C "%REPO%" add --all
 if errorlevel 1 goto :git_failed
 "%GIT_EXE%" -C "%REPO%" diff --cached --quiet
 if errorlevel 2 goto :git_failed
@@ -188,13 +194,13 @@ goto :push
 set "MESSAGE="
 set /p "MESSAGE=Commit message [Update Project Grim website]: "
 if not defined MESSAGE set "MESSAGE=Update Project Grim website"
-"%GIT_EXE%" -C "%REPO%" commit -m "%MESSAGE%"
+"%GIT_EXE%" -c gc.auto=0 -c maintenance.auto=false -C "%REPO%" commit -m "%MESSAGE%"
 if errorlevel 1 goto :git_failed
 
 :push
 echo.
 echo Pushing current branch to GitHub...
-"%GIT_EXE%" -C "%REPO%" push -u origin HEAD
+"%GIT_EXE%" -c gc.auto=0 -c maintenance.auto=false -C "%REPO%" push -u origin HEAD
 if errorlevel 1 (
     echo [ERROR] Push failed. Open GitHub Desktop, sign in,
     echo Fetch origin, or resolve any conflicts and retry.

@@ -55,4 +55,4 @@ Review the resulting PNG files and the code diff before committing them. Do not 
 
 ## Installation and compatibility
 
-Use `github.bat`, enter the Project-Grim repository folder and confirm the copy/push. The website now uses `assets/grim-156`. The included uploader copies the new QA tool, screenshot baseline files, tests and documentation. Existing saved campaigns and anonymous/no-login Firebase setup remain untouched.
+Use `github.bat`, enter the Project-Grim repository folder and confirm the copy/push. The website now uses `assets/grim-157`. The included uploader copies the new QA tool, screenshot baseline files, tests and documentation. Existing saved campaigns and anonymous/no-login Firebase setup remain untouched.
