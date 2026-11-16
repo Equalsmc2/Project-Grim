@@ -54,4 +54,31 @@ applyCameraPose(cam,calculateCameraPose({width:1536,height:864,mode:'tactical',z
 const before=cam.position.clone();
 const fitted=fitAllCardsInView(cam,roster(1),1536,864,env,terrain);
 assert.equal(fitted.retreat,0);assert(cam.position.distanceTo(before)<1e-9);
+// Edge-of-stage pans used to switch between fixed card sizes (.94, .88, ...)
+// in one frame. Track a crowded formation through tiny yaw increments.
+let previous=null,maxScaleChange=0,maxRetreatChange=0,scaleVaries=false;
+for(let index=0;index<=192;index++){
+ const yaw=(-12+index*.125)*Math.PI/180;
+ const camera=new T.PerspectiveCamera(40,390/710,.1,22000);
+ applyCameraPose(camera,calculateCameraPose({width:390,height:710,mode:'ground',yaw,pitch:1,zoom:1.3}));
+ camera.position.x+=.55;
+ const shot=fitAllCardsInView(camera,roster(14),390,710,env,terrain);
+ assert(shot.fits,'Every card must stay visible during a slow camera pan');
+ if(previous){
+  maxScaleChange=Math.max(maxScaleChange,Math.abs(previous.scale-shot.scale));
+  maxRetreatChange=Math.max(maxRetreatChange,Math.abs(previous.retreat-shot.retreat));
+  scaleVaries||=Math.abs(previous.scale-shot.scale)>1e-6;
+ }
+ previous=shot;
+}
+assert(maxScaleChange<.025,`Card sizes jumped during a tiny pan: ${maxScaleChange}`);
+assert(maxRetreatChange<1.2,`Camera retreat jumped during a tiny pan: ${maxRetreatChange}`);
+assert(scaleVaries,'This scenario should exercise continuous card scaling');
+const shiftActors=roster(7);
+const turnFit=activeId=>{
+ const camera=new T.PerspectiveCamera(40,1536/864,.1,22000);
+ applyCameraPose(camera,calculateCameraPose({width:1536,height:864,mode:'ground',yaw:9*Math.PI/180}));
+ return fitAllCardsInView(camera,shiftActors.map(a=>({...a,active:a.id===activeId})),1536,864,env,terrain);
+};
+assert.deepEqual(turnFit('0'),turnFit('6'),'Active turn changes must not snap camera retreat or card scale');
 console.log(`PASS: ${checked} camera/roster/viewport scenarios keep every adaptive native card in bounds during zoom, orbit and cinematic glide.`);

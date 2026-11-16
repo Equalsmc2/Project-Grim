@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {cinematicTargets} from '../assets/grim-158/cinematic-director.js';
+import {cinematicTargets,springCinematicValue} from '../assets/grim-158/cinematic-director.js';
 const tolerance=1e-10;
 for(const style of ['follow','orbit','sweep'])for(const strength of [.4,1.5,2.4]){
  for(const x of [-100,-30,-6,0,2,6,30,100,Infinity,NaN]){
@@ -20,4 +20,26 @@ assert(cinematicTargets(Math.PI/2,0,{strength:2.4}).desiredYaw>cinematicTargets(
 assert(cinematicTargets(Math.PI/2,0,{style:'sweep'}).desiredYaw>cinematicTargets(Math.PI/2,0,{style:'orbit'}).desiredYaw,'Shot styles must have distinct movement');
 assert.notDeepEqual(cinematicTargets(.7,6),cinematicTargets(.7,-6),'Follow mode should favor active turn position');
 assert.deepEqual(cinematicTargets(.7,5),cinematicTargets(.7,5),'Cinematic positioning remains deterministic');
-console.log('PASS: cinematic director, visible motion, strength/style choices, framing limits and determinism.');
+// A turn switch should not teleport the camera: velocity builds and brakes.
+let v=0,value=0,peakStep=0;
+for(let frame=0;frame<600;frame++){
+ const target=frame<120?10:frame<270?-10:4;
+ const dt=frame%3===0?.033:.016;
+ const next=springCinematicValue(value,target,v,dt,{response:.85,maxSpeed:5});
+ peakStep=Math.max(peakStep,Math.abs(next.value-value));
+ assert(Number.isFinite(next.value)&&Number.isFinite(next.velocity));
+ assert(Math.abs(next.value-value)<=5*dt+tolerance,'Director must respect physical motion speed');
+ value=next.value;v=next.velocity;
+}
+assert(peakStep>0&&Math.abs(value-4)<.03,'Camera should smoothly settle after rapid turn changes');
+assert.deepEqual(springCinematicValue(1,3,0,0),{value:1,velocity:0},'Zero delta must not move the camera');
+const simulate=frameDt=>{
+ let position=0,speed=0;
+ for(let elapsed=0;elapsed<3-1e-8;elapsed+=frameDt){
+  const step=springCinematicValue(position,7,speed,Math.min(frameDt,3-elapsed),{response:.9,maxSpeed:4});
+  position=step.value;speed=step.velocity;
+ }
+ return position;
+};
+assert(Math.abs(simulate(1/60)-simulate(1/15))<.08,'Low frame rate must not make camera motion unnaturally slow');
+console.log('PASS: cinematic director, continuous edges, turn-change damping, velocity limits and deterministic paths.');

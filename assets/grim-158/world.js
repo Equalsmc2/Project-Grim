@@ -10,7 +10,7 @@ import {createWeatherBudget,advanceWeatherBudget,needsSceneryRefresh} from './re
 import {calculateCameraPose,applyCameraPose,FIELD_WIDTH,FIELD_DEPTH,DEFAULT_CAMERA_VIEW,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM} from './camera-frame.js';
 import {landscapeHeight,rngFactory,palettes,shadowTexture,gridTexture,createSky} from './world-foundations.js';
 import {disposeSceneGraph,commitSceneGroup} from './scene-resources.js';
-import {cinematicTargets} from './cinematic-director.js';
+import {cinematicTargets,springCinematicValue} from './cinematic-director.js';
 export {landscapeHeight} from './world-foundations.js';
 
 // Grim 1.2: the battlefield is a region INSIDE a continuous 3D landscape.
@@ -45,7 +45,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
  const weatherBudget=createWeatherBudget();let weatherMatrixWrites=0,weatherDrawFrames=0,lightingSettled=false;
  let lastScenicWet=NaN,lastScenicSnow=NaN;
- let cinematicEnabled=false,cinematicSpeed=1,cinematicStrength=1.5,cinematicStyle='follow',cinematicPauseUntil=0,cinematicStart=0,cinematicGlide=0;
+ let cinematicEnabled=false,cinematicSpeed=1,cinematicStrength=1.5,cinematicStyle='follow',cinematicPauseUntil=0,cinematicPhase=0,cinematicGlide=0;
+ let cinematicFocusX=0,cinematicFocusVelocity=0,cinematicYawVelocity=0,cinematicPitchVelocity=0,cinematicGlideVelocity=0;
  const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
  let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
@@ -69,9 +70,12 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  function cameraPose(animate=false){
   zoom=fitCardsZoom(zoom);
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
+  if(cinematicEnabled&&!reducedMotion&&performance.now()>=cinematicPauseUntil){pose.position.x+=cinematicGlide;pose.target.x+=cinematicGlide;}
+  const previousUnfitted=camera.position.clone();
+  if(fitRetreat)previousUnfitted.addScaledVector(new T.Vector3(0,0,1).applyQuaternion(camera.quaternion),-fitRetreat);
   fitRetreat=0;fitScale=1;
   if(animate&&!reducedMotion){
-   transition={start:performance.now(),duration:650,fromPos:camera.position.clone(),toPos:pose.position.clone(),fromTarget:target.clone(),toTarget:pose.target.clone(),fromFov:camera.fov,toFov:pose.fov,aspect:pose.aspect};
+   transition={start:performance.now(),duration:650,fromPos:previousUnfitted,toPos:pose.position.clone(),fromTarget:target.clone(),toTarget:pose.target.clone(),fromFov:camera.fov,toFov:pose.fov,aspect:pose.aspect};
   }else{transition=null;applyCameraPose(camera,pose);target.copy(pose.target);enforceCardVisibility();}
   dirty=true;projectionDirty=true;wake();
  }
@@ -473,24 +477,28 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   cinematicStyle=['follow','orbit','sweep'].includes(e.cinematicStyle)?e.cinematicStyle:'follow';
   if(nextEnabled!==cinematicEnabled){
    cinematicEnabled=nextEnabled;
-   cinematicStart=performance.now();
-   if(nextEnabled)cinematicPauseUntil=0;
+   cinematicPhase=0;
+   cinematicFocusVelocity=cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;
+   if(nextEnabled){cinematicPauseUntil=0;cinematicGlide=0;cinematicFocusX=0;}
    dirty=true;wake();
   }
  }
  function cinematicStep(t,dt){
   if(reducedMotion||!cinematicEnabled||transition||t<cinematicPauseUntil)return false;
-  if(!cinematicStart)cinematicStart=t;
-  // The director favors the active turn and rests between movements instead
-  // of sweeping constantly from one extreme to the other. Composition is
-  // still checked by enforceCardVisibility() after the pose is applied.
-  const phase=(t-cinematicStart)*.00016*cinematicSpeed;
+  // Integrate only the time spent actually moving. Changing speed, switching
+  // tabs or manually pausing no longer causes a sudden jump in orbit phase.
+  cinematicPhase+=dt*.16*cinematicSpeed;
   const active=anchors.find(a=>a.active);
-  const {desiredYaw,desiredPitch,desiredGlide}=cinematicTargets(phase,active?.x||0,{strength:cinematicStrength,style:cinematicStyle});
-  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*2.4);
+  const focus=springCinematicValue(cinematicFocusX,active?.x||0,cinematicFocusVelocity,dt,{response:1.4,maxSpeed:6});
+  cinematicFocusX=focus.value;cinematicFocusVelocity=focus.velocity;
+  const {desiredYaw,desiredPitch,desiredGlide}=cinematicTargets(cinematicPhase,cinematicFocusX,{strength:cinematicStrength,style:cinematicStyle});
   const y0=yaw,p0=pitch,g0=cinematicGlide;
-  yaw+=(desiredYaw-yaw)*blend;pitch+=(desiredPitch-pitch)*blend;
-  cinematicGlide+=(desiredGlide-cinematicGlide)*blend;
+  const turn=springCinematicValue(yaw,desiredYaw,cinematicYawVelocity,dt,{response:.85,maxSpeed:9*Math.PI/180});
+  const tilt=springCinematicValue(pitch,desiredPitch,cinematicPitchVelocity,dt,{response:1,maxSpeed:1.8});
+  const dolly=springCinematicValue(cinematicGlide,desiredGlide,cinematicGlideVelocity,dt,{response:1.05,maxSpeed:1.1});
+  yaw=turn.value;cinematicYawVelocity=turn.velocity;
+  pitch=tilt.value;cinematicPitchVelocity=tilt.velocity;
+  cinematicGlide=dolly.value;cinematicGlideVelocity=dolly.velocity;
   if(Math.abs(yaw-y0)<1e-7&&Math.abs(pitch-p0)<1e-5&&Math.abs(cinematicGlide-g0)<1e-5)return false;
   const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
   pose.position.x+=cinematicGlide;pose.target.x+=cinematicGlide;
@@ -512,7 +520,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  }
  function tick(t){
   frame=0;if(disposed||lost||document.hidden)return;
-  const dt=Math.min((t-last)/1000||0,.05);last=t;
+  const elapsed=Math.max(0,(t-last)/1000||0);
+  const dt=Math.min(elapsed,.05),cameraDt=Math.min(elapsed,.15);last=t;
   const transitionMoving=updateLighting(dt,t);
   const accMoving=Object.entries(accumulationTarget(env,currentStormIntensity)).some(([key,value])=>Math.abs(accumulation[key]-value)>.008);
   const environmentMoving=weatherSystems.length>0||currentCloud>.015||env.cycleEnabled||transitionMoving||accMoving;
@@ -528,7 +537,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    target.lerpVectors(transition.fromTarget,transition.toTarget,ease);camera.lookAt(target);camera.updateMatrixWorld();fitRetreat=0;fitScale=1;
    projectionDirty=true;dirty=true;if(f>=1)transition=null;
   }
-  const cinematicMoving=cinematicStep(t,dt);
+  const cinematicMoving=cinematicStep(t,cameraDt);
   // Enforce visibility after transitions and cinematic movement as well as
   // manual zoom. There must never be a frame with a clipped card.
   if(transition||cinematicMoving||projectionDirty)enforceCardVisibility();
@@ -546,7 +555,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    else if(cardFxMoving)nativeCards.animate(t);
    if(cardFxMoving)lastFxFrame=t;
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),camera:{yawDegrees:yaw*180/Math.PI,pitchDegrees:pitch,glide:cinematicGlide,cinematicEnabled},hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),camera:{yawDegrees:yaw*180/Math.PI,pitchDegrees:pitch,glide:cinematicGlide,phase:cinematicPhase,cardScale:fitScale,retreat:fitRetreat,cinematicEnabled},hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
   if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)frame=requestAnimationFrame(tick);
  }
@@ -557,18 +566,18 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  resize();return {
   update:rebuild,setCards,
   resize(){resize();wake();},
-   orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+4500;cameraPose();wake();},
-   setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cinematicPauseUntil=performance.now()+4500;cameraPose(true);wake();return viewMode;},
+   orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose();wake();},
+   setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose(true);wake();return viewMode;},
   getView(){return viewMode;},
   getOrbit(){return {yaw:yaw*180/Math.PI,pitch};},
-   pauseCinematic(ms=4500){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);},
+   pauseCinematic(ms=4500){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;},
    setCinematic(enabled,speed=cinematicSpeed){updateCinematicSettings({cinematicPan:enabled,cinematicSpeed:speed,cinematicStrength,cinematicStyle});return cinematicEnabled;},
   setReducedMotion(enabled){
     const next=!!enabled;
     if(next===reducedMotion)return reducedMotion;
     reducedMotion=next;
     nativeCards.setReducedMotion(next);
-    if(next){transition=null;cinematicGlide=0;}
+    if(next){transition=null;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;}
     cameraPose(false);
     projectionDirty=true;dirty=true;wake();
     return reducedMotion;
@@ -584,7 +593,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   },
   getQuality(){return quality;},
   getCinematic(){return cinematicEnabled;},
-   zoomTo(v){cinematicPauseUntil=performance.now()+4500;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
+   zoomTo(v){cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
   dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);disposeObject(root);scene.remove(root);disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };

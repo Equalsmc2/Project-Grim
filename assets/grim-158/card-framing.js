@@ -26,23 +26,25 @@ export function fitAllCardsInView(camera,anchors,width,height,env,landscapeHeigh
     camera.updateMatrixWorld(true);
     for(const a of anchors){
       const ground=landscapeHeight(a.x,a.z,env.terrainWidth,env.terrainDepth,env.seed,env.variation,env.hills);
-      // The active card may bob up .032 world units; reserve headroom for it.
-      const hover=(a.active?1.28:1.02)+.034;
-      groundPoint.set(a.x,ground+hover,a.z);
-      const distance=camera.position.distanceTo(groundPoint);
-      const pix=cardPixelSize(width,a.layout?.scale??.72,distance);
-      relative.copy(groundPoint).sub(camera.position);
-      const depth=relative.dot(forward);
-      if(depth<=camera.near+.03)return false;
-      const h=worldHeightForPixels(pix.height*scale,height,depth,camera.fov);
-      const w=h*CARD_WIDTH_PX/CARD_HEIGHT_PX;
-      center.copy(groundPoint);center.y+=h*.5;
-      for(const sx of [-1,1])for(const sy of [-1,1]){
-        corner.copy(center).addScaledVector(rightDir,sx*w*.5).addScaledVector(upDir,sy*h*.5).project(camera);
-        if(!Number.isFinite(corner.x)||!Number.isFinite(corner.y)||!Number.isFinite(corner.z)||
-          corner.x<left-tolerance||corner.x>right+tolerance||
-          corner.y<bottom-tolerance||corner.y>top+tolerance||
-          corner.z<-1||corner.z>1)return false;
+      // Reserve both inactive-low and active-high positions for every card.
+      // This avoids reframing on turn switches without cropping lower edges.
+      for(const hover of [1.02,1.28+.034]){
+        groundPoint.set(a.x,ground+hover,a.z);
+        const distance=camera.position.distanceTo(groundPoint);
+        const pix=cardPixelSize(width,a.layout?.scale??.72,distance);
+        relative.copy(groundPoint).sub(camera.position);
+        const depth=relative.dot(forward);
+        if(depth<=camera.near+.03)return false;
+        const h=worldHeightForPixels(pix.height*scale,height,depth,camera.fov);
+        const w=h*CARD_WIDTH_PX/CARD_HEIGHT_PX;
+        center.copy(groundPoint);center.y+=h*.5;
+        for(const sx of [-1,1])for(const sy of [-1,1]){
+          corner.copy(center).addScaledVector(rightDir,sx*w*.5).addScaledVector(upDir,sy*h*.5).project(camera);
+          if(!Number.isFinite(corner.x)||!Number.isFinite(corner.y)||!Number.isFinite(corner.z)||
+            corner.x<left-tolerance||corner.x>right+tolerance||
+            corner.y<bottom-tolerance||corner.y>top+tolerance||
+            corner.z<-1||corner.z>1)return false;
+        }
       }
     }
     return true;
@@ -58,29 +60,38 @@ export function fitAllCardsInView(camera,anchors,width,height,env,landscapeHeigh
     return hi+.012;
   }
 
-  // Prefer preserving card size and environment scale before trying any tiny
-  // camera framing. The minimum scale can shrink for dense rosters, but the
-  // world is never pushed hundreds of units away.
-  const standardScales=[1,.94,.88,.82,.75,.68,.60,.52,.43];
-  let result=null;
-  for(const scale of standardScales){
-    const retreat=findRetreat(scale,maxRetreat);
-    if(retreat!==null){result={retreat,scale,fits:true};break;}
-  }
-  if(!result){
-    for(const scale of [.52,.43,.34,.26,.18]){
-      const retreat=findRetreat(scale,maxEmergencyRetreat);
-      if(retreat!==null){result={retreat,scale,fits:true};break;}
+  // The previous discrete [.94,.88,.82,...] steps snapped every native card
+  // smaller when the camera crossed a framing threshold. Solve card scale
+  // continuously instead; retreat and scale now change smoothly with orbit.
+  const fullSizeRetreat=findRetreat(1,maxRetreat);
+  let result;
+  if(fullSizeRetreat!==null){
+    result={retreat:fullSizeRetreat,scale:1,fits:true};
+  }else if(fitsAt(maxRetreat,.18)){
+    let low=.18,high=1;
+    for(let i=0;i<17;i++){
+      const mid=(low+high)*.5;
+      if(fitsAt(maxRetreat,mid))low=mid;else high=mid;
     }
-  }
-  // No camera algorithm can make an unlimited number of full-sized cards
-  // readable in a few pixels. Keep the environment at a sane distance and
-  // use a last-resort tiny card scale instead of a 16,000-unit zoom-out.
-  if(!result){
-    const retreat=maxEmergencyRetreat;
-    let scale=.18;
-    while(scale>.015&&!fitsAt(retreat,scale))scale*=.75;
-    result={retreat,scale,fits:fitsAt(retreat,scale)};
+    result={retreat:maxRetreat,scale:low,fits:true};
+  }else{
+    // Keep the same hard retreat bounds for crowded rosters. Below .18 only
+    // truly extreme cases are forced to use smaller, still continuous cards.
+    const emergencyRetreat=findRetreat(.18,maxEmergencyRetreat);
+    if(emergencyRetreat!==null){
+      result={retreat:emergencyRetreat,scale:.18,fits:true};
+    }else{
+      const retreat=maxEmergencyRetreat;
+      let low=.005,high=.18;
+      if(!fitsAt(retreat,low))result={retreat,scale:low,fits:false};
+      else{
+        for(let i=0;i<17;i++){
+          const mid=(low+high)*.5;
+          if(fitsAt(retreat,mid))low=mid;else high=mid;
+        }
+        result={retreat,scale:low,fits:true};
+      }
+    }
   }
   camera.position.copy(saved).addScaledVector(backward,result.retreat);
   camera.updateMatrixWorld(true);

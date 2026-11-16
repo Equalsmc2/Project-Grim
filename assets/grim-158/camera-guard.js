@@ -21,7 +21,8 @@ export function clampZoomToCards({requestedZoom=1,anchors=[],width=1536,height=8
    forward.set(0,0,-1).applyQuaternion(camera.quaternion);
    for(const a of anchors){
     const ground=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
-    const hover=a.active?1.28:1.02;
+    // A new active turn should not suddenly shrink the whole battlefield.
+    const hover=1.28;
     point.set(a.x,ground+hover,a.z);
     const distance=camera.position.distanceTo(point);
     const pix=cardPixelSize(width,a.layout?.scale??.72,distance);
