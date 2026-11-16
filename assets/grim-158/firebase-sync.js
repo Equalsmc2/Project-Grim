@@ -1,5 +1,5 @@
 import {firebaseConfig} from './firebase-config.js';
-import {getState,subscribe,applyCloudState} from './state.js';
+import {getState,subscribe,applyCloudState,updateState} from './state.js';
 import {createCloudOutbox} from './cloud-outbox.js';
 import {PLAYER_EDIT_FIELDS,applyPlayerEdit,encodePlayerEdit} from './player-fields.js';
 

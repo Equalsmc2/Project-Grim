@@ -59,12 +59,15 @@ export function playerRules(){
     rooms:{'$roomId':{
       '.read':'auth != null',
       '.write':"auth != null && ((!data.exists() && newData.child('dmUid').val() === auth.uid) || (data.child('dmUid').val() === auth.uid && newData.child('dmUid').val() === auth.uid))",
-      '.validate':"newData.hasChildren(['dmUid', 'mode', 'sceneId', 'characters']) && newData.child('dmUid').isString()"
+      // Firebase omits empty arrays; a DM must be able to start with zero PCs.
+      '.validate':"newData.hasChildren(['dmUid', 'mode', 'sceneId']) && newData.child('dmUid').isString()"
     }},
     playerEdits:{'$roomId':{
-      '.read':"auth != null && root.child('grim/rooms').child($roomId).exists()",
+      // The DM subscribes before an empty room is created; reading must work
+      // immediately, while writing is restricted to existing private rooms.
+      '.read':"auth != null",
       '$characterId':{'$uid':{'$field':{
-        '.write':`auth != null && auth.uid === $uid && (${known}) && newData.exists() && (!data.exists() || newData.child('revision').val() > data.child('revision').val())`,
+        '.write':`auth != null && root.child('grim/rooms').child($roomId).exists() && auth.uid === $uid && (${known}) && newData.exists() && (!data.exists() || newData.child('revision').val() > data.child('revision').val())`,
         '.validate':"newData.hasChildren(['revision', 'value']) && newData.child('revision').isNumber() && newData.child('revision').val() > 0 && newData.child('revision').val() < 9000000000000000 && ($field === 'conditions' ? (newData.child('value').isString() && newData.child('value').val().length <= 220) : (($field === 'name' || $field === 'ancestry' || $field === 'className') ? (newData.child('value').isString() && newData.child('value').val().length > 0 && newData.child('value').val().length <= 48) : (newData.child('value').isNumber() && newData.child('value').val() >= -100 && newData.child('value').val() <= 9999)))"
       }}}
     }}

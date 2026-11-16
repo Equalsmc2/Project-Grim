@@ -22,7 +22,7 @@ try{
   writeFileSync(path.join(temp,'mock-db.js'),`
     export const getDatabase=()=>({});
     export const ref=(_,p)=>p;
-    export const onValue=(location,cb)=>{if(location.startsWith('grim/playerEdits/')){queueMicrotask(()=>cb({val:()=>null}));return()=>{};}globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({dmUid:'test-dm',updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
+    export const onValue=(location,cb)=>{if(location.startsWith('grim/playerEdits/')){globalThis._mockCloudEdits=cb;queueMicrotask(()=>cb({val:()=>null}));return()=>{};}globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({dmUid:'test-dm',updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
     export const set=async(_,s)=>{globalThis._mockSent.push(s);if(globalThis._mockFailures>0){globalThis._mockFailures--;throw Object.assign(new Error('Connection lost'),{code:'unavailable'});}};
   `);
   writeFileSync(path.join(temp,'state.js'),`
@@ -32,6 +32,8 @@ try{
     export const getState=()=>state;
     export const subscribe=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
     export const applyCloudState=(next)=>{state=next;globalThis._mockReads.push(next.updatedAt);};
+    export const updateState=change=>{const next=structuredClone(state);change(next);state={...next,updatedAt:state.updatedAt+1};for(const fn of listeners)fn(state,'local');};
+    export const addHero=()=>{state={...state,characters:[{id:'hero',faction:'player',name:'Test Hero',maxHp:40,hp:20}]};};
     export function change(rev){state={...state,updatedAt:rev};for(const fn of listeners)fn(state,'local');}
   `);
   let code=readFileSync(path.join(src,'firebase-sync.js'),'utf8')
@@ -92,5 +94,12 @@ try{
   globalThis._mockCloudRead({exists:()=>true,val:()=>({updatedAt:55,mode:'combat',sceneId:'chapel',characters:[]})});
   assert.equal(upgraded[0]?.reason,'legacy','Legacy rooms migrate instead of being insecurely claimed');
   legacy.disconnect();
-  console.log('PASS: simulated DM/viewer sync, automatic room claiming, safe legacy upgrade, recovery and disconnect.');
+  const editSession=await mod.connectCloud({dm:true,room:'player-edit-room'});
+  await wait(0);
+  state.addHero();
+  globalThis._mockCloudEdits({val:()=>({hero:{'player-uid':{hp:{revision:7,value:17}}}})});
+  assert.equal(state.getState().characters[0].hp,17,'A player edit reaches the DM character sheet');
+  assert.equal(state.getState().playerEditCursors['hero/player-uid/hp'],7,'DM records the edit acknowledgement');
+  editSession.disconnect();
+  console.log('PASS: simulated DM/viewer sync, automatic room claiming, player edits, safe legacy upgrade, recovery and disconnect.');
 }finally{rmSync(temp,{recursive:true,force:true});delete globalThis.window;delete globalThis.localStorage;}
