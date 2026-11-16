@@ -22,7 +22,7 @@ try{
   writeFileSync(path.join(temp,'mock-db.js'),`
     export const getDatabase=()=>({});
     export const ref=(_,p)=>p;
-    export const onValue=(location,cb)=>{if(location.startsWith('grim/playerEdits/')){queueMicrotask(()=>cb({val:()=>null}));return()=>{};}globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
+    export const onValue=(location,cb)=>{if(location.startsWith('grim/playerEdits/')){queueMicrotask(()=>cb({val:()=>null}));return()=>{};}globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({dmUid:'test-dm',updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
     export const set=async(_,s)=>{globalThis._mockSent.push(s);if(globalThis._mockFailures>0){globalThis._mockFailures--;throw Object.assign(new Error('Connection lost'),{code:'unavailable'});}};
   `);
   writeFileSync(path.join(temp,'state.js'),`
@@ -50,14 +50,15 @@ try{
   await wait(0);
   assert.equal(state.getState().updatedAt,10,'First cloud state is authoritative before any local edits');
   state.change(50);
-  globalThis._mockCloudRead({exists:()=>true,val:()=>({updatedAt:12,mode:'combat',sceneId:'old',characters:[]})});
+  globalThis._mockCloudRead({exists:()=>true,val:()=>({dmUid:'test-dm',updatedAt:12,mode:'combat',sceneId:'old',characters:[]})});
   assert.equal(state.getState().updatedAt,50,'Pending local edits protected against remote state');
   await wait(245);
   assert(status.some(x=>x.includes('retry')),'Transient write failure is visible to DM');
   state.change(51);
   await wait(255);
   assert.equal(globalThis._mockSent.at(-1).updatedAt,51,'Latest local edits sync after a failed write');
-  globalThis._mockCloudRead({exists:()=>true,val:()=>({updatedAt:13,mode:'combat',sceneId:'old',characters:[]})});
+  assert.equal(globalThis._mockSent.at(-1).dmUid,'test-dm','DM ownership is attached to every write');
+  globalThis._mockCloudRead({exists:()=>true,val:()=>({dmUid:'test-dm',updatedAt:13,mode:'combat',sceneId:'old',characters:[]})});
   assert.equal(state.getState().updatedAt,51,'Stale first-connection cloud echo cannot roll back a successful local write');
   assert.equal(dm.getSyncStatus().hasPending,false);
   const count=globalThis._mockSent.length;
@@ -79,5 +80,17 @@ try{
   await wait(0);state.change(53);await wait(230);
   assert.equal(globalThis._mockSent.length,afterRecovery,'Viewer cannot publish local state');
   viewer.disconnect();
-  console.log('PASS: simulated anonymous Firebase DM/viewer connection, transient failure, remote echo protection, eventual publication and disconnect.');
+  const auto=await mod.connectCloud({dm:true,room:'new-private-room'});
+  await wait(0);
+  globalThis._mockCloudRead({exists:()=>false,val:()=>null});
+  await wait(240);
+  assert.equal(globalThis._mockSent.at(-1).dmUid,'test-dm','Empty rooms are claimed and published automatically');
+  const upgraded=[];
+  auto.disconnect();
+  const legacy=await mod.connectCloud({dm:true,room:'legacy-room',onRoomNeedsUpgrade:event=>upgraded.push(event)});
+  await wait(0);
+  globalThis._mockCloudRead({exists:()=>true,val:()=>({updatedAt:55,mode:'combat',sceneId:'chapel',characters:[]})});
+  assert.equal(upgraded[0]?.reason,'legacy','Legacy rooms migrate instead of being insecurely claimed');
+  legacy.disconnect();
+  console.log('PASS: simulated DM/viewer sync, automatic room claiming, safe legacy upgrade, recovery and disconnect.');
 }finally{rmSync(temp,{recursive:true,force:true});delete globalThis.window;delete globalThis.localStorage;}

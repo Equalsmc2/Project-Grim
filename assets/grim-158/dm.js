@@ -180,7 +180,6 @@ function newOnlineRoom(){
 function clearCloud(){
   ++cloudEpoch;
   cloud?.disconnect();cloud=null;cloudConnecting=null;
-  $('dmUid').value='';
 }
 async function copyText(str,label){
   try{await navigator.clipboard.writeText(str);toast(label+' copied');}
@@ -205,14 +204,8 @@ $('firebaseCheck').onchange=e=>{
   }
   settings(getState());
 };
-$('copyDmUid').onclick=()=>{
-  if(!cloud?.getUid())return toast('Enable Firebase first');
-  void copyText(cloud.getUid(),'DM browser ID');
-};
 $('copyFirebaseRules').onclick=()=>{
-  const uid=cloud?.getUid();
-  if(!uid){toast('Enable Firebase and let your device connect first');return;}
-  void copyText(JSON.stringify(playerRules(uid),null,2),'secure Firebase rules');
+  void copyText(JSON.stringify(playerRules(),null,2),'permanent project rules');
 };
 $('forcePublish').onclick=async()=>{
   if(!cloud&&getOptions().online)await startCloud();
@@ -243,8 +236,17 @@ async function startCloud(){
   cloudConnecting=(async()=>{
     try{
       const {connectCloud}=await import('./firebase-sync.js');
-      const instance=await connectCloud({dm:true,room:opts.room,status,onIdentity:uid=>{
-        if(currentEpoch===cloudEpoch)$('dmUid').value=uid;
+      const instance=await connectCloud({dm:true,room:opts.room,status,onRoomNeedsUpgrade:()=>{
+        if(currentEpoch!==cloudEpoch||getOptions().room!==opts.room)return;
+        // A legacy room cannot be silently claimed under the permanent rules.
+        // Preserve the locally loaded campaign and republish to a fresh room.
+        const nextRoom=newOnlineRoom();
+        setOptions({room:nextRoom});
+        toast('Online room upgraded automatically · share its new player link');
+        setTimeout(()=>{
+          if(currentEpoch!==cloudEpoch)return;
+          clearCloud();settings(getState());void startCloud();
+        },0);
       }});
       if(currentEpoch!==cloudEpoch){instance.disconnect();return null;}
       cloud=instance;

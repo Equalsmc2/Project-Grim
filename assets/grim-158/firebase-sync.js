@@ -3,10 +3,9 @@ import {getState,subscribe,applyCloudState} from './state.js';
 import {createCloudOutbox} from './cloud-outbox.js';
 import {PLAYER_EDIT_FIELDS,applyPlayerEdit,encodePlayerEdit} from './player-fields.js';
 
-// There is deliberately no interactive login. Both DM and viewers use Firebase
-// anonymous authentication. Database rules, NOT the existence of dm.html,
-// decide which anonymous UID may write to a room.
-export async function connectCloud({dm=false,player=false,room='grim-demo',status=()=>{},onIdentity=()=>{},onStateLoaded=()=>{}}){
+// There is deliberately no interactive login. Database rules bind each room
+// to its first DM browser on creation; no device-specific rules are generated.
+export async function connectCloud({dm=false,player=false,room='grim-demo',status=()=>{},onIdentity=()=>{},onStateLoaded=()=>{},onRoomNeedsUpgrade=()=>{}}){
   const startupUpdatedAt=getState().updatedAt;
   status('Connecting to Firebase…');
   const [{initializeApp,getApps,getApp},{getAuth,signInAnonymously,signOut,onAuthStateChanged},{getDatabase,ref,onValue,set}]=await Promise.all([
@@ -16,8 +15,8 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
   ]);
   const app=getApps().length?getApp():initializeApp(firebaseConfig);
   const auth=getAuth(app),db=getDatabase(app);
-  // Firebase persists this anonymous UID for this browser profile. Clearing the
-  // browser profile may require installing fresh DM rules for the new UID.
+  // Firebase persists this anonymous UID for the browser profile. A different
+  // profile receives a new private room automatically, not a new set of rules.
   const prior=await new Promise((resolve,reject)=>{
     let unsubscribe=()=>{};
     unsubscribe=onAuthStateChanged(auth,user=>{unsubscribe();resolve(user);},reject);
@@ -46,7 +45,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
 
   let hadLocalEdits=dm&&getState().updatedAt!==startupUpdatedAt;
   const outbox=dm?createCloudOutbox({
-    send:next=>set(roomRef,next),
+    send:next=>set(roomRef,{...next,dmUid:user.uid}),
     readState:()=>getState(),
     canWrite,
     onStatus:event=>{
@@ -60,7 +59,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
         status(`Firebase live · ${safeRoom}`);
       }
       else if(event.kind==='offline')status('Offline · local changes retained');
-      else if(event.kind==='denied')status('Write denied · check Firebase DM rules; edits kept locally');
+      else if(event.kind==='denied')status('Write denied · one-time project rules may not be installed; local edits kept');
       else if(event.kind==='retry')status(`Sync interrupted · retry in ${Math.ceil(event.delay/1000)}s`);
     }
   }):null;
@@ -76,6 +75,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
   });
   let initialSnapshot=true;
   let roomSnapshotReceived=false;
+  let roomCreationQueued=false,upgradeReported=false;
   let pendingPlayerEdits=null;
   const absorbPlayerEdits=()=>{
     if(!dm||!roomSnapshotReceived||!pendingPlayerEdits)return;
@@ -111,6 +111,19 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
   const unsubscribeData=onValue(roomRef,snapshot=>{
     if(!alive)return;
     roomSnapshotReceived=true;
+    const remote=snapshot.exists()?snapshot.val():null;
+    if(dm&&remote&&remote.dmUid!==user.uid){
+      roomSnapshotReceived=false;
+      if(!upgradeReported){
+        upgradeReported=true;
+        // An older room lacks an owner. Preserve its campaign snapshot when
+        // safe, then move to a new room; never claim a different DM's room.
+        if(!remote.dmUid&&!hadLocalEdits&&!outbox.hasPending&&!recoveryRequired)applyCloudState(remote,{initial:true});
+        status(remote.dmUid?'Previous DM browser owns this room · upgrading privately':'Upgrading older room to permanent security…');
+        onRoomNeedsUpgrade({reason:remote.dmUid?'different-owner':'legacy',room:safeRoom});
+      }
+      return;
+    }
     if(dm&&recoveryRequired){
       initialSnapshot=false;
       status('Unpublished local work found · click Publish to recover');
@@ -122,14 +135,19 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
       return;
     }
     if(!snapshot.exists()){
-      status(dm?'Room is empty · publish when rules are installed':'Waiting for DM to publish a scene');
+      if(dm&&!roomCreationQueued&&!recoveryRequired){
+        // A new room is claimed in the same atomic write as its initial scene.
+        // This requires no Publish button or per-device Firebase rule change.
+        roomCreationQueued=true;
+        outbox.queue(getState());
+        status(`Creating private room automatically · ${safeRoom}`);
+      }else status(dm?'Room not published yet':'Waiting for DM to publish a scene');
       onStateLoaded(false);
       if(dm)absorbPlayerEdits();
       return;
     }
     // On reconnection, an old initial echo must never replace a newer local
     // edit that this DM has just successfully sent.
-    const remote=snapshot.val();
     if(dm&&hadLocalEdits&&Number(remote?.updatedAt)<getState().updatedAt){
       initialSnapshot=false;return;
     }

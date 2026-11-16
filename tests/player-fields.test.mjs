@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 
 globalThis.localStorage={getItem:()=>null,setItem:()=>{}};
 globalThis.window={addEventListener:()=>{}};
@@ -24,9 +25,11 @@ assert.equal(campaign.characters[0].hp,10,'HP clamps if maximum decreases');
 assert.equal(applyPlayerEdit(campaign,'hero','conditions',['Prone','Frightened 1']),true);
 assert.deepEqual(campaign.characters[0].conditions,['Prone','Frightened 1']);
 
-const rules=playerRules('dm_device_123').rules.grim;
-assert(rules.rooms.$roomId['.write'].includes('dm_device_123'),'Campaign write stays DM-only');
+const rules=playerRules().rules.grim;
+assert(rules.rooms.$roomId['.write'].includes("newData.child('dmUid').val() === auth.uid"),'New rooms are claimed by their first DM');
+assert(rules.rooms.$roomId['.write'].includes("data.child('dmUid').val() === auth.uid"),'Updates require the existing DM');
+assert(!rules.rooms.$roomId['.write'].includes('REPLACE_WITH'),'No device-specific rules remain');
 assert.equal(rules.playerEdits.$roomId.$characterId.$uid.$field['.write'].includes('auth.uid === $uid'),true);
 assert(rules.playerEdits.$roomId.$characterId.$uid.$field['.validate'].includes('newData.hasChildren'));
-assert.throws(()=>playerRules('invalid uid!'));
+assert.deepEqual(JSON.parse(readFileSync('firebase-rtdb.rules.json','utf8')),playerRules(),'The deployable rules match the UI and validated field whitelist');
 console.log('PASS: player sheet field validation, enemy/DM isolation, numbered conditions, and scoped Firebase rules.');

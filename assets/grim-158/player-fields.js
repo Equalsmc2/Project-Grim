@@ -50,14 +50,16 @@ export function encodePlayerEdit(field,value){
   return field==='conditions'?normalized.join(','):normalized;
 }
 
-export function playerRules(dmUid){
-  if(!/^[A-Za-z0-9_-]{1,128}$/.test(dmUid))throw new Error('Invalid DM device ID');
+// These project-wide rules are installed once. Each newly created room then
+// binds itself to the DM's anonymous UID on its first successful write.
+// They never contain a browser-specific UID or require per-room rule edits.
+export function playerRules(){
   const known=PLAYER_EDIT_FIELDS.map(f=>`$field === '${f}'`).join(' || ');
   return {rules:{'.read':false,'.write':false,grim:{
     rooms:{'$roomId':{
       '.read':'auth != null',
-      '.write':`auth != null && auth.uid === '${dmUid}'`,
-      '.validate':"newData.hasChildren(['mode', 'sceneId', 'characters'])"
+      '.write':"auth != null && ((!data.exists() && newData.child('dmUid').val() === auth.uid) || (data.child('dmUid').val() === auth.uid && newData.child('dmUid').val() === auth.uid))",
+      '.validate':"newData.hasChildren(['dmUid', 'mode', 'sceneId', 'characters']) && newData.child('dmUid').isString()"
     }},
     playerEdits:{'$roomId':{
       '.read':"auth != null && root.child('grim/rooms').child($roomId).exists()",

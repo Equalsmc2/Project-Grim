@@ -1,4 +1,7 @@
 {
+  "database": {
+    "rules": "firebase-rtdb.rules.json"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
