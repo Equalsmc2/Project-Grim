@@ -43,7 +43,30 @@ test('player desk has usable controls without horizontal overflow on a phone', a
   expect(scrollWidth).toBeLessThanOrEqual(390);
   const bounds=await page.getByRole('button',{name:'Add five hit points'}).boundingBox();
   expect(bounds.width).toBeGreaterThanOrEqual(50);
-  expect(bounds.height).toBeGreaterThanOrEqual(40);
+  expect(bounds.height).toBeGreaterThanOrEqual(44);
+  const samples=await page.evaluate(()=>{
+    const selectors=['.player-page','.player-topbar','.player-roster','.player-health-card','.player-hp-actions button','.player-character-choice[aria-pressed="true"]','.player-stage-link'];
+    return selectors.flatMap(selector=>{
+      const element=document.querySelector(selector);
+      if(!element)return [];
+      const style=getComputedStyle(element);
+      return [style.color,style.backgroundColor,style.borderTopColor];
+    });
+  });
+  expect(samples.length).toBe(21);
+  for(const sample of samples){
+    const channels=sample.match(/\d+/g)||[];
+    expect(channels.length).toBeGreaterThanOrEqual(3);
+    expect(channels[0]).toBe(channels[1]);
+    expect(channels[1]).toBe(channels[2]);
+  }
+  const touchHeights=await page.locator('.player-hp-actions button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().height));
+  expect(Math.min(...touchHeights)).toBeGreaterThanOrEqual(44);
+  const profileInputSize=await page.locator('.player-profile-field input').first().evaluate(input=>parseFloat(getComputedStyle(input).fontSize));
+  expect(profileInputSize).toBeGreaterThanOrEqual(16);
+  await page.setViewportSize({width:320,height:720});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await page.setViewportSize({width:390,height:844});
   await test.info().attach('player-sheet-phone',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
 });
 
