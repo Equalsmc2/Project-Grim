@@ -1,3 +1,16 @@
+# Project Grim — Player Desk
+
+The companion page at **`player.html`** lets players select any player character the DM has created and edit its name, ancestry, class, level, HP, armor class, initiative, perception, temporary HP, and conditions. It is mobile-first and uses the same campaign data as `dm.html` and the TV stage. The DM alone creates/removes combatants and controls the stage, enemies and turns.
+
+- **Same computer:** Open `dm.html` and `player.html` in separate tabs. Local edits appear automatically on both.
+- **Separate phones:** DM opens **Connection & setup**, enables Firebase, follows the one-time DM device setup, clicks **Copy secure rules** and publishes the **new** rules in Firebase Realtime Database, then clicks **Copy player sheet URL** and shares it with their group. The DM browser must remain connected to apply player edits to the published stage. Players do not need accounts or passwords. Their changes are queued at Firebase when the DM is away, provided the player's phone has a connection.
+- **Trust boundary:** Anonymous players who receive the room link may choose and edit **any party sheet**. Keep the room link within your trusted group. The database rules restrict them to the player-edit inbox, not the campaign, enemies, or DM controls; the DM remains the only publisher of the shared campaign.
+- **Rules update required:** Old Firebase rules grant only the DM write access and will reject phone edits until replaced. Do not overwrite the rules with a public-write shortcut.
+
+Existing campaigns and DM settings are kept. Browser tests cover cross-tab editing and phone layouts; live Firebase deployment with separately authenticated phones still requires a real-room smoke test after the new rules are published.
+
+---
+
 # Project Grim 1.5.8 — Design Refinement
 
 This release reapplies the project's design principles: balanced space, minimal scrolling, purposeful text and controls, a dark monochrome foundation, and no redundant decoration. The DM overview now shows live environment facts instead of a fake scene preview. Music and other long lists use their available panel space. **No campaign reset or login change is required.**

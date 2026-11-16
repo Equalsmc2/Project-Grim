@@ -4,6 +4,7 @@ export default {
   testMatch: ['**/smoke.spec.mjs', '**/project-grim.spec.mjs', '**/music-import.spec.mjs'],
   routes: [
     { name: 'dm-overview', path: '/dm.html', ready: '#metrics .metric:first-child' },
+    { name: 'player-sheet', path: '/player.html', ready: '#playerCharacters .player-character-choice:first-child' },
     { name: 'stage-fallback', path: '/?webgl=0', ready: '#worldStatus', readyText: '2D FALLBACK · 3D unavailable' }
   ],
   visual: 'capture', masks: ['#activityLog'],

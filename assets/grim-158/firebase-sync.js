@@ -1,11 +1,12 @@
 import {firebaseConfig} from './firebase-config.js';
 import {getState,subscribe,applyCloudState} from './state.js';
 import {createCloudOutbox} from './cloud-outbox.js';
+import {PLAYER_EDIT_FIELDS,applyPlayerEdit,encodePlayerEdit} from './player-fields.js';
 
 // There is deliberately no interactive login. Both DM and viewers use Firebase
 // anonymous authentication. Database rules, NOT the existence of dm.html,
 // decide which anonymous UID may write to a room.
-export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onIdentity=()=>{}}){
+export async function connectCloud({dm=false,player=false,room='grim-demo',status=()=>{},onIdentity=()=>{},onStateLoaded=()=>{}}){
   const startupUpdatedAt=getState().updatedAt;
   status('Connecting to Firebase…');
   const [{initializeApp,getApps,getApp},{getAuth,signInAnonymously,signOut,onAuthStateChanged},{getDatabase,ref,onValue,set}]=await Promise.all([
@@ -29,6 +30,7 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
 
   const safeRoom=String(room).toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,60)||'grim-demo';
   const roomRef=ref(db,`grim/rooms/${safeRoom}`);
+  const editsRef=ref(db,`grim/playerEdits/${safeRoom}`);
   // Only a small revision marker is stored; the full campaign is already
   // persisted by state.js. Never silently replay old unsynced work on reload.
   const pendingKey=`grim:cloud-unsynced:${safeRoom}`;
@@ -39,7 +41,7 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
   let recoveryRequired=!!(marker&&marker.uid===user.uid&&Number(marker.revision)<=getState().updatedAt);
   let alive=true;
   const canWrite=()=>alive&&dm&&!!auth.currentUser&&typeof navigator!=='undefined'&&navigator.onLine!==false;
-  const readyText=dm?`DM device connected · ${safeRoom}`:`Viewer connected · ${safeRoom}`;
+  const readyText=dm?`DM device connected · ${safeRoom}`:player?`Player connected · ${safeRoom}`:`Viewer connected · ${safeRoom}`;
   status(readyText);
 
   let hadLocalEdits=dm&&getState().updatedAt!==startupUpdatedAt;
@@ -73,8 +75,42 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
     if(source==='local'&&dm&&alive){hadLocalEdits=true;outbox.queue(next);}
   });
   let initialSnapshot=true;
+  let roomSnapshotReceived=false;
+  let pendingPlayerEdits=null;
+  const absorbPlayerEdits=()=>{
+    if(!dm||!roomSnapshotReceived||!pendingPlayerEdits)return;
+    const edits=pendingPlayerEdits;
+    pendingPlayerEdits=null;
+    const cursors=getState().playerEditCursors||{};
+    const accepted=[];
+    for(const [charId,identities] of Object.entries(edits)){
+      if(!identities||typeof identities!=='object')continue;
+      for(const [uid,fields] of Object.entries(identities)){
+        if(!fields||typeof fields!=='object')continue;
+        for(const [field,entry] of Object.entries(fields)){
+          if(!PLAYER_EDIT_FIELDS.includes(field)||!entry||typeof entry!=='object')continue;
+          const revision=Number(entry.revision);
+          const key=`${charId}/${uid}/${field}`;
+          if(!Number.isSafeInteger(revision)||revision<=Number(cursors[key]||0))continue;
+          accepted.push({key,charId,field,value:entry.value,revision});
+        }
+      }
+    }
+    if(!accepted.length)return;
+    accepted.sort((a,b)=>a.revision-b.revision);
+    // A single atomic DM publication preserves card values and acknowledgements.
+    updateState(next=>{
+      next.playerEditCursors={...(next.playerEditCursors||{})};
+      for(const edit of accepted){
+        if(applyPlayerEdit(next,edit.charId,edit.field,edit.value)){
+          next.playerEditCursors[edit.key]=edit.revision;
+        }
+      }
+    });
+  };
   const unsubscribeData=onValue(roomRef,snapshot=>{
     if(!alive)return;
+    roomSnapshotReceived=true;
     if(dm&&recoveryRequired){
       initialSnapshot=false;
       status('Unpublished local work found · click Publish to recover');
@@ -87,6 +123,8 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
     }
     if(!snapshot.exists()){
       status(dm?'Room is empty · publish when rules are installed':'Waiting for DM to publish a scene');
+      onStateLoaded(false);
+      if(dm)absorbPlayerEdits();
       return;
     }
     // On reconnection, an old initial echo must never replace a newer local
@@ -97,9 +135,29 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
     }
     applyCloudState(remote,{initial:initialSnapshot});
     initialSnapshot=false;
+    onStateLoaded(true);
+    if(dm)absorbPlayerEdits();
   },error=>{
-    if(alive)status(`Firebase read blocked: ${error.message}`);
+    if(alive){status(`Firebase read blocked: ${error.message}`);onStateLoaded(false);}
   });
+  const unsubscribeEdits=dm?onValue(editsRef,snapshot=>{
+    if(!alive)return;
+    pendingPlayerEdits=snapshot.val()||{};
+    absorbPlayerEdits();
+  },error=>{if(alive)status(`Player edits unavailable · update Firebase rules (${error.code||'read denied'})`);}):()=>{};
+  let lastPlayerRevision=0;
+  const submitPlayerEdit=async(characterId,field,value)=>{
+    if(!alive||!player||!auth.currentUser||!navigator.onLine)throw new Error('Player connection is offline');
+    if(!getState().characters.some(c=>c.id===characterId&&c.faction!=='enemy'))throw new Error('This player character is unavailable');
+    if(!PLAYER_EDIT_FIELDS.includes(field))throw new Error('This field is DM-only');
+    const encoded=encodePlayerEdit(field,value);
+    if(encoded===null)throw new Error('Invalid value');
+    lastPlayerRevision=Math.max(Date.now(),lastPlayerRevision+1);
+    await set(ref(db,`grim/playerEdits/${safeRoom}/${characterId}/${user.uid}/${field}`),{
+      value:encoded,revision:lastPlayerRevision
+    });
+    return lastPlayerRevision;
+  };
   const online=()=>{if(alive){if(dm)outbox.resume();status(recoveryRequired?'Unpublished local work found · click Publish to recover':dm?'Reconnected · checking pending edits':'Viewer network restored');}};
   const offline=()=>{if(alive)status('Offline · local view still available');};
   if(typeof window!=='undefined'){
@@ -108,10 +166,11 @@ export async function connectCloud({dm=false,room='grim-demo',status=()=>{},onId
   }
   return {
     getUid:()=>user.uid,
+    submitPlayerEdit,
     publish:()=>dm?outbox.flush({force:true}):Promise.resolve(false),
     getSyncStatus:()=>({hasPending:!!outbox?.hasPending,retryAttempt:outbox?.retryAttempt||0}),
     disconnect:()=>{
-      alive=false;outbox?.dispose();unsubscribeLocal();unsubscribeData();
+      alive=false;outbox?.dispose();unsubscribeLocal();unsubscribeData();unsubscribeEdits();
       if(typeof window!=='undefined'){
         window.removeEventListener('online',online);
         window.removeEventListener('offline',offline);

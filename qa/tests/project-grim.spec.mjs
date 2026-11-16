@@ -1,5 +1,52 @@
 import { test, expect } from '../qa/fixtures.mjs';
 
+test('player desk selects characters and saves edits back to the DM across tabs', async ({ page, context }) => {
+  await page.goto('/dm.html');
+  await page.locator('#dmNav [data-section="cast"]').click();
+  await page.getByRole('button',{name:'+ Add player'}).click();
+  await page.locator('#castEditor [data-edit="name"]').fill('Astra Dawn');
+  const player=await context.newPage();
+  await player.goto('/player.html');
+  await expect(player.getByRole('button',{name:'Select Astra Dawn'})).toBeVisible();
+  await expect(player.locator('#playerCharacters .player-character-choice')).toHaveCount(5);
+  await player.getByRole('button',{name:'Select Fighter 01'}).click();
+  await expect(player.locator('#playerSheet h2')).toHaveText('Fighter 01');
+  await player.getByRole('button',{name:'Select Astra Dawn'}).click();
+  await player.getByRole('button',{name:'Subtract five hit points'}).click();
+  await expect(player.getByLabel('Current HP')).toHaveValue('15');
+  await player.getByLabel('Armor class').fill('21');
+  await player.getByLabel('Armor class').press('Tab');
+  if(await player.locator('[data-expand="conditions"]').getAttribute('open')===null){
+    await player.locator('[data-expand="conditions"] summary').click();
+  }
+  await player.getByRole('button',{name:/Frightened/}).click();
+  await expect(player.getByRole('button',{name:/Frightened 1/})).toHaveAttribute('aria-pressed','true');
+  await page.locator('#castList [data-select-cast]').filter({hasText:'Astra Dawn'}).click();
+  await expect(page.locator('#castEditor [data-edit="hp"]')).toHaveValue('15');
+  await expect(page.locator('#castEditor [data-edit="ac"]')).toHaveValue('21');
+  await player.reload();
+  await expect(player.locator('#playerSheet h2')).toHaveText('Astra Dawn');
+  await expect(player.getByLabel('Armor class')).toHaveValue('21');
+  await test.info().attach('player-sheet-desktop',{body:await player.screenshot({fullPage:true}),contentType:'image/png'});
+  await player.close();
+});
+
+test('player desk has usable controls without horizontal overflow on a phone', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/player.html');
+  await expect(page.locator('#playerCharacters .player-character-choice')).toHaveCount(4);
+  await expect(page.getByRole('heading',{name:'Your character, your story.'})).toBeVisible();
+  await page.getByLabel('Current HP').fill('29');
+  await page.getByLabel('Current HP').press('Tab');
+  await expect(page.getByLabel('Current HP')).toHaveValue('29');
+  const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
+  expect(scrollWidth).toBeLessThanOrEqual(390);
+  const bounds=await page.getByRole('button',{name:'Add five hit points'}).boundingBox();
+  expect(bounds.width).toBeGreaterThanOrEqual(50);
+  expect(bounds.height).toBeGreaterThanOrEqual(40);
+  await test.info().attach('player-sheet-phone',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
+});
+
 test('DM navigation and music search', async ({ page }) => {
   await page.goto('/dm.html');
   await page.locator('#dmNav [data-section="music"]').click();

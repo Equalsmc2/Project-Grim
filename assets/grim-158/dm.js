@@ -1,5 +1,6 @@
 import {nextNavigationIndex} from './presentation-preferences.js';
 import {SCENES,CONDITION_OPTIONS,getState,subscribe,updateState,getScene,orderedCharacters,adjustHp,randD20,defaultState,resetDemo,getOptions,setOptions,escapeHtml,prettyTime,isEnemy} from './state.js';
+import {playerRules} from './player-fields.js';
 const $=id=>document.getElementById(id);
 let section='overview';let selectedId=getState().characters[0]?.id;let cloud=null;let cloudConnecting=null;let cloudEpoch=0;let toastTimer;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2800);}
@@ -211,12 +212,7 @@ $('copyDmUid').onclick=()=>{
 $('copyFirebaseRules').onclick=()=>{
   const uid=cloud?.getUid();
   if(!uid){toast('Enable Firebase and let your device connect first');return;}
-  const data={rules:{'.read':false,'.write':false,grim:{rooms:{'$roomId':{
-    '.read':'auth != null',
-    '.write':`auth != null && auth.uid === '${uid}'`,
-    '.validate':"newData.hasChildren(['mode', 'sceneId', 'characters'])"
-  }}}}};
-  void copyText(JSON.stringify(data,null,2),'secure Firebase rules');
+  void copyText(JSON.stringify(playerRules(uid),null,2),'secure Firebase rules');
 };
 $('forcePublish').onclick=async()=>{
   if(!cloud&&getOptions().online)await startCloud();
@@ -227,6 +223,11 @@ $('copyStageLink').onclick=()=>{
   const opts=getOptions();const url=new URL('index.html',location.href);
   url.searchParams.set('online','1');url.searchParams.set('room',opts.room);
   void copyText(url.toString(),'online stage URL');
+};
+$('copyPlayerLink').onclick=()=>{
+  const opts=getOptions(),url=new URL('player.html',location.href);
+  if(opts.online){url.searchParams.set('online','1');url.searchParams.set('room',opts.room);}
+  void copyText(url.toString(),opts.online?'online player sheet URL':'local player sheet URL');
 };
 async function startCloud(){
   if(cloud)return cloud;

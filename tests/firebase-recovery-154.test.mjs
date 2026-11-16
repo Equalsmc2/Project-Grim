@@ -8,6 +8,7 @@ const src=path.resolve('assets/grim-158');
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
   cpSync(path.join(src,'cloud-outbox.js'),path.join(temp,'cloud-outbox.js'));
+  cpSync(path.join(src,'player-fields.js'),path.join(temp,'player-fields.js'));
   writeFileSync(path.join(temp,'package.json'),JSON.stringify({type:'module'}));
   writeFileSync(path.join(temp,'firebase-config.js'),`export const firebaseConfig={projectId:'local-test'};`);
   writeFileSync(path.join(temp,'mock-app.js'),`export const initializeApp=x=>x;export const getApps=()=>[];export const getApp=()=>({});`);
@@ -21,12 +22,13 @@ try{
   writeFileSync(path.join(temp,'mock-db.js'),`
     export const getDatabase=()=>({});
     export const ref=(_,p)=>p;
-    export const onValue=(_,cb)=>{globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
+    export const onValue=(location,cb)=>{if(location.startsWith('grim/playerEdits/')){queueMicrotask(()=>cb({val:()=>null}));return()=>{};}globalThis._mockCloudRead=cb;queueMicrotask(()=>cb({exists:()=>true,val:()=>({updatedAt:10,mode:'combat',sceneId:'chapel',characters:[]})}));return()=>{};};
     export const set=async(_,s)=>{globalThis._mockSent.push(s);if(globalThis._mockFailures>0){globalThis._mockFailures--;throw Object.assign(new Error('Connection lost'),{code:'unavailable'});}};
   `);
   writeFileSync(path.join(temp,'state.js'),`
     let state={updatedAt:20,mode:'combat',sceneId:'chapel',characters:[]};
     const listeners=new Set();
+    export const CONDITION_OPTIONS=['Frightened','Prone'];
     export const getState=()=>state;
     export const subscribe=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
     export const applyCloudState=(next)=>{state=next;globalThis._mockReads.push(next.updatedAt);};

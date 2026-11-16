@@ -1,0 +1,70 @@
+import {CONDITION_OPTIONS} from './state.js';
+
+// Only these card values are editable on a shared player sheet. In particular,
+// faction, hidden, combat turns, presentation, and scene data are DM-owned.
+export const PLAYER_NUMBER_FIELDS={
+  level:{label:'Level',min:1,max:20},
+  maxHp:{label:'Maximum HP',min:1,max:9999},
+  hp:{label:'Current HP',min:0,max:9999},
+  tempHp:{label:'Temporary HP',min:0,max:9999},
+  ac:{label:'Armor class',min:0,max:99},
+  initiative:{label:'Initiative',min:-100,max:150},
+  perception:{label:'Perception',min:-20,max:80}
+};
+export const PLAYER_TEXT_FIELDS={name:48,ancestry:35,className:35};
+export const PLAYER_EDIT_FIELDS=[...Object.keys(PLAYER_NUMBER_FIELDS),...Object.keys(PLAYER_TEXT_FIELDS),'conditions'];
+
+export function normalizePlayerEdit(field,value){
+  if(field in PLAYER_TEXT_FIELDS){
+    const clean=String(value??'').trim().slice(0,PLAYER_TEXT_FIELDS[field]);
+    return clean.length?clean:null;
+  }
+  if(field==='conditions'){
+    const names=Array.isArray(value)?value:String(value??'').split(',');
+    return [...new Set(names.map(x=>String(x).trim()).filter(x=>CONDITION_OPTIONS.includes(x)||/^(Frightened|Stunned|Dying|Wounded|Slowed|Sickened|Clumsy|Enfeebled|Drained) [1-4]$/.test(x)))].slice(0,CONDITION_OPTIONS.length);
+  }
+  const config=PLAYER_NUMBER_FIELDS[field];
+  if(!config||value===''||value===null||value===undefined||!Number.isFinite(Number(value)))return null;
+  return Math.max(config.min,Math.min(config.max,Math.trunc(Number(value))));
+}
+
+export function applyPlayerEdit(state,characterId,field,value){
+  const character=state.characters?.find(c=>c.id===characterId&&c.faction!=='enemy');
+  if(!character)return false;
+  const clean=normalizePlayerEdit(field,value);
+  if(clean===null)return false;
+  if(field==='conditions')character.conditions=clean;
+  else{
+    character[field]=clean;
+    if(field==='maxHp')character.hp=Math.min(Number(character.hp)||0,clean);
+    if(field==='hp')character.hp=Math.min(clean,Math.max(1,Number(character.maxHp)||1));
+  }
+  return true;
+}
+
+// Firebase stores conditions as a short CSV string; the DM applies the same
+// whitelist on receipt. This keeps validation small and blocks extra fields.
+export function encodePlayerEdit(field,value){
+  const normalized=normalizePlayerEdit(field,value);
+  if(normalized===null)return null;
+  return field==='conditions'?normalized.join(','):normalized;
+}
+
+export function playerRules(dmUid){
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(dmUid))throw new Error('Invalid DM device ID');
+  const known=PLAYER_EDIT_FIELDS.map(f=>`$field === '${f}'`).join(' || ');
+  return {rules:{'.read':false,'.write':false,grim:{
+    rooms:{'$roomId':{
+      '.read':'auth != null',
+      '.write':`auth != null && auth.uid === '${dmUid}'`,
+      '.validate':"newData.hasChildren(['mode', 'sceneId', 'characters'])"
+    }},
+    playerEdits:{'$roomId':{
+      '.read':"auth != null && root.child('grim/rooms').child($roomId).exists()",
+      '$characterId':{'$uid':{'$field':{
+        '.write':`auth != null && auth.uid === $uid && (${known}) && newData.exists() && (!data.exists() || newData.child('revision').val() > data.child('revision').val())`,
+        '.validate':"newData.hasChildren(['revision', 'value']) && newData.child('revision').isNumber() && newData.child('revision').val() > 0 && newData.child('revision').val() < 9000000000000000 && ($field === 'conditions' ? (newData.child('value').isString() && newData.child('value').val().length <= 220) : (($field === 'name' || $field === 'ancestry' || $field === 'className') ? (newData.child('value').isString() && newData.child('value').val().length > 0 && newData.child('value').val().length <= 48) : (newData.child('value').isNumber() && newData.child('value').val() >= -100 && newData.child('value').val() <= 9999)))"
+      }}}
+    }}
+  }}};
+}

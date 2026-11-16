@@ -22,7 +22,7 @@ function publicPath(requestUrl){
   if(segments.some(s => s === '..' || s === '.' || s.startsWith('.')))return null;
   const relative=segments.filter(Boolean).join('/') || 'index.html';
   // Do not accidentally serve .env, .git, project sources, secrets or test files.
-  if(relative==='index.html'||relative==='dm.html'||relative==='favicon.ico')return relative;
+  if(relative==='index.html'||relative==='dm.html'||relative==='player.html'||relative==='favicon.ico')return relative;
   if(relative.startsWith('assets/') && segments.filter(Boolean).length>=2)return relative;
   return null;
 }
@@ -64,4 +64,4 @@ const server=http.createServer((req,res)=>{
     });
   });
 });
-server.listen(port,'127.0.0.1',()=>console.log(`Project Grim stage: http://localhost:${port}/\nDM console: http://localhost:${port}/dm.html`));
+server.listen(port,'127.0.0.1',()=>console.log(`Project Grim stage: http://localhost:${port}/\nDM console: http://localhost:${port}/dm.html\nPlayer sheets: http://localhost:${port}/player.html`));
