@@ -1,9 +1,33 @@
-import {AVATAR_GROUPS,AVATAR_PALETTES,AVATAR_KEYS,DEFAULT_AVATAR,normalizeAvatar,encodeAvatar,randomAvatar,renderAvatarSvg,renderAvatarPng} from './avatar-art.js';
-import {escapeHtml} from './state.js';
+import {AVATAR_GROUPS,AVATAR_PALETTES,AVATAR_KEYS,AVATAR_ART_VERSION,DEFAULT_AVATAR,normalizeAvatar,encodeAvatar,isAvatarCode,randomAvatar,renderAvatarSvg,renderAvatarPng} from './avatar-art.js';
+import {escapeHtml,getState,updateState} from './state.js';
 
 let activeMaker=null;
+const artRefreshes=new Set();
 const clean=x=>escapeHtml(x);
 const partChoices=part=>part.palette?AVATAR_PALETTES[part.palette].map(pair=>pair[0]):part.choices;
+
+// Existing campaigns keep their editable 19-character recipes. Refresh any
+// older raster portraits without asking players or DMs to recreate characters.
+export function refreshAvatarArt(){
+ for(const c of getState().characters||[]){
+  if(!isAvatarCode(c.avatar)||c.portraitArtVersion===AVATAR_ART_VERSION&&String(c.portrait||'').startsWith('data:image/png;base64,'))continue;
+  const id=c.id,code=c.avatar,key=id+'/'+code;
+  if(artRefreshes.has(key))continue;
+  artRefreshes.add(key);
+  void renderAvatarPng(code).then(portrait=>{
+   const current=getState().characters.find(item=>item.id===id);
+   if(!current||current.avatar!==code||current.portraitArtVersion===AVATAR_ART_VERSION&&current.portrait===portrait)return;
+   updateState(next=>{
+    const character=next.characters.find(item=>item.id===id);
+    if(character&&character.avatar===code){
+     character.portrait=portrait;
+     character.portraitAvatar=code;
+     character.portraitArtVersion=AVATAR_ART_VERSION;
+    }
+   },'Handcrafted portrait style updated');
+  }).catch(error=>console.warn('Could not redraw saved portrait:',error)).finally(()=>artRefreshes.delete(key));
+ }
+}
 
 export function openAvatarMaker({name='Character',initial='',onSave}={}){
  if(activeMaker)activeMaker.close(true);

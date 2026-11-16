@@ -35,6 +35,27 @@ test('DM makes a layered shape portrait and it syncs to the player sheet',async(
  await player.close();
 });
 
+test('saved portraits refresh to the improved shapes without a new upload',async({page})=>{
+ await page.goto('/player.html');
+ await page.evaluate(async()=>{
+  const {updateState}=await import('/assets/grim-158/state.js');
+  const {encodeAvatar,DEFAULT_AVATAR}=await import('/assets/grim-158/avatar-art.js');
+  updateState(state=>{
+   const c=state.characters[0];
+   c.avatar=encodeAvatar(DEFAULT_AVATAR);
+   c.portraitAvatar=c.avatar;
+   c.portraitArtVersion=1;
+   c.portrait='data:image/png;base64,OLDSTYLE';
+  },'Legacy portrait style fixture');
+ });
+ await page.reload();
+ await expect.poll(()=>page.evaluate(async()=>{
+  const {getState}=await import('/assets/grim-158/state.js');
+  const c=getState().characters[0];
+  return {version:c.portraitArtVersion,redrawn:c.portrait.startsWith('data:image/png;base64,')&&!c.portrait.includes('OLDSTYLE'),recipeKept:c.portraitAvatar===c.avatar};
+ })).toEqual({version:2,redrawn:true,recipeKept:true});
+});
+
 test('player can make and revise portraits on a narrow touch screen',async({page,context})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('/player.html');

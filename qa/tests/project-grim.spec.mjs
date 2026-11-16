@@ -163,6 +163,8 @@ test('camera director settings stay in sync across DM and stage', async ({ page 
 });
 
 test('cinematic camera visibly moves in a running WebGL stage', async ({ page }) => {
+  // WebGL startup can take substantially longer on Linux CI than on a developer laptop.
+  test.setTimeout(60_000);
   await page.goto('/');
   await page.waitForFunction(() => document.querySelector('#stageApp')?.classList.contains('webgl-ready') || document.querySelector('#worldStatus')?.textContent?.includes('2D FALLBACK'));
   test.skip(!(await page.locator('#stageApp').evaluate(el=>el.classList.contains('webgl-ready'))),'WebGL unavailable in this browser environment');
@@ -173,7 +175,10 @@ test('cinematic camera visibly moves in a running WebGL stage', async ({ page })
   await expect(page.locator('#autoPanToggle')).toHaveAttribute('aria-pressed','true');
   await page.waitForFunction(() => window.grim3DStats?.camera?.cinematicEnabled === true);
   const before=await page.evaluate(()=>window.grim3DStats.camera);
-  await page.waitForTimeout(4000);
+  await page.waitForFunction(({yaw,glide})=>{
+    const camera=window.grim3DStats?.camera;
+    return camera&&(Math.abs(camera.yawDegrees-yaw)>1||Math.abs(camera.glide-glide)>.15);
+  },{yaw:before.yawDegrees,glide:before.glide},{timeout:25_000});
   const after=await page.evaluate(()=>window.grim3DStats.camera);
   const changedYaw=Math.abs(after.yawDegrees-before.yawDegrees);
   const changedGlide=Math.abs(after.glide-before.glide);

@@ -33,6 +33,8 @@ export const AVATAR_GROUPS=[
   {key:'outfit',label:'Outfit shape',choices:['Travel coat','Tunic','High collar','Armor','Cloak','Scholar','Scarf','Simple']},
   {key:'outfitColor',label:'Clothing color',palette:'outfitColor'}]}
 ];
+// Bump when the SVG geometry changes so saved portraits are redrawn automatically.
+export const AVATAR_ART_VERSION=2;
 export const AVATAR_KEYS=AVATAR_GROUPS.flatMap(g=>g.parts.map(p=>p.key));
 const bounds=Object.fromEntries(AVATAR_GROUPS.flatMap(g=>g.parts.map(p=>[p.key,p.palette?AVATAR_PALETTES[p.palette].length:p.choices.length])));
 export const DEFAULT_AVATAR={hairBack:2,bangs:1,sides:1,hairColor:2,eyes:0,iris:0,eyeColor:0,brows:0,face:0,skin:1,nose:0,mouth:1,extras:0,backdrop:0,outfit:0,outfitColor:0};
@@ -71,23 +73,26 @@ const sideHair=[
  'M59 120 Q43 150 52 172 L46 201 L66 196 L71 147Z M183 124 Q195 150 185 174 L194 198 L172 197 L170 145Z'
 ];
 const faceShapes=[
- 'M120 84 C156 82 181 112 180 160 C180 215 155 249 120 249 C85 249 60 215 60 160 C60 113 83 85 120 84Z',
- 'M120 85 C159 83 187 112 184 164 C182 220 151 245 120 246 C89 245 57 220 56 164 C53 112 81 83 120 85Z',
- 'M120 83 C155 80 177 102 181 139 L178 214 Q154 246 120 247 Q84 245 62 214 L59 139 C64 103 86 82 120 83Z',
- 'M120 82 C157 83 183 114 181 162 C178 201 151 247 120 260 C89 247 62 201 59 162 C57 114 83 83 120 82Z'
+ // All silhouettes share a crown, cheek line, jaw center and the same feature anchors.
+ 'M120 89 C158 87 182 119 178 170 C177 202 157 232 120 251 C83 232 63 202 62 170 C58 119 82 87 120 89Z',
+ 'M120 89 C162 88 185 122 183 171 C181 215 156 239 120 246 C84 239 59 215 57 171 C55 122 78 88 120 89Z',
+ 'M120 88 C158 86 181 112 181 143 L177 205 Q157 238 120 250 Q83 238 63 205 L59 143 C59 112 82 86 120 88Z',
+ 'M120 88 C160 88 184 120 181 170 C178 211 152 242 120 256 C88 242 62 211 59 170 C56 120 80 88 120 88Z'
 ];
 const eyeShapes=[
- 'M-20 0 Q0 -15 20 0 Q0 10 -20 0Z',
- 'M-18 0 A18 15 0 1 1 18 0 A18 15 0 1 1 -18 0Z',
- 'M-20 -2 Q0 -12 20 -2 Q8 13 -11 9Z',
- 'M-22 3 Q0 -18 22 -4 Q5 11 -22 3Z',
- 'M-20 -1 Q0 7 20 -1 Q3 14 -18 7Z',
- 'M-20 0 Q0 -20 20 0 Q0 17 -20 0Z',
- 'M-20 3 Q0 -6 20 1 Q0 7 -20 3Z',
+ 'M-19 0 Q-3 -12 19 -2 Q6 9 -10 8 Q-19 6 -19 0Z',
+ 'M-17 -1 C-15 -14 13 -16 18 -1 C20 12 -15 13 -17 -1Z',
+ 'M-19 0 Q-1 -8 19 -1 Q5 8 -14 7Z',
+ 'M-22 2 Q0 -16 21 -7 Q9 9 -22 2Z',
+ 'M-20 -3 Q-2 2 20 -3 Q5 9 -17 4Z',
+ 'M-19 -2 Q0 -19 19 -1 Q9 13 -13 11Z',
+ 'M-20 1 Q0 -6 20 -1 Q4 5 -20 1Z',
  ''
 ];
 const browPaths=[
- 'M-19 -1 Q0 -8 19 -1','M-20 0 L20 0','M-20 0 Q0 -13 20 -6','M-20 3 L20 -6','M-18 -1 Q0 -5 18 -2','', 'M-19 1 Q0 -18 19 1','M-12 -1 L13 -3'
+ 'M-18 0 Q0 -7 18 -1','M-19 1 L19 1','M-19 0 Q0 -12 19 -4',
+ 'M-18 4 L18 -4','M-18 0 Q0 -4 18 0','',
+ 'M-18 2 Q0 -14 18 2','M-12 0 L12 -2'
 ];
 function path(d,fill,extra=''){return d?'<path d="'+d+'" fill="'+fill+'" '+extra+'/>':'';}
 function line(d,stroke,width=2){return '<path d="'+d+'" fill="none" stroke="'+stroke+'" stroke-width="'+width+'" stroke-linecap="round" stroke-linejoin="round"/>';}
@@ -122,7 +127,7 @@ export function renderAvatarSvg(value){
  const pieces=['<svg xmlns="http://www.w3.org/2000/svg" width="320" height="430" viewBox="0 0 240 320" aria-hidden="true">'];
  pieces.push('<rect width="240" height="320" fill="'+back+'"/>');
  // Hair behind neck and shoulders.
- pieces.push(path(hairBack[a.hairBack],hair));
+ pieces.push('<g id="avatar-back-hair" transform="translate(0 32) scale(1 .83)">'+path(hairBack[a.hairBack],hair)+'</g>');
  pieces.push(path('M100 220 L140 220 L146 259 Q124 281 96 258Z',skin));
  pieces.push(path('M18 320 Q22 275 69 258 L100 246 L120 264 L140 246 L172 258 Q221 273 222 320Z',coat));
  if(a.outfit===0)pieces.push(path('M78 257 L118 287 L99 320 L70 271Z M162 257 L122 287 L141 320 L171 271Z',dark));
@@ -134,36 +139,44 @@ export function renderAvatarSvg(value){
  if(a.outfit===6)pieces.push(path('M86 250 Q118 275 152 250 Q171 268 164 284 Q118 308 75 282Z',hair));
  if(a.outfit===7)pieces.push(path('M110 264 L120 285 L130 264Z',light));
  // Ears and facial silhouette.
- pieces.push('<ellipse cx="62" cy="176" rx="12" ry="19" fill="'+skin+'"/><ellipse cx="178" cy="176" rx="12" ry="19" fill="'+skin+'"/>');
+ pieces.push('<ellipse cx="61" cy="175" rx="10" ry="16" fill="'+skin+'"/><ellipse cx="179" cy="175" rx="10" ry="16" fill="'+skin+'"/>');
  pieces.push(path(faceShapes[a.face],skin));
  // Subtle non-photorealistic contour marks.
- pieces.push(line('M69 172 Q64 181 70 188',edge,1)+line('M171 172 Q176 181 170 188',edge,1));
+ pieces.push(line('M68 178 Q63 182 69 187',edge,.7)+line('M172 178 Q177 182 171 187',edge,.7));
+ // A small scalp-cap gives exposed-forehead styles a natural hairline.
+ if(a.bangs===0&&a.hairBack>0)pieces.push(path('M61 133 Q58 73 120 67 Q180 73 179 133 L170 116 Q150 121 137 102 Q109 118 89 112 L67 137Z',hair));
  // Eyebrows, each separately positioned; they are partly hidden by the fringe.
- if(browPaths[a.brows]){pieces.push('<g transform="translate(91 145)">'+line(browPaths[a.brows],hair,3.2)+'</g>');pieces.push('<g transform="translate(149 145)">'+line(browPaths[a.brows],hair,3.2)+'</g>');}
+ if(browPaths[a.brows])for(const x of [91,149])pieces.push('<g transform="translate('+x+' 151) scale(.87 .83)">'+line(browPaths[a.brows],hair,2.9)+'</g>');
+ // Eye whites are the masks for pupils; the fringe cannot cover their centers.
+ // Versioned, per-recipe clip identifiers avoid collisions between option thumbnails.
  for(const x of [91,149]){
-  pieces.push('<g transform="translate('+x+' 176)">');
-  if(a.eyes===7){pieces.push(line('M-19 1 Q0 9 19 1',edge,3));}
+  pieces.push('<g id="avatar-eye-'+x+'" transform="translate('+x+' 172) scale(.88 .88)">');
+  if(a.eyes===7){pieces.push(line('M-18 0 Q0 8 18 0',edge,2.4));}
   else{
-   pieces.push(path(eyeShapes[a.eyes],light,'stroke="'+edge+'" stroke-width="2"'));
-   let radius=[8,11,6,8,8,9][a.iris]||8;
-   if(a.eyes===6)radius=Math.min(radius,5);
-   if(a.eyes===4)radius=Math.min(radius,6);
-   if(a.iris===3)pieces.push('<ellipse cx="0" cy="2" rx="4" ry="'+(radius+2)+'" fill="'+iris+'"/>');
-   else pieces.push('<circle cx="0" cy="2" r="'+radius+'" fill="'+iris+'"/>');
-   pieces.push('<ellipse cx="0" cy="3" rx="'+(a.iris===3?2.2:3.4)+'" ry="'+(a.iris===3?radius:5)+'" fill="'+dark+'"/>');
-   if(a.iris!==5)pieces.push('<circle cx="-3" cy="-3" r="2.6" fill="'+light+'"/>');
-   pieces.push(line('M-19 -2 Q0 -16 19 -2',edge,a.eyes===5?3.6:2.4));
+   const shape=eyeShapes[a.eyes],clipId='grimEye'+encodeAvatar(a).slice(3)+'x'+x;
+   pieces.push('<defs><clipPath id="'+clipId+'"><path d="'+shape+'"/></clipPath></defs>');
+   pieces.push(path(shape,light,'stroke="'+edge+'" stroke-width="1.6"'));
+   pieces.push('<g clip-path="url(#'+clipId+')">');
+   const radius=Math.min([7.5,10.5,5.5,7.5,7,8.5][a.iris]||7,[8,11,6,8,4,11,3][a.eyes]);
+   const cy=a.eyes===4?0:1;
+   if(a.iris===3)pieces.push('<ellipse cx="0" cy="'+cy+'" rx="3.1" ry="'+(radius+2)+'" fill="'+iris+'"/>');
+   else pieces.push('<circle cx="0" cy="'+cy+'" r="'+radius+'" fill="'+iris+'"/>');
+   pieces.push('<ellipse cx="0" cy="'+(cy+1)+'" rx="'+(a.iris===3?1.7:2.8)+'" ry="'+Math.min(4.5,radius)+'" fill="'+dark+'"/>');
+   if(a.iris!==5)pieces.push('<circle cx="-2.5" cy="-2.8" r="2" fill="'+light+'"/>');
+   pieces.push('</g>');
+   pieces.push(line('M-19 -2 Q-2 -13 19 -3',edge,a.eyes===5?2.8:2.1));
+   if(a.eyes===3||a.eyes===5)pieces.push(line('M-18 -2 L-22 -6',edge,1.6));
   }
   pieces.push('</g>');
  }
- const noses=['M120 189 l-2 7 l4 0','M119 194 l2 0','M119 189 q-6 9 3 8','M117 186 l-1 10 l6 1',''][a.nose];
+ const noses=['M120 189 l-2 6 l3 0','M119 195 l2 0','M119 190 q-4 6 2 6','M118 188 l-1 7 l4 1',''][a.nose];
  if(noses)pieces.push(line(noses,'#886c5d',1.8));
  const mouths=[
- 'M111 218 Q120 220 129 218','M109 214 Q120 227 131 214','M104 214 Q120 236 136 214','M112 221 Q120 216 128 221',
- 'M111 215 Q120 206 129 215 Q120 229 111 215Z','M104 216 Q120 229 136 216 M109 218 L131 218',
- 'M108 218 L132 218','M109 224 Q120 212 131 224'
+ 'M113 218 Q120 220 127 218','M112 215 Q120 222 128 215','M110 213 Q120 227 130 213','M114 220 Q120 217 126 220',
+ 'M114 215 Q120 210 126 215 Q120 225 114 215Z','M110 215 Q120 225 130 215 M112 217 L128 217',
+ 'M112 219 L128 219','M112 224 Q120 215 128 224'
  ];
- pieces.push(a.mouth===4?path(mouths[a.mouth],'#8e6263'):line(mouths[a.mouth],'#875c59',2.4));
+ pieces.push(a.mouth===4?path(mouths[a.mouth],'#8e6263'):line(mouths[a.mouth],'#875c59',1.9));
  if(a.extras===1)for(const x of [75,80,85,153,159,164])pieces.push('<circle cx="'+x+'" cy="'+(196+(x%3)*4)+'" r="1.8" fill="#ad7966"/>');
  if(a.extras===2)pieces.push('<ellipse cx="83" cy="202" rx="14" ry="6" fill="#d79d9d" opacity=".48"/><ellipse cx="157" cy="202" rx="14" ry="6" fill="#d79d9d" opacity=".48"/>');
  if(a.extras===3)pieces.push(line('M154 194 l14 12 M157 204 l9 -5','#8f5751',2));
@@ -172,9 +185,9 @@ export function renderAvatarSvg(value){
  if(a.extras===6)pieces.push('<rect x="68" y="160" width="48" height="33" rx="8" fill="none" stroke="'+edge+'" stroke-width="3"/><rect x="124" y="160" width="48" height="33" rx="8" fill="none" stroke="'+edge+'" stroke-width="3"/>'+line('M116 172 L124 172',edge,3));
  if(a.extras===7)pieces.push('<circle cx="59" cy="196" r="5" fill="none" stroke="#b69b5f" stroke-width="3"/><circle cx="181" cy="196" r="5" fill="none" stroke="#b69b5f" stroke-width="3"/>');
  // Front hair layers sit on top of the face, like real paper cutouts.
- pieces.push(path(sideHair[a.sides],hair));
- pieces.push(path(bangs[a.bangs],hair));
- // Reserved quiet corner rule, also masks tiny SVG antialiasing seams on export.
+ pieces.push('<g id="avatar-side-hair" transform="translate(120 24) scale(1.06 .84) translate(-120 0)">'+path(sideHair[a.sides],hair)+'</g>');
+ pieces.push('<g id="avatar-fringe" transform="translate(0 44) scale(1 .58)">'+path(bangs[a.bangs],hair)+'</g>');
+ // Hair, eyes and facial features share fixed anchors across every option.
  pieces.push('</svg>');
  return pieces.join('');
 }

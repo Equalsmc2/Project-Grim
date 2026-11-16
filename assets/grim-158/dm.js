@@ -1,7 +1,8 @@
 import {nextNavigationIndex} from './presentation-preferences.js';
 import {SCENES,CONDITION_OPTIONS,getState,subscribe,updateState,getScene,orderedCharacters,adjustHp,randD20,defaultState,resetDemo,getOptions,setOptions,escapeHtml,prettyTime,isEnemy} from './state.js';
 import {playerRules} from './player-fields.js';
-import {openAvatarMaker} from './avatar-maker.js';
+import {openAvatarMaker,refreshAvatarArt} from './avatar-maker.js';
+import {AVATAR_ART_VERSION} from './avatar-art.js';
 const $=id=>document.getElementById(id);
 let section='overview';let selectedId=getState().characters[0]?.id;let cloud=null;let cloudConnecting=null;let cloudEpoch=0;let toastTimer;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2800);}
@@ -166,7 +167,7 @@ $('castEditor').addEventListener('input',e=>{const key=e.target.dataset.edit;if(
 $('castEditor').addEventListener('change',e=>{if(e.target.id==='combatantFaction'){const faction=e.target.value==='enemy'?'enemy':'player';updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.faction=faction;},'Combatant changed to '+faction);render(getState());return;}
  if(e.target.id==='hiddenCharacter'){updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.hidden=e.target.checked;},'Card visibility changed');return;}
  if(e.target.id==='portraitUpload'&&e.target.files?.[0]){const f=e.target.files[0];if(!f.type.startsWith('image/')){toast('Choose a PNG, JPG or WebP image');return;}
- const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=320;canvas.height=430;const scale=Math.max(320/img.width,430/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(320-w)/2,(430-h)/2,w,h);const jpeg=canvas.toDataURL('image/jpeg',.73);updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c){c.portrait=jpeg;c.avatar='';c.portraitAvatar='';}},'Portrait uploaded');toast('Portrait added to 3D card');};img.src=reader.result;};reader.readAsDataURL(f);}
+ const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=320;canvas.height=430;const scale=Math.max(320/img.width,430/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(320-w)/2,(430-h)/2,w,h);const jpeg=canvas.toDataURL('image/jpeg',.73);updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c){c.portrait=jpeg;c.avatar='';c.portraitAvatar='';c.portraitArtVersion=0;}},'Portrait uploaded');toast('Portrait added to 3D card');};img.src=reader.result;};reader.readAsDataURL(f);}
  });
 $('castEditor').addEventListener('click',event=>{
  if(!event.target.closest('#openShapeCreator'))return;
@@ -177,7 +178,7 @@ $('castEditor').addEventListener('click',event=>{
   onSave:async({code,portrait})=>{
    updateState(next=>{
     const c=next.characters.find(item=>item.id===character.id);
-    if(c){c.avatar=code;c.portrait=portrait;c.portraitAvatar=code;}
+    if(c){c.avatar=code;c.portrait=portrait;c.portraitAvatar=code;c.portraitArtVersion=AVATAR_ART_VERSION;}
    },'Portrait created with shapes');
    toast('Portrait updated on the stage and player sheets');
   }
@@ -279,6 +280,7 @@ async function startCloud(){
   }
 }
 if(getOptions().online)void startCloud();
+else refreshAvatarArt();
 // Hotkeys on DM page: F5 browser remains native. C = combat, S = scene, N = next turn, when not editing.
 window.addEventListener('keydown',e=>{if(e.target?.closest?.('input,textarea,select,button,a,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;switch(e.key.toLowerCase()){case'c':switchMode('combat');break;case's':switchMode('scene');break;case'n':nextTurn();break;}});
 render(getState());

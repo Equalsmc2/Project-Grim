@@ -1,6 +1,7 @@
 import {CONDITION_OPTIONS,getState,getOptions,subscribe,updateState,escapeHtml} from './state.js';
 import {PLAYER_NUMBER_FIELDS,PLAYER_TEXT_FIELDS,normalizePlayerEdit,applyPlayerEdit} from './player-fields.js';
-import {openAvatarMaker} from './avatar-maker.js';
+import {openAvatarMaker,refreshAvatarArt} from './avatar-maker.js';
+import {AVATAR_ART_VERSION} from './avatar-art.js';
 
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search),options=getOptions();
@@ -65,7 +66,7 @@ function edit(field,value,portrait){
   const normalized=normalizePlayerEdit(field,value);
   if(normalized===null){status('Enter a valid value before saving','warning');render();return;}
   if(!online){
-    updateState(next=>{if(applyPlayerEdit(next,c.id,field,normalized)&&field==='avatar'){const updated=next.characters.find(item=>item.id===c.id);if(updated){updated.portrait=portrait;updated.portraitAvatar=normalized;}}});
+    updateState(next=>{if(applyPlayerEdit(next,c.id,field,normalized)&&field==='avatar'){const updated=next.characters.find(item=>item.id===c.id);if(updated){updated.portrait=portrait;updated.portraitAvatar=normalized;updated.portraitArtVersion=AVATAR_ART_VERSION;}}});
     status('Saved locally · stage tabs updated');
     return;
   }
@@ -132,7 +133,7 @@ const stageUrl=new URL('index.html',location.href);
 if(online){stageUrl.searchParams.set('online','1');stageUrl.searchParams.set('room',room);}
 else{stageUrl.searchParams.delete('online');stageUrl.searchParams.delete('room');}
 document.querySelector('.player-stage-link').href=stageUrl.href;
-if(!online){status('Local mode · edits sync on this device','warning');render();}
+if(!online){status('Local mode · edits sync on this device','warning');render();refreshAvatarArt();}
 else{
   status('Connecting to your DM’s room…','warning');render();
   try{
