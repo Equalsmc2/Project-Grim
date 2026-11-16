@@ -14,3 +14,10 @@ export function normalizeEnvironment(value){
  for(const [key,allowed]of Object.entries({ground:['blank','grass','stone','dirt','sand','snow','leaves'],hills:['flat','small','mid','mountains'],weather:['none','rain','snow','leaves','dust','blizzard','sandstorm','thunderstorm'],props:['mixed','forest','rocks','ruins','snow','grass','bushes','logs','graves'],ambience:['none','wind','storm','desert','blizzard','rain']}))if(!allowed.includes(e[key]))e[key]=ENV_DEFAULT[key];
  e.path=!!e.path;e.cycleEnabled=!!e.cycleEnabled;e.cinematicPan=!!e.cinematicPan;if(typeof e.atmospherePreset!=='string')e.atmospherePreset='Custom';return e;
 }
+// Camera direction is a live presentation choice, not a terrain preset.
+// Loading another biome must never turn off the cinematic camera or reset its pace.
+export function withEnvironmentPreset(current,presetName){
+ const previous=normalizeEnvironment(current);
+ if(!Object.hasOwn(PRESETS,presetName))return previous;
+ return normalizeEnvironment({...ENV_DEFAULT,...PRESETS[presetName],preset:presetName,seed:previous.seed,cinematicPan:previous.cinematicPan,cinematicSpeed:previous.cinematicSpeed});
+}

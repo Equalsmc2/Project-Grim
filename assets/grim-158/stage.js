@@ -30,8 +30,9 @@ if(motionControl)motionControl.addEventListener('change',()=>{
   motionChoice=normalizeMotionChoice(motionControl.value);
   try{localStorage.setItem(MOTION_STORAGE_KEY,motionChoice);}catch{}
   applyMotion();
+  updateCinematicUI(getState().environment?.cinematicPan);
 });
-systemMotion?.addEventListener?.('change',()=>{if(motionChoice==='system')applyMotion();});
+systemMotion?.addEventListener?.('change',()=>{if(motionChoice==='system'){applyMotion();updateCinematicUI(getState().environment?.cinematicPan);}});
 applyMotion();
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeImg=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x)?x:'';
@@ -91,7 +92,14 @@ function render(s){
   }
 }
 const autoPanButton=$('autoPanToggle');
-function updateCinematicUI(on){if(!autoPanButton)return;autoPanButton.classList.toggle('active',!!on);autoPanButton.setAttribute('aria-pressed',String(!!on));autoPanButton.textContent=on?'◉ Auto pan':'○ Auto pan';}
+function updateCinematicUI(on){
+ if(!autoPanButton)return;
+ const paused=!!on&&isReducedMotion();
+ autoPanButton.classList.toggle('active',!!on&&!paused);
+ autoPanButton.setAttribute('aria-pressed',String(!!on));
+ autoPanButton.textContent=paused?'◌ Cinematic paused':on?'◉ Cinematic on':'○ Cinematic off';
+ autoPanButton.title=paused?'Cinematic pan is paused by reduced motion. Choose Motion: Full to resume.':'Toggle automatic cinematic camera pan [C]';
+}
 if(autoPanButton)autoPanButton.addEventListener('click',()=>updateState(s=>{s.environment.cinematicPan=!s.environment.cinematicPan;}));
 
 

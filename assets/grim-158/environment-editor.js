@@ -1,5 +1,5 @@
 import {AMBIENCE_TRACKS,createAmbiencePlayer,normalizeSelection,formatGain} from './ambience.js';
-import {ENV_DEFAULT,PRESETS,normalizeEnvironment} from './environment-state.js';
+import {PRESETS,normalizeEnvironment,withEnvironmentPreset} from './environment-state.js';
 import {ATMOSPHERE_PRESETS,effectiveTime} from './atmosphere.js';
 import {subscribe,updateState,getState,escapeHtml} from './state.js';
 import {makeSceneSnapshot,insertSceneSnapshot,applySceneSnapshot} from './scene-snapshots.js';
@@ -99,7 +99,7 @@ panel.addEventListener('input',ev=>{
  const el=ev.target,key=el.dataset.env;if(!key)return;
  checkpoint(key,{continuous:el.type==='range'});
  updateState(s=>{
-  if(key==='preset')s.environment=normalizeEnvironment({...ENV_DEFAULT,...PRESETS[el.value],preset:el.value,seed:s.environment.seed});
+  if(key==='preset')s.environment=withEnvironmentPreset(s.environment,el.value);
   else{
    if(key==='cycleEnabled'){
     if(!el.checked)s.environment.timeOfDay=effectiveTime(s.environment);
