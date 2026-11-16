@@ -1,6 +1,7 @@
 import {nextNavigationIndex} from './presentation-preferences.js';
 import {SCENES,CONDITION_OPTIONS,getState,subscribe,updateState,getScene,orderedCharacters,adjustHp,randD20,defaultState,resetDemo,getOptions,setOptions,escapeHtml,prettyTime,isEnemy} from './state.js';
 import {playerRules} from './player-fields.js';
+import {openAvatarMaker} from './avatar-maker.js';
 const $=id=>document.getElementById(id);
 let section='overview';let selectedId=getState().characters[0]?.id;let cloud=null;let cloudConnecting=null;let cloudEpoch=0;let toastTimer;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2800);}
@@ -69,7 +70,7 @@ function cast(s){if(!s.characters.some(c=>c.id===selectedId))selectedId=s.charac
  const c=s.characters.find(c=>c.id===selectedId);if(!c){$('castEditor').innerHTML='<p class="muted">Add a character to begin editing.</p>';return;}
  // Never destroy a focused editor field on a keystroke.
  if($('castEditor').contains(document.activeElement)&&document.activeElement?.matches('input,textarea,select')){updateCastPreview(s);return;}
- $('castEditor').innerHTML=`<div class="cast-portrait-zone"><div class="portrait-preview">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="${escapeHtml(c.name)} portrait">`:String(s.characters.indexOf(c)+1).padStart(2,'0')}</div><div><label for="portraitUpload">↑ Upload portrait<input id="portraitUpload" type="file" accept="image/png,image/jpeg,image/webp"></label><p>Optional image. Without one, the card stays a neutral numbered placeholder.</p></div></div>
+ $('castEditor').innerHTML=`<div class="cast-portrait-zone"><div class="portrait-preview">${c.portrait?.startsWith('data:image/')?`<img src="${c.portrait}" alt="${escapeHtml(c.name)} portrait">`:String(s.characters.indexOf(c)+1).padStart(2,'0')}</div><div><button type="button" class="button button-primary" id="openShapeCreator">Make portrait from shapes</button><label for="portraitUpload">↑ Upload portrait<input id="portraitUpload" type="file" accept="image/png,image/jpeg,image/webp"></label><p>Build a layered portrait without uploading anything, or use your own image.</p></div></div>
  <label class="field faction-field"><span>Combatant type</span><select id="combatantFaction"><option value="player"${!isEnemy(c)?' selected':''}>Player character</option><option value="enemy"${isEnemy(c)?' selected':''}>Enemy / NPC</option></select></label>
  <div class="cast-edit-grid">
  <label class="field"><span>Display name</span><input data-edit="name" maxlength="48" value="${escapeHtml(c.name)}"></label>
@@ -165,8 +166,23 @@ $('castEditor').addEventListener('input',e=>{const key=e.target.dataset.edit;if(
 $('castEditor').addEventListener('change',e=>{if(e.target.id==='combatantFaction'){const faction=e.target.value==='enemy'?'enemy':'player';updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.faction=faction;},'Combatant changed to '+faction);render(getState());return;}
  if(e.target.id==='hiddenCharacter'){updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.hidden=e.target.checked;},'Card visibility changed');return;}
  if(e.target.id==='portraitUpload'&&e.target.files?.[0]){const f=e.target.files[0];if(!f.type.startsWith('image/')){toast('Choose a PNG, JPG or WebP image');return;}
- const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=320;canvas.height=430;const scale=Math.max(320/img.width,430/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(320-w)/2,(430-h)/2,w,h);const jpeg=canvas.toDataURL('image/jpeg',.73);updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c)c.portrait=jpeg;},'Portrait uploaded');toast('Portrait added to 3D card');};img.src=reader.result;};reader.readAsDataURL(f);}
+ const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=320;canvas.height=430;const scale=Math.max(320/img.width,430/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(320-w)/2,(430-h)/2,w,h);const jpeg=canvas.toDataURL('image/jpeg',.73);updateState(s=>{const c=s.characters.find(c=>c.id===selectedId);if(c){c.portrait=jpeg;c.avatar='';c.portraitAvatar='';}},'Portrait uploaded');toast('Portrait added to 3D card');};img.src=reader.result;};reader.readAsDataURL(f);}
  });
+$('castEditor').addEventListener('click',event=>{
+ if(!event.target.closest('#openShapeCreator'))return;
+ const character=getState().characters.find(c=>c.id===selectedId);
+ if(!character)return;
+ openAvatarMaker({
+  name:character.name,initial:character.avatar||'',
+  onSave:async({code,portrait})=>{
+   updateState(next=>{
+    const c=next.characters.find(item=>item.id===character.id);
+    if(c){c.avatar=code;c.portrait=portrait;c.portraitAvatar=code;}
+   },'Portrait created with shapes');
+   toast('Portrait updated on the stage and player sheets');
+  }
+ });
+});
 $('castEditor').addEventListener('click',e=>{if(e.target.id!=='removeCharacter')return;const c=getState().characters.find(c=>c.id===selectedId);if(!c)return;if(!confirm(`Remove ${c.name} from this prototype?`))return;updateState(s=>{s.characters=s.characters.filter(x=>x.id!==selectedId);if(s.combat.activeId===selectedId)s.combat.activeId=orderedCharacters(s)[0]?.id||null;},'Character removed');selectedId=getState().characters[0]?.id;render(getState());});
 // Settings
 $('cardScale').oninput=e=>updateState(s=>s.presentation.cardScale=Number(e.target.value)/100);

@@ -1,5 +1,6 @@
 import {CONDITION_OPTIONS,getState,getOptions,subscribe,updateState,escapeHtml} from './state.js';
 import {PLAYER_NUMBER_FIELDS,PLAYER_TEXT_FIELDS,normalizePlayerEdit,applyPlayerEdit} from './player-fields.js';
+import {openAvatarMaker} from './avatar-maker.js';
 
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search),options=getOptions();
@@ -50,21 +51,21 @@ function render(){
   };
   const profileField=(field,label)=>`<div class="player-profile-field"><label for="p-${field}">${label}</label><input id="p-${field}" data-field="${field}" maxlength="${PLAYER_TEXT_FIELDS[field]}" value="${escapeHtml(valueFor(c,field)||'')}" aria-label="${label}"></div>`;
   $('playerSheet').innerHTML=`
-    <div class="player-sheet-hero"><div class="player-hero-row"><div class="player-hero-art">${visual(c)}</div><div class="player-hero-copy"><span class="player-kicker">PLAYER CHARACTER · LIVE SHEET</span><h2>${escapeHtml(valueFor(c,'name'))}</h2><p>${escapeHtml(valueFor(c,'ancestry')||'Adventurer')} · ${escapeHtml(valueFor(c,'className')||'Adventurer')}</p><div class="player-hero-tags"><span>LEVEL ${escapeHtml(valueFor(c,'level'))}</span><span>${c.hidden?'HIDDEN FROM STAGE':'ON THE PARTY ROSTER'}</span></div></div></div></div>
+    <div class="player-sheet-hero"><div class="player-hero-row"><div class="player-hero-art">${visual(c)}</div><div class="player-hero-copy"><span class="player-kicker">PLAYER CHARACTER · LIVE SHEET</span><h2>${escapeHtml(valueFor(c,'name'))}</h2><p>${escapeHtml(valueFor(c,'ancestry')||'Adventurer')} · ${escapeHtml(valueFor(c,'className')||'Adventurer')}</p><div class="player-hero-tags"><span>LEVEL ${escapeHtml(valueFor(c,'level'))}</span><span>${c.hidden?'HIDDEN FROM STAGE':'ON THE PARTY ROSTER'}</span></div><div class="player-hero-tools"><button type="button" data-open-maker="1" aria-label="Make a portrait for this character">Make portrait</button></div></div></div></div>
     <div class="player-sheet-body"><section aria-label="Hit point controls"><div class="player-section-title"><h3>Hit points</h3><small>Update your HP quickly</small></div><div class="player-health-card"><div class="player-health-top"><div class="player-health-total">${hp} <span>/ ${maxHp} HP</span></div><strong class="player-health-percent">${pct}%</strong></div><div class="player-health-track" role="progressbar" aria-label="Current hit points" aria-valuenow="${hp}" aria-valuemin="0" aria-valuemax="${maxHp}"><i class="${pct<=30?'low':''}" style="width:${pct}%"></i></div><div class="player-hp-actions"><button type="button" data-hp-step="-5" aria-label="Subtract five hit points">− 5</button><button type="button" data-hp-step="-1" aria-label="Subtract one hit point">− 1</button><button type="button" data-hp-step="1" aria-label="Add one hit point">+ 1</button><button type="button" data-hp-step="5" aria-label="Add five hit points">+ 5</button></div></div></section>
       <section aria-label="Character statistics"><div class="player-section-title"><h3>Character values</h3><small>Tap a value to edit</small></div><div class="player-stats-grid">${['hp','maxHp','tempHp','ac','initiative','perception','level'].map(numberField).join('')}</div></section>
       <details class="player-detail-section" data-expand="conditions" ${expandedConditions?'open':''}><summary class="player-section-title"><h3>Conditions</h3><small>${cond.length?`${cond.length} active · `:''}Tap to ${expandedConditions?'collapse':'expand'} <span aria-hidden="true">⌄</span></small></summary><div class="player-conditions">${CONDITION_OPTIONS.map(name=>`<button type="button" class="player-condition" data-condition="${escapeHtml(name)}" aria-pressed="${!!activeCondition(name)}">${escapeHtml(activeCondition(name)||name)}${activeCondition(name)?' ✓':''}</button>`).join('')}</div></details>
       <details class="player-detail-section" data-expand="profile" ${expandedProfile?'open':''}><summary class="player-section-title"><h3>Character details</h3><small>Shown on your stage card <span aria-hidden="true">⌄</span></small></summary><div class="player-profile-fields">${profileField('name','Name')}${profileField('ancestry','Ancestry')}${profileField('className','Class')}</div></details>
-      <p class="player-sheet-hint">${online?'Changes are sent to your room. Your DM needs to be connected for them to appear on the stage.':'Local preview: edits sync between tabs on this device. Ask your DM for an online player link to use a separate phone.'} The DM controls combat turns, scene, character creation, and portraits.</p>
+      <p class="player-sheet-hint">${online?'Changes are sent to your room. Your DM needs to be connected for them to appear on the stage.':'Local preview: edits sync between tabs on this device. Ask your DM for an online player link to use a separate phone.'} The DM controls combat turns, scene, and character creation. You can make your own portrait.</p>
     </div>`;
 }
 
-function edit(field,value){
+function edit(field,value,portrait){
   const c=currentCharacter();if(!c||!ready)return;
   const normalized=normalizePlayerEdit(field,value);
   if(normalized===null){status('Enter a valid value before saving','warning');render();return;}
   if(!online){
-    updateState(next=>{applyPlayerEdit(next,c.id,field,normalized);});
+    updateState(next=>{if(applyPlayerEdit(next,c.id,field,normalized)&&field==='avatar'){const updated=next.characters.find(item=>item.id===c.id);if(updated){updated.portrait=portrait;updated.portraitAvatar=normalized;}}});
     status('Saved locally · stage tabs updated');
     return;
   }
@@ -92,6 +93,12 @@ $('playerCharacters').addEventListener('click',event=>{
   render();
 });
 $('playerSheet').addEventListener('click',event=>{
+  const creator=event.target.closest('[data-open-maker]');
+  if(creator){
+    const c=currentCharacter();if(!c)return;
+    openAvatarMaker({name:c.name,initial:valueFor(c,'avatar')||'',onSave:async({code,portrait})=>edit('avatar',code,portrait)});
+    return;
+  }
   const step=event.target.closest('[data-hp-step]');
   if(step){const c=currentCharacter();if(c)edit('hp',Number(valueFor(c,'hp'))+Number(step.dataset.hpStep));return;}
   const chip=event.target.closest('[data-condition]');

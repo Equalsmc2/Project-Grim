@@ -1,7 +1,7 @@
 export default {
   name: 'project-grim', baseURL: 'http://127.0.0.1:4173',
   command: 'node ../server.js',
-  testMatch: ['**/smoke.spec.mjs', '**/project-grim.spec.mjs', '**/music-import.spec.mjs'],
+  testMatch: ['**/smoke.spec.mjs', '**/project-grim.spec.mjs', '**/music-import.spec.mjs', '**/avatar-studio.spec.mjs'],
   routes: [
     { name: 'dm-overview', path: '/dm.html', ready: '#metrics .metric:first-child' },
     { name: 'player-sheet', path: '/player.html', ready: '#playerCharacters .player-character-choice:first-child' },

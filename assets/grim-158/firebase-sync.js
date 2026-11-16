@@ -2,6 +2,7 @@ import {firebaseConfig} from './firebase-config.js';
 import {getState,subscribe,applyCloudState,updateState} from './state.js';
 import {createCloudOutbox} from './cloud-outbox.js';
 import {PLAYER_EDIT_FIELDS,applyPlayerEdit,encodePlayerEdit} from './player-fields.js';
+import {isAvatarCode,renderAvatarPng} from './avatar-art.js';
 
 // There is deliberately no interactive login. Database rules bind each room
 // to its first DM browser on creation; no device-specific rules are generated.
@@ -77,6 +78,25 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
   let roomSnapshotReceived=false;
   let roomCreationQueued=false,upgradeReported=false;
   let pendingPlayerEdits=null;
+  const avatarRasterJobs=new Set();
+  function repairAvatarPortraits(){
+    if(!dm||!alive||!roomSnapshotReceived)return;
+    for(const character of getState().characters){
+      if(!isAvatarCode(character.avatar)||character.portraitAvatar===character.avatar&&String(character.portrait||'').startsWith('data:image/png;base64,'))continue;
+      const id=character.id,code=character.avatar,key=id+'/'+code;
+      if(avatarRasterJobs.has(key))continue;
+      avatarRasterJobs.add(key);
+      void renderAvatarPng(code).then(portrait=>{
+        if(!alive)return;
+        const current=getState().characters.find(item=>item.id===id);
+        if(!current||current.avatar!==code||current.portraitAvatar===code&&current.portrait===portrait)return;
+        updateState(s=>{
+          const c=s.characters.find(item=>item.id===id);
+          if(c&&c.avatar===code){c.portrait=portrait;c.portraitAvatar=code;}
+        },'Portrait rendered from shapes');
+      }).catch(error=>console.warn('Portrait drawing interrupted:',error)).finally(()=>avatarRasterJobs.delete(key));
+    }
+  }
   const absorbPlayerEdits=()=>{
     if(!dm||!roomSnapshotReceived||!pendingPlayerEdits)return;
     const edits=pendingPlayerEdits;
@@ -107,6 +127,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
         }
       }
     });
+    repairAvatarPortraits();
   };
   const unsubscribeData=onValue(roomRef,snapshot=>{
     if(!alive)return;
@@ -154,7 +175,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
     applyCloudState(remote,{initial:initialSnapshot});
     initialSnapshot=false;
     onStateLoaded(true);
-    if(dm)absorbPlayerEdits();
+    if(dm){absorbPlayerEdits();repairAvatarPortraits();}
   },error=>{
     if(alive){status(`Firebase read blocked: ${error.message}`);onStateLoaded(false);}
   });

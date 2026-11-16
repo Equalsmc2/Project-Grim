@@ -1,0 +1,83 @@
+/* Shared hand-drawn portrait studio: follows Project Grim's grayscale shell. */
+.player-hero-tools{margin-top:11px}
+.player-hero-tools button{min-height:44px;padding:9px 14px;background:#f2f2f2;color:#111;border:1px solid #f2f2f2;border-radius:3px;font-weight:750;font-size:12px}
+.player-hero-tools button:hover{background:#ccc}
+.cast-portrait-zone #openShapeCreator{margin-bottom:10px;min-height:44px;width:100%;white-space:normal;text-align:center}
+.cast-portrait-zone #openShapeCreator:hover{background:#d5d5d5;color:#111}
+.grim-maker-overlay{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.84);font-family:var(--sans,system-ui,sans-serif);color:#eee}
+.grim-maker-overlay *{box-sizing:border-box}
+.grim-maker-dialog{display:flex;flex-direction:column;width:min(1040px,100%);height:min(795px,calc(100dvh - 24px));background:#0d0d0d;border:1px solid #555;box-shadow:0 18px 80px #000;overflow:hidden;min-height:0}
+.grim-maker-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:16px 20px;border-bottom:1px solid #363636;flex:none}
+.grim-maker-kicker{font:700 10px var(--mono,monospace);letter-spacing:.1em;color:#aaa}
+.grim-maker-heading h2{font-size:23px;line-height:1.1;letter-spacing:-.03em;margin:5px 0}
+.grim-maker-heading p{font-size:12px;color:#aaa;margin:0}
+.grim-maker-overlay button{font:650 12px var(--sans,system-ui,sans-serif);border:1px solid #555;background:#1c1c1c;color:#eee;min-height:44px;cursor:pointer;transition:background .12s ease,border-color .12s ease;color-scheme:dark}
+.grim-maker-overlay button:hover{background:#303030;border-color:#aaa}
+.grim-maker-overlay button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.grim-maker-overlay button:disabled{opacity:.6;cursor:wait}
+.grim-maker-close{width:44px;flex:none;font-size:22px!important;line-height:1}
+.grim-maker-layout{display:grid;grid-template-columns:minmax(200px,312px) minmax(0,1fr);flex:1;min-height:0}
+.grim-maker-view{min-width:0;display:flex;flex-direction:column;gap:13px;padding:20px;border-right:1px solid #363636;background:#121212;overflow-y:auto;align-items:stretch}
+.grim-maker-portrait{display:grid;place-items:center;min-height:0;flex:1;background:#1a1a1a;border:1px solid #555;overflow:hidden}
+.grim-maker-portrait svg{display:block;width:auto;height:auto;max-height:100%;max-width:100%;aspect-ratio:320/430}
+.grim-maker-view-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none}
+.grim-maker-note{font:500 11px/1.5 var(--mono,monospace);color:#999;margin:0;flex:none}
+.grim-maker-controls{display:flex;flex-direction:column;min-height:0;min-width:0}
+.grim-maker-tabs{display:flex;gap:5px;align-items:center;padding:11px 13px;border-bottom:1px solid #333;overflow-x:auto;flex:none;scrollbar-width:thin}
+.grim-maker-tabs button{white-space:nowrap;padding:0 15px;flex:1 0 auto}
+.grim-maker-tabs button[aria-selected="true"],.grim-maker-parts button[aria-pressed="true"]{background:#f1f1f1;color:#111;border-color:#fff}
+.grim-maker-parts{display:flex;gap:7px;flex-wrap:wrap;padding:12px 16px 5px;flex:none}
+.grim-maker-parts button{padding:8px 12px;min-height:38px}
+.grim-maker-choice-header{padding:14px 16px 11px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none}
+.grim-maker-choice-header h3{margin:0;font-size:15px}
+.grim-maker-choice-header span{font:600 10px var(--mono,monospace);color:#aaa;white-space:nowrap}
+.grim-maker-options{padding:0 16px 17px;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));align-content:start;gap:9px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:thin}
+.grim-maker-option{display:grid;grid-template-rows:95px auto;min-height:137px!important;text-align:center;justify-items:center;align-items:center;gap:5px;padding:7px!important;overflow:hidden;min-width:0}
+.grim-maker-option[aria-pressed="true"]{border:2px solid #f1f1f1;background:#313131}
+.grim-maker-option small{font-size:11px;line-height:1.15;min-height:22px;display:flex;align-items:center;justify-content:center;color:#e3e3e3}
+.grim-maker-thumb{display:grid;place-items:center;overflow:hidden;width:70px;height:94px;border:1px solid #555;background:#eee}
+.grim-maker-thumb svg{display:block;width:70px;height:94px}
+.grim-maker-color{display:block;width:66px;height:66px;border:2px solid #aaa;box-shadow:0 0 0 5px #121212}
+.grim-maker-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 19px;border-top:1px solid #363636;background:#121212;flex:none;min-width:0}
+.grim-maker-footer span{font-size:11px;line-height:1.4;color:#aaa;max-width:360px}
+.grim-maker-footer-actions{display:flex;gap:9px;flex:none}
+.grim-maker-footer button{min-width:110px;padding:9px 14px}
+.grim-maker-save{background:#f0f0f0!important;color:#101010!important;border-color:#f0f0f0!important}
+.grim-maker-save:hover{background:#ccc!important}
+@media(max-width:700px){
+ .grim-maker-overlay{padding:0;align-items:stretch}
+ .grim-maker-dialog{width:100%;height:100dvh;border:0}
+ .grim-maker-heading{padding:11px 13px}
+ .grim-maker-heading h2{font-size:18px}
+ .grim-maker-heading p{font-size:11px}
+ .grim-maker-layout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+ .grim-maker-view{display:grid;grid-template-columns:112px minmax(0,1fr);grid-template-rows:1fr auto;column-gap:12px;row-gap:6px;padding:10px 13px;border:0;border-bottom:1px solid #333;overflow:visible}
+ .grim-maker-portrait{grid-column:1;grid-row:1 / span 2;width:112px;height:151px}
+ .grim-maker-portrait svg{width:112px;height:151px}
+ .grim-maker-view-tools{grid-column:2;grid-row:1;align-self:end}
+ .grim-maker-view-tools button{font-size:11px;min-width:0}
+ .grim-maker-note{grid-column:2;grid-row:2;align-self:start;font-size:10px}
+ .grim-maker-tabs{padding:8px 9px;gap:5px}
+ .grim-maker-tabs button{flex:none;min-height:39px;padding:0 12px;font-size:12px}
+ .grim-maker-parts{flex-wrap:nowrap;overflow-x:auto;padding:9px 11px 3px;gap:6px;scrollbar-width:thin}
+ .grim-maker-parts button{white-space:nowrap;font-size:11px;flex:none}
+ .grim-maker-choice-header{padding:10px 12px 9px}
+ .grim-maker-options{grid-template-columns:repeat(auto-fill,minmax(91px,1fr));padding:0 12px 11px;gap:7px}
+ .grim-maker-option{min-height:124px!important;grid-template-rows:81px auto}
+ .grim-maker-thumb{width:59px;height:79px}
+ .grim-maker-thumb svg{width:59px;height:79px}
+ .grim-maker-color{width:53px;height:53px}
+ .grim-maker-footer{padding:9px 12px;gap:8px}
+ .grim-maker-footer span{font-size:10px}
+ .grim-maker-footer-actions{gap:6px}
+ .grim-maker-footer button{min-width:70px;padding:8px 10px;font-size:11px}
+}
+@media(max-width:360px){
+ .grim-maker-heading p{display:none}
+ .grim-maker-view{grid-template-columns:94px 1fr}
+ .grim-maker-portrait{width:94px;height:126px}
+ .grim-maker-portrait svg{width:94px;height:126px}
+ .grim-maker-note{font-size:9px}
+ .grim-maker-options{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.grim-maker-overlay *{transition:none!important}}

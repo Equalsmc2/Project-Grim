@@ -9,6 +9,7 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
   cpSync(path.join(src,'cloud-outbox.js'),path.join(temp,'cloud-outbox.js'));
   cpSync(path.join(src,'player-fields.js'),path.join(temp,'player-fields.js'));
+  cpSync(path.join(src,'avatar-art.js'),path.join(temp,'avatar-art.js'));
   writeFileSync(path.join(temp,'package.json'),JSON.stringify({type:'module'}));
   writeFileSync(path.join(temp,'firebase-config.js'),`export const firebaseConfig={projectId:'local-test'};`);
   writeFileSync(path.join(temp,'mock-app.js'),`export const initializeApp=x=>x;export const getApps=()=>[];export const getApp=()=>({});`);
