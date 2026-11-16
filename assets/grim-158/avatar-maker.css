@@ -6,7 +6,7 @@
 .cast-portrait-zone #openShapeCreator:hover{background:#d5d5d5;color:#111}
 .grim-maker-overlay{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.84);font-family:var(--sans,system-ui,sans-serif);color:#eee}
 .grim-maker-overlay *{box-sizing:border-box}
-.grim-maker-dialog{display:flex;flex-direction:column;width:min(1040px,100%);height:min(795px,calc(100dvh - 24px));background:#0d0d0d;border:1px solid #555;box-shadow:0 18px 80px #000;overflow:hidden;min-height:0}
+.grim-maker-dialog{display:flex;flex-direction:column;width:min(1040px,100%);height:min(710px,calc(100dvh - 24px));background:#0d0d0d;border:1px solid #555;box-shadow:0 18px 80px #000;overflow:hidden;min-height:0}
 .grim-maker-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:16px 20px;border-bottom:1px solid #363636;flex:none}
 .grim-maker-kicker{font:700 10px var(--mono,monospace);letter-spacing:.1em;color:#aaa}
 .grim-maker-heading h2{font-size:23px;line-height:1.1;letter-spacing:-.03em;margin:5px 0}
