@@ -1342,3 +1342,37 @@ html,body{height:100%}
  .grim-stage-audio{max-width:calc(100vw - 16px)}
  .grim-stage-audio .stage-music-import{padding:4px 6px}
 }
+
+/* Compact, adjustable stage camera director. The controls float over the
+   battlefield without resizing or obscuring the 3D render surface. */
+.stage-camera-settings{position:relative;min-width:0}
+.stage-camera-settings>summary{list-style:none;display:flex;align-items:center;justify-content:center;user-select:none}
+.stage-camera-settings>summary::-webkit-details-marker{display:none}
+.stage-camera-settings[open]>summary{background:#34393a;color:#fff;border-color:#747d80}
+.stage-camera-panel{position:absolute;z-index:65;top:calc(100% + 10px);right:0;width:min(310px,calc(100vw - 18px));max-height:calc(100dvh - 145px);overflow-y:auto;box-sizing:border-box;display:grid;gap:12px;padding:14px;border:1px solid #687174;border-radius:6px;background:#101416;box-shadow:0 14px 32px #000d;color:#e2e6e6;text-align:left}
+.stage-camera-panel-heading{display:grid;gap:4px;padding-bottom:9px;border-bottom:1px solid #343d40}
+.stage-camera-panel-heading strong{font-size:13px;letter-spacing:.04em}
+.stage-camera-panel-heading span,.stage-camera-panel .camera-hint{color:#aab6b8;font-size:11px;line-height:1.45}
+.stage-camera-panel .camera-setting{display:grid;gap:7px;min-width:0;font:600 11px var(--mono);color:#e2e6e6}
+.stage-camera-panel .camera-setting>span{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.stage-camera-panel .camera-setting output{color:#accfd7;font-weight:700}
+.stage-camera-panel input[type=range]{width:100%;margin:0;accent-color:#b0d1da;cursor:pointer}
+.stage-camera-panel select{width:100%;min-height:33px;padding:6px 8px;border:1px solid #4b585e;border-radius:4px;background:#1c262a;color:#edf3f4;font:inherit;cursor:pointer}
+.stage-camera-panel select:focus-visible,.stage-camera-settings>summary:focus-visible{outline:2px solid #c5edf5;outline-offset:2px}
+.stage-camera-local{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-top:10px;border-top:1px solid #343d40}
+.stage-camera-local>label{display:grid;gap:6px;min-width:0;font:600 10px var(--mono);color:#b7c3c5}
+.stage-camera-local select{min-width:0;font-size:11px}
+.stage-camera-panel .camera-hint{margin:0}
+.grim-cinematic-section{margin:10px 0 3px;padding:13px 14px;border:1px solid #455357;border-radius:5px;background:linear-gradient(135deg,#1b2326,#111416)}
+.grim-cinematic-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.grim-cinematic-heading strong{font:700 13px var(--mono);letter-spacing:.03em;color:#e9eeee}
+.grim-cinematic-heading small{color:#a6b6b9;font-size:10px;line-height:1.4}
+.grim-cinematic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 15px;align-items:end}
+.grim-cinematic-grid .toggle-line{align-self:center;min-width:0}
+.grim-cinematic-grid .field{min-width:0}
+@media(max-width:560px){
+ .view-controls .stage-camera-settings{width:100%}
+ .view-controls .stage-camera-settings>summary{width:100%;box-sizing:border-box}
+ .stage-camera-panel{right:0;width:min(300px,calc(100vw - 16px));max-height:calc(100dvh - 127px)}
+ .grim-cinematic-grid{grid-template-columns:1fr}
+}

@@ -7,10 +7,10 @@ import {applyEnvironmentHistory,createEnvironmentHistoryController} from './envi
 import {exportSceneBackup,parseSceneBackup,mergeSceneBackups,MAX_SCENE_BACKUP_BYTES} from './scene-backup.js';
 const panel=document.getElementById('environmentEditor');
 const choices={ground:['blank','grass','stone','dirt','sand','snow','leaves'],hills:['flat','small','mid','mountains'],weather:['none','rain','snow','leaves','dust','blizzard','sandstorm','thunderstorm'],props:['mixed','forest','rocks','ruins','snow','grass','bushes','logs','graves']};
-const ranges={terrainWidth:['Terrain width',18,48,1],terrainDepth:['Terrain depth',12,36,1],variation:['Surface variation',0,1,.05],pathX:['Path position X',-7,7,.1],pathZ:['Path position Z',-4,4,.1],pathAngle:['Path orientation °',-180,180,5],pathWidth:['Path width',.5,6,.1],pathEdge:['Path edge scatter',0,1,.05],intensity:['Weather intensity',0,1,.05],windAngle:['Wind direction °',0,360,5],windSpeed:['Wind speed',0,5,.1],fog:['Atmospheric fog',0,1,.05],accumulation:['Ground accumulation',0,1,.05],density:['Prop density',0,1,.05],timeOfDay:['Time of day (hours)',0,24,.25],cloudCover:['Cloud coverage',0,1,.05],cycleSpeed:['Cycle speed (hours / real hour)',1,96,1],cinematicSpeed:['Cinematic pan speed',.35,2.5,.05]};
+const ranges={terrainWidth:['Terrain width',18,48,1],terrainDepth:['Terrain depth',12,36,1],variation:['Surface variation',0,1,.05],pathX:['Path position X',-7,7,.1],pathZ:['Path position Z',-4,4,.1],pathAngle:['Path orientation °',-180,180,5],pathWidth:['Path width',.5,6,.1],pathEdge:['Path edge scatter',0,1,.05],intensity:['Weather intensity',0,1,.05],windAngle:['Wind direction °',0,360,5],windSpeed:['Wind speed',0,5,.1],fog:['Atmospheric fog',0,1,.05],accumulation:['Ground accumulation',0,1,.05],density:['Prop density',0,1,.05],timeOfDay:['Time of day (hours)',0,24,.25],cloudCover:['Cloud coverage',0,1,.05],cycleSpeed:['Cycle speed (hours / real hour)',1,96,1],cinematicStrength:['Movement strength',.4,2.4,.1],cinematicSpeed:['Movement speed',.35,2.5,.05]};
 const select=(key,label,values)=>`<label class="field"><span>${label}</span><select data-env="${key}">${values.map(v=>`<option value="${v}">${v}</option>`).join('')}</select></label>`;
 const slider=(key)=>{const [label,min,max,step]=ranges[key];return `<label class="field"><span>${label} <output id="env-${key}"></output></span><input type="range" aria-label="${label}" data-env="${key}" min="${min}" max="${max}" step="${step}"></label>`;};
-const atmosphereKeys=['timeOfDay','cloudCover','cycleSpeed','cinematicSpeed','fog','accumulation','intensity','windAngle','windSpeed'];
+const atmosphereKeys=['timeOfDay','cloudCover','cycleSpeed','cinematicSpeed','cinematicStrength','fog','accumulation','intensity','windAngle','windSpeed'];
 const terrainKeys=Object.keys(ranges).filter(key=>!atmosphereKeys.includes(key));
 panel.innerHTML=`
  <div class="grim-scene-snapshots" aria-label="Saved scene snapshots">
@@ -21,11 +21,18 @@ panel.innerHTML=`
    <div class="grim-env-history"><button id="envUndo" type="button" class="button button-secondary" disabled>Undo</button><button id="envRedo" type="button" class="button button-secondary" disabled>Redo</button><small>Environment edits only</small></div>
  </div>
  <div class="environment-toolbar">${select('preset','Environment preset',Object.keys(PRESETS))}<button class="button button-secondary" id="envRegenerate">Regenerate seed</button><button class="button button-secondary" id="envClear">Clear props</button></div>
+ <section class="grim-cinematic-section" aria-label="Stage camera director">
+  <div class="grim-cinematic-heading"><strong>Camera director</strong><small>Shared with the stage viewer · manual movement briefly pauses the motion</small></div>
+  <div class="grim-cinematic-grid">
+   <label class="toggle-line"><input type="checkbox" data-env="cinematicPan"><span>Enable automatic camera motion</span></label>
+   <label class="field"><span>Shot style</span><select data-env="cinematicStyle"><option value="follow">Follow active turn</option><option value="orbit">Ambient orbit</option><option value="sweep">Wide sweep</option></select></label>
+   ${slider('cinematicStrength')}${slider('cinematicSpeed')}
+  </div>
+ </section>
  <div class="grim-atmosphere-panel">
   <div class="panel-header"><div><span class="eyebrow">LIVE LIGHTING / SKY</span><h3>Living atmosphere</h3></div><span class="atmosphere-clock" id="envClock">12:00</span></div>
   <div class="atmosphere-presets">${Object.keys(ATMOSPHERE_PRESETS).map(name=>`<button type="button" class="button button-secondary atmo-preset" data-atmo-preset="${name}" title="Set ${name} atmosphere">${name}</button>`).join('')}</div>
   <div class="environment-grid atmosphere-controls">${slider('timeOfDay')}<label class="toggle-line"><input type="checkbox" data-env="cycleEnabled"><span>Run day / night cycle</span></label>${slider('cloudCover')}${slider('cycleSpeed')}${select('weather','3D weather / storm',choices.weather)}${slider('intensity')}${slider('fog')}${slider('accumulation')}${slider('windAngle')}${slider('windSpeed')}</div>
-  <div class="environment-grid grim-cinematic-editor"><label class="toggle-line"><input type="checkbox" data-env="cinematicPan"><span>Automatic cinematic camera pan on the stage</span></label>${slider('cinematicSpeed')}</div>
   <p class="helper">Sun, moon, clouds, weather and lighting transition smoothly. Night darkens the environment without hiding combat cards.</p>
  </div>
  <div class="grim-ambience-panel" aria-label="Ambience sounds">

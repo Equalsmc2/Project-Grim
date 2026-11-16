@@ -80,6 +80,7 @@ function render(s){
   }
   if(world){world.update(s.environment);world.setCards(layout.placements,chars,combat);}
   updateCinematicUI(s.environment?.cinematicPan);
+  updateCameraSettingValues(s.environment);
   if(combat){
     $('roundDisplay').textContent=s.combat.round;
     const current=s.characters.find(c=>c.id===s.combat.activeId);
@@ -92,6 +93,26 @@ function render(s){
   }
 }
 const autoPanButton=$('autoPanToggle');
+const cameraSettings=$('stageCameraSettings');
+const cameraStyleControl=$('stageCinematicStyle');
+const cameraStrengthControl=$('stageCinematicStrength');
+const cameraSpeedControl=$('stageCinematicSpeed');
+const cameraStrengthOutput=$('stageCinematicStrengthValue');
+const cameraSpeedOutput=$('stageCinematicSpeedValue');
+function updateCameraSettingValues(e={}){
+ if(document.activeElement!==cameraStyleControl)cameraStyleControl.value=e.cinematicStyle||'follow';
+ if(document.activeElement!==cameraStrengthControl)cameraStrengthControl.value=e.cinematicStrength??1.5;
+ if(document.activeElement!==cameraSpeedControl)cameraSpeedControl.value=e.cinematicSpeed??1;
+ cameraStrengthOutput.textContent=Number(cameraStrengthControl.value).toFixed(1)+'×';
+ cameraSpeedOutput.textContent=Number(cameraSpeedControl.value).toFixed(1)+'×';
+}
+cameraStyleControl.addEventListener('change',()=>updateState(s=>{s.environment.cinematicStyle=cameraStyleControl.value;}));
+for(const [control,key,output] of [[cameraStrengthControl,'cinematicStrength',cameraStrengthOutput],[cameraSpeedControl,'cinematicSpeed',cameraSpeedOutput]]){
+ control.addEventListener('input',()=>{output.textContent=Number(control.value).toFixed(1)+'×';});
+ control.addEventListener('change',()=>updateState(s=>{s.environment[key]=Number(control.value);}));
+}
+document.addEventListener('pointerdown',e=>{if(cameraSettings.open&&!cameraSettings.contains(e.target))cameraSettings.open=false;});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&cameraSettings.open)cameraSettings.open=false;});
 function updateCinematicUI(on){
  if(!autoPanButton)return;
  const paused=!!on&&isReducedMotion();
@@ -122,6 +143,10 @@ function selectCameraView(mode){
  $('chapterLabel').textContent=`BATTLEFIELD / ${names[mode]}`;
 }
 document.querySelectorAll('[data-camera-view]').forEach(btn=>btn.addEventListener('click',()=>selectCameraView(btn.dataset.cameraView)));
+$('stageCameraReset').addEventListener('click',()=>{
+ selectCameraView(viewMode);
+ const node=$('room3d');node.style.setProperty('--camera-yaw','0deg');node.style.setProperty('--camera-pitch','0deg');
+});
 let tiltFrame=0,tiltX=0,tiltY=0;
 window.addEventListener('mousemove',e=>{
   // Native cards are GPU billboards: do not touch invisible fallback HTML
@@ -156,7 +181,7 @@ window.addEventListener('keydown',e=>{
  else if(['-','_'].includes(key)){e.preventDefault();changeZoom(zoom/1.09);}
 });
 stage.addEventListener('wheel',e=>{
- if(!world)return;
+ if(!world||e.target.closest('.view-controls'))return;
  e.preventDefault();
  changeZoom(zoom*Math.exp(-e.deltaY*.0011));
 },{passive:false});
@@ -165,7 +190,7 @@ stage.addEventListener('wheel',e=>{
 // camera; each HTML card is reprojected from its unchanged 3D ground anchor.
 let cameraDrag=null;
 stage.addEventListener('pointerdown',e=>{
-  if(e.button!==0||!world||e.target.closest('button,a,input,select,textarea'))return;
+  if(e.button!==0||!world||e.target.closest('.view-controls,button,a,input,select,textarea'))return;
   ({yaw,pitch}=world.getOrbit());
   world.pauseCinematic();
   cameraDrag={id:e.pointerId,x:e.clientX,y:e.clientY};

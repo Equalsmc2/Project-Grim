@@ -45,7 +45,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
  const weatherBudget=createWeatherBudget();let weatherMatrixWrites=0,weatherDrawFrames=0,lightingSettled=false;
  let lastScenicWet=NaN,lastScenicSnow=NaN;
- let cinematicEnabled=false,cinematicSpeed=1,cinematicPauseUntil=0,cinematicStart=0,cinematicGlide=0;
+ let cinematicEnabled=false,cinematicSpeed=1,cinematicStrength=1.5,cinematicStyle='follow',cinematicPauseUntil=0,cinematicStart=0,cinematicGlide=0;
  const sunDir=new T.Vector3(),moonDir=new T.Vector3(),stormTint=new T.Color(),fogTarget=new T.Color();
  let clouds=[],cloudClock=0,cloudUpdated=0,currentHour=12,currentCloud=.18,currentFog=0,currentStormIntensity=0;
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
@@ -469,9 +469,12 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  function updateCinematicSettings(e){
   const nextEnabled=!!e.cinematicPan;
   cinematicSpeed=clamp(Number(e.cinematicSpeed)||1,.35,2.5);
+  cinematicStrength=clamp(Number(e.cinematicStrength)||1.5,.4,2.4);
+  cinematicStyle=['follow','orbit','sweep'].includes(e.cinematicStyle)?e.cinematicStyle:'follow';
   if(nextEnabled!==cinematicEnabled){
    cinematicEnabled=nextEnabled;
    cinematicStart=performance.now();
+   if(nextEnabled)cinematicPauseUntil=0;
    dirty=true;wake();
   }
  }
@@ -483,8 +486,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   // still checked by enforceCardVisibility() after the pose is applied.
   const phase=(t-cinematicStart)*.00016*cinematicSpeed;
   const active=anchors.find(a=>a.active);
-  const {desiredYaw,desiredPitch,desiredGlide}=cinematicTargets(phase,active?.x||0);
-  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*1.8);
+  const {desiredYaw,desiredPitch,desiredGlide}=cinematicTargets(phase,active?.x||0,{strength:cinematicStrength,style:cinematicStyle});
+  const blend=1-Math.exp(-Math.min(Math.max(dt,0),.05)*2.4);
   const y0=yaw,p0=pitch,g0=cinematicGlide;
   yaw+=(desiredYaw-yaw)*blend;pitch+=(desiredPitch-pitch)*blend;
   cinematicGlide+=(desiredGlide-cinematicGlide)*blend;
@@ -543,7 +546,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    else if(cardFxMoving)nativeCards.animate(t);
    if(cardFxMoving)lastFxFrame=t;
    renderer.render(scene,camera);dirty=false;
-   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
+   if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),camera:{yawDegrees:yaw*180/Math.PI,pitchDegrees:pitch,glide:cinematicGlide,cinematicEnabled},hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
   if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)frame=requestAnimationFrame(tick);
  }
@@ -554,12 +557,12 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  resize();return {
   update:rebuild,setCards,
   resize(){resize();wake();},
-  orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+10000;cameraPose();wake();},
-  setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cameraPose(true);wake();return viewMode;},
+   orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+4500;cameraPose();wake();},
+   setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cinematicPauseUntil=performance.now()+4500;cameraPose(true);wake();return viewMode;},
   getView(){return viewMode;},
   getOrbit(){return {yaw:yaw*180/Math.PI,pitch};},
-  pauseCinematic(ms=10000){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);},
-  setCinematic(enabled,speed){updateCinematicSettings({cinematicPan:enabled,cinematicSpeed:speed});return cinematicEnabled;},
+   pauseCinematic(ms=4500){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);},
+   setCinematic(enabled,speed=cinematicSpeed){updateCinematicSettings({cinematicPan:enabled,cinematicSpeed:speed,cinematicStrength,cinematicStyle});return cinematicEnabled;},
   setReducedMotion(enabled){
     const next=!!enabled;
     if(next===reducedMotion)return reducedMotion;
@@ -581,7 +584,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   },
   getQuality(){return quality;},
   getCinematic(){return cinematicEnabled;},
-  zoomTo(v){cinematicPauseUntil=performance.now()+10000;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
+   zoomTo(v){cinematicPauseUntil=performance.now()+4500;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
   dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);disposeObject(root);scene.remove(root);disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };

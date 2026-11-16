@@ -15,9 +15,20 @@
       <button class="view-button" data-camera-view="tactical" aria-pressed="false" title="Three-quarter tactical camera [1]">Tactical</button>
       <button class="view-button active" data-camera-view="ground" aria-pressed="true" title="Low cinematic camera [2]">Ground</button>
       <button class="view-button" data-camera-view="overhead" aria-pressed="false" title="Near-overhead camera [3]">Top</button>
-      <label class="grim-quality-picker" title="Graphics quality on this device">Quality <select id="stageQuality" aria-label="Graphics quality on this device"><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="high">High</option></select></label>
-      <label class="grim-quality-picker grim-motion-picker" title="Motion setting for this viewer only">Motion <select id="stageMotion" aria-label="Motion preference on this device"><option value="system">System</option><option value="reduce">Reduced</option><option value="full">Full</option></select></label>
       <button class="view-button auto-pan-control" id="autoPanToggle" aria-pressed="false" title="Toggle automatic cinematic camera pan [C]">○ Cinematic off</button>
+      <button class="view-button" id="stageCameraReset" type="button" title="Reset the camera to the current view [0]">Reset</button>
+      <details class="stage-camera-settings" id="stageCameraSettings">
+        <summary class="view-button" aria-label="Camera settings">⚙ Settings</summary>
+        <div class="stage-camera-panel" role="group" aria-label="Cinematic camera settings">
+          <div class="stage-camera-panel-heading"><strong>CAMERA DIRECTOR</strong><span>Shared with DM Control</span></div>
+          <label class="camera-setting"><span>Shot style</span><select id="stageCinematicStyle" aria-label="Cinematic shot style"><option value="follow">Follow active turn</option><option value="orbit">Ambient orbit</option><option value="sweep">Wide sweep</option></select></label>
+          <label class="camera-setting"><span>Movement strength <output id="stageCinematicStrengthValue">1.5×</output></span><input id="stageCinematicStrength" type="range" min="0.4" max="2.4" step="0.1" value="1.5" aria-label="Cinematic movement strength"></label>
+          <label class="camera-setting"><span>Movement speed <output id="stageCinematicSpeedValue">1.0×</output></span><input id="stageCinematicSpeed" type="range" min="0.35" max="2.5" step="0.05" value="1" aria-label="Cinematic movement speed"></label>
+          <div class="stage-camera-local"><label class="grim-quality-picker" title="Graphics quality on this device">Quality <select id="stageQuality" aria-label="Graphics quality on this device"><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="high">High</option></select></label>
+            <label class="grim-quality-picker grim-motion-picker" title="Motion setting for this viewer only">Motion <select id="stageMotion" aria-label="Motion preference on this device"><option value="system">System</option><option value="reduce">Reduced</option><option value="full">Full</option></select></label></div>
+          <p class="camera-hint">Choose Full motion to see the effect. Dragging or zooming pauses it for 4.5 seconds, then the camera resumes. Combat cards remain in frame.</p>
+        </div>
+      </details>
     </div><div id="worldCanvas"></div><div class="three-world" id="threeWorld"><div class="room-3d" id="room3d"><div class="field-boundary"></div><div class="field-mark"></div></div></div>
     <div class="card-positions" id="cardPositions" aria-label="Combatant cards"></div>
     <div class="scene-info" id="sceneInfo"><h1 id="sceneTitle">Training Grid</h1><p id="sceneDescription">Neutral environment for checking your layout and camera.</p><span class="scene-ambience" id="sceneAmbience">GRID ON / NEUTRAL LIGHT</span></div>
