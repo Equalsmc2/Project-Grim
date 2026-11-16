@@ -35,4 +35,5 @@ assert(!rules.rooms.$roomId['.write'].includes('REPLACE_WITH'),'No device-specif
 assert.equal(rules.playerEdits.$roomId.$characterId.$uid.$field['.write'].includes('auth.uid === $uid'),true);
 assert(rules.playerEdits.$roomId.$characterId.$uid.$field['.validate'].includes('newData.hasChildren'));
 assert.deepEqual(JSON.parse(readFileSync('firebase-rtdb.rules.json','utf8')),playerRules(),'The deployable rules match the UI and validated field whitelist');
+assert.equal(JSON.parse(readFileSync('firebase.json','utf8')).auth?.providers?.anonymous,true,'Anonymous Firebase sign-in is enabled for login-free player sheets');
 console.log('PASS: player sheet field validation, enemy/DM isolation, numbered conditions, and scoped Firebase rules.');
