@@ -13,7 +13,15 @@ export const TERRAIN=[
   {key:'wall',code:'#',label:'Wall',blocked:true},
   {key:'difficult',code:':',label:'Difficult',blocked:false},
   {key:'water',code:'~',label:'Water',blocked:false},
-  {key:'cover',code:'O',label:'Solid cover',blocked:true}
+  {key:'cover',code:'O',label:'Solid cover',blocked:true},
+  {key:'tree',code:'T',label:'Tree',blocked:true},
+  {key:'rock',code:'R',label:'Rock',blocked:true},
+  {key:'bush',code:'B',label:'Bush',blocked:false},
+  {key:'log',code:'L',label:'Fallen log',blocked:true},
+  {key:'pillar',code:'P',label:'Pillar',blocked:true},
+  {key:'ruin',code:'U',label:'Ruined stone',blocked:true},
+  {key:'grave',code:'G',label:'Gravestone',blocked:true},
+  {key:'mound',code:'M',label:'Mound',blocked:false}
 ];
 const byKey=new Map(TERRAIN.map(type=>[type.key,type]));
 const byCode=new Map(TERRAIN.map(type=>[type.code,type]));

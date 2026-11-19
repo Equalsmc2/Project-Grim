@@ -126,6 +126,7 @@ mainMenu.addEventListener('keydown',event=>{
 $('dmNav').onclick=e=>{const b=e.target.closest('[data-section]');if(b)go(b.dataset.section);};
 document.querySelector('.dm-sidebar .side-nav:nth-of-type(2)')?.addEventListener('click',e=>{const b=e.target.closest('[data-section]');if(b)go(b.dataset.section);});
 document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));
+$('showIRLBoard').onclick=()=>{updateState(s=>{s.mode='combat';s.battleMaps.enabled=false;},'IRL battle board mode');toast('IRL board shown on stage');};
 $('openStage').onclick=()=>window.open('index.html','_blank','noopener');
 $('liveSceneButton').onclick=()=>switchMode('scene');
 $('liveCombatButton').onclick=()=>switchMode('combat');

@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
-  createBattleMap,defaultBattleMaps,normalizeBattleMaps,getBattlePositions,
+  createBattleMap,defaultBattleMaps,normalizeBattleMaps,getBattlePositions,TERRAIN,tileType,
   paintBattleTile,placeBattleToken,moveBattleToken,canMoveBattleToken,resizeBattleMap
 } from '../assets/grim-158/battle-map-state.js';
+import {buildBattleGeometry,worldCell,cellAtWorld} from '../assets/grim-158/battle-map-geometry.js';
+import {disposeSceneGraph} from '../assets/grim-158/scene-resources.js';
 
 globalThis.window={addEventListener(){}};
 globalThis.localStorage={getItem:()=>null,setItem(){}};
@@ -38,6 +40,18 @@ assert.equal(placeBattleToken(campaign,'ally',-1,0),false,'cannot place off boar
 assert.equal(moveBattleToken(campaign,'ally','teleport'),false,'unknown direction rejected');
 assert.equal(normalizePlayerEdit('mapMove','teleport'),null);
 assert.equal(normalizePlayerEdit('mapMove','down'),'down');
+for(const [key,blocked] of [['tree',true],['rock',true],['log',true],['pillar',true],['ruin',true],['grave',true],['bush',false],['mound',false]]){
+  const testMap=createBattleMap({width:8,height:8});
+  const state={characters:[],battleMaps:{enabled:true,activeId:testMap.id,maps:[testMap]},mode:'combat'};
+  assert.equal(paintBattleTile(state,4,4,key),true);
+  assert.equal(tileType(testMap,4,4).blocked,blocked,`${key} collision matches geometry`);
+  const geometry=buildBattleGeometry(testMap);
+  assert.ok(geometry.group.children.some(child=>child.isInstancedMesh),'3D obstacle meshes exist');
+  const position=worldCell(testMap,4,4);
+  assert.deepEqual(cellAtWorld(testMap,position.x,position.z),{x:4,y:4});
+  disposeSceneGraph(geometry.group);
+}
+assert.equal(new Set(TERRAIN.map(item=>item.code)).size,TERRAIN.length,'every 3D asset has a unique map code');
 campaign.mode='scene';assert.equal(moveBattleToken(campaign,'ally','up'),false,'cannot move in scene mode');
 campaign.mode='combat';campaign.battleMaps.enabled=false;
 assert.equal(moveBattleToken(campaign,'ally','up'),false,'cannot move unpublished map');

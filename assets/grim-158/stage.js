@@ -6,14 +6,16 @@ import {AMBIENCE_TRACKS,createAmbiencePlayer} from './ambience.js';
 import {getState,subscribe,getScene,orderedCharacters,getOptions,updateState,escapeHtml,isEnemy} from './state.js';
 import {planFormation} from './formation.js';
 import {MAX_ORBIT_DEGREES,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM,DEFAULT_CAMERA_VIEW} from './camera-frame.js';
+import {getBattleWorld} from './battle-map-stage.js';
 const $=id=>document.getElementById(id);
 const app=$('stageApp');
 const stage=$('stageMain');
 let yaw=0,pitch=0,zoom=1,viewMode=DEFAULT_CAMERA_VIEW,lastSignature='',lastInitiativeSignature='',world=null;
+const cameraWorld=()=>getBattleWorld()||world;
 const qualityControl=$('stageQuality');
 let localGraphics='balanced';
 try{localGraphics=normalizeGraphicsQuality(localStorage.getItem('grim:quality:v1'));}catch{}
-if(qualityControl){qualityControl.value=localGraphics;qualityControl.addEventListener('change',()=>{localGraphics=normalizeGraphicsQuality(qualityControl.value);try{localStorage.setItem('grim:quality:v1',localGraphics);}catch{}world?.setQuality(localGraphics);});}
+if(qualityControl){qualityControl.value=localGraphics;qualityControl.addEventListener('change',()=>{localGraphics=normalizeGraphicsQuality(qualityControl.value);try{localStorage.setItem('grim:quality:v1',localGraphics);}catch{}world?.setQuality(localGraphics);getBattleWorld()?.setQuality(localGraphics);});}
 const motionControl=$('stageMotion');
 let motionChoice='system';
 try{motionChoice=normalizeMotionChoice(localStorage.getItem(MOTION_STORAGE_KEY));}catch{}
@@ -25,6 +27,7 @@ function applyMotion(){
   document.documentElement.classList.toggle('grim-motion-full',motionChoice==='full');
   if(motionControl)motionControl.value=motionChoice;
   world?.setReducedMotion(reduced);
+  getBattleWorld()?.setReducedMotion(reduced);
 }
 if(motionControl)motionControl.addEventListener('change',()=>{
   motionChoice=normalizeMotionChoice(motionControl.value);
@@ -59,13 +62,14 @@ function cardHTML(c,s,p){
 
 function render(s){
   const scene=getScene(s),combat=s.mode==='combat';
+  const map3D=!!getBattleWorld();
   app.dataset.palette=scene.palette;
-  $('chapterLabel').textContent=combat?`BATTLEFIELD / ${viewMode==='ground'?'GROUND VIEW':viewMode==='overhead'?'OVERHEAD VIEW':'TACTICAL VIEW'}`:scene.kicker;
-  $('stageModeLabel').textContent=combat?'COMBAT MODE':'SCENE MODE';
+  $('chapterLabel').textContent=map3D?'3D ENCOUNTER':combat?`BATTLEFIELD / ${viewMode==='ground'?'GROUND VIEW':viewMode==='overhead'?'OVERHEAD VIEW':'TACTICAL VIEW'}`:scene.kicker;
+  $('stageModeLabel').textContent=map3D?'3D BATTLE MAP':combat?'IRL BOARD MODE':'SCENE MODE';
   $('sceneTitle').textContent=scene.name;
   $('sceneDescription').textContent=scene.description;
   $('sceneAmbience').textContent=scene.ambience;
-  $('sceneFooter').textContent=scene.name.toUpperCase();
+  $('sceneFooter').textContent=map3D?(s.battleMaps.maps.find(m=>m.id===s.battleMaps.activeId)?.name||'3D MAP').toUpperCase():scene.name.toUpperCase();
   $('sceneInfo').hidden=combat;
   $('combatInfo').hidden=!combat;
   app.classList.toggle('scene-mode',!combat);
@@ -78,7 +82,11 @@ function render(s){
     $('cardPositions').innerHTML=chars.slice().sort((a,b)=>layout.placements.get(a.id).rank-layout.placements.get(b.id).rank).map(c=>cardHTML(c,s,layout.placements.get(c.id))).join('');
     lastSignature=signature;
   }
-  if(world){world.update(s.environment);world.setCards(layout.placements,chars,combat);}
+  if(world){
+    const tactical=!!getBattleWorld();
+    world.setSuspended(tactical);
+    if(!tactical){world.update(s.environment);world.setCards(layout.placements,chars,combat);}
+  }
   updateCinematicUI(s.environment?.cinematicPan);
   updateCameraSettingValues(s.environment);
   if(combat){
@@ -125,14 +133,14 @@ if(autoPanButton)autoPanButton.addEventListener('click',()=>updateState(s=>{s.en
 
 
 subscribe(render);
-window.addEventListener('resize',()=>{world?.resize();lastSignature='';render(getState());});
-function updateCamera(){world?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
-function changeZoom(next){zoom=clamp(Number(next)||1,.9,MAX_CAMERA_ZOOM);if(world)zoom=world.zoomTo(zoom);if(world)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
+window.addEventListener('resize',()=>{world?.resize();getBattleWorld()?.resize();lastSignature='';render(getState());});
+function updateCamera(){cameraWorld()?.orbit(yaw,pitch);const node=$('room3d');node.style.setProperty('--camera-yaw',yaw+'deg');node.style.setProperty('--camera-pitch',pitch+'deg');}
+function changeZoom(next){zoom=clamp(Number(next)||1,.7,getBattleWorld()?2.1:MAX_CAMERA_ZOOM);const active=cameraWorld();if(active)zoom=active.zoomTo(zoom);if(active)$('worldStatus').textContent=`3D WORLD · ${Math.round(zoom*100)}%`; }
 
 function selectCameraView(mode){
  if(!['tactical','ground','overhead'].includes(mode))return;
  viewMode=mode;yaw=0;pitch=0;zoom=1;
- world?.setView(mode);
+ cameraWorld()?.setView(mode);
  document.querySelectorAll('[data-camera-view]').forEach(btn=>{
    const selected=btn.dataset.cameraView===mode;
    btn.classList.toggle('active',selected);
@@ -171,17 +179,17 @@ window.addEventListener('keydown',e=>{
  if(key==='h')hudToggle();
  else if(key==='c'){e.preventDefault();autoPanButton?.click();}
  else if(key==='f')$('fullscreen').click();
- else if(e.key==='ArrowLeft'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});yaw=Math.max(-(viewMode==='ground'?20:MAX_ORBIT_DEGREES),yaw-3);updateCamera();}
- else if(e.key==='ArrowRight'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});yaw=Math.min(viewMode==='ground'?20:MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
- else if(e.key==='ArrowUp'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});pitch=Math.max(-10,pitch-3);updateCamera();}
- else if(e.key==='ArrowDown'){e.preventDefault();({yaw,pitch}=world?.getOrbit()||{yaw,pitch});pitch=Math.min(10,pitch+3);updateCamera();}
+ else if(e.key==='ArrowLeft'){e.preventDefault();({yaw,pitch}=cameraWorld()?.getOrbit()||{yaw,pitch});yaw=Math.max(-(viewMode==='ground'?20:MAX_ORBIT_DEGREES),yaw-3);updateCamera();}
+ else if(e.key==='ArrowRight'){e.preventDefault();({yaw,pitch}=cameraWorld()?.getOrbit()||{yaw,pitch});yaw=Math.min(viewMode==='ground'?20:MAX_ORBIT_DEGREES,yaw+3);updateCamera();}
+ else if(e.key==='ArrowUp'){e.preventDefault();({yaw,pitch}=cameraWorld()?.getOrbit()||{yaw,pitch});pitch=Math.max(-10,pitch-3);updateCamera();}
+ else if(e.key==='ArrowDown'){e.preventDefault();({yaw,pitch}=cameraWorld()?.getOrbit()||{yaw,pitch});pitch=Math.min(10,pitch+3);updateCamera();}
  else if(['1','2','3'].includes(key)){selectCameraView(({1:'tactical',2:'ground',3:'overhead'})[key]);}
  else if(key==='0'){selectCameraView(DEFAULT_CAMERA_VIEW);updateCamera();}
  else if(['+','='].includes(key)){e.preventDefault();changeZoom(zoom*1.09);}
  else if(['-','_'].includes(key)){e.preventDefault();changeZoom(zoom/1.09);}
 });
 stage.addEventListener('wheel',e=>{
- if(!world||e.target.closest('.view-controls'))return;
+ if(!cameraWorld()||e.target.closest('.view-controls'))return;
  e.preventDefault();
  changeZoom(zoom*Math.exp(-e.deltaY*.0011));
 },{passive:false});
@@ -190,9 +198,9 @@ stage.addEventListener('wheel',e=>{
 // camera; each HTML card is reprojected from its unchanged 3D ground anchor.
 let cameraDrag=null;
 stage.addEventListener('pointerdown',e=>{
-  if(e.button!==0||!world||e.target.closest('.view-controls,button,a,input,select,textarea'))return;
-  ({yaw,pitch}=world.getOrbit());
-  world.pauseCinematic();
+  if(e.button!==0||!cameraWorld()||e.target.closest('.view-controls,button,a,input,select,textarea'))return;
+  ({yaw,pitch}=cameraWorld().getOrbit());
+  cameraWorld().pauseCinematic();
   cameraDrag={id:e.pointerId,x:e.clientX,y:e.clientY};
   stage.setPointerCapture?.(e.pointerId);
 });

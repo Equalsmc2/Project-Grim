@@ -4,10 +4,11 @@ import {
   createBattleMap,getActiveBattleMap,getBattlePositions,tileType,
   paintBattleTile,placeBattleToken,resizeBattleMap
 } from './battle-map-state.js';
+import {createBattleMap3D} from './battle-map-3d.js';
 
 const root=document.getElementById('battleMapEditor');
 if(root){
-  let brush='wall',placingId='',painting=false,lastCell=null,rendered='';
+  let brush='wall',placingId='',painting=false,lastCell=null,rendered='',preview=null;
   root.innerHTML=`
     <div class="battle-editor-top">
       <label class="field"><span>Map</span><select id="battleMapSelect" aria-label="Choose saved battle map"></select></label>
@@ -23,16 +24,18 @@ if(root){
     </div>
     <div class="battle-editor-workspace">
       <div class="battle-tools">
-        <strong>Paint terrain</strong>
+        <strong>Build the 3D battlefield</strong>
         <div id="battleBrushes" class="battle-brushes" role="group" aria-label="Terrain paint tools">
           ${TERRAIN.map(t=>`<button type="button" data-brush="${t.key}" class="battle-brush battle-terrain-${t.key}" aria-pressed="false">${t.label}</button>`).join('')}
         </div>
         <label class="field"><span>Or position a card</span><select id="battleTokenSelect"><option value="">Paint terrain</option></select></label>
-        <p class="helper">Click or drag to paint. Select a combatant, then click a free square to place their card. Walls and solid cover block movement.</p>
+        <p class="helper">Click or drag in the 3D view or the plan to place pieces. Choose a card to position it. Walls and solid obstacles stop movement.</p>
         <button type="button" class="button button-secondary" id="battleClearTerrain">Clear terrain</button>
       </div>
       <div class="battle-edit-stage">
         <div class="battle-edit-heading"><strong id="battleEditTitle">Battlefield</strong><span id="battleEditSize">16 × 12 · 5 ft squares</span></div>
+        <div class="battle-three-preview"><div class="battle-three-header"><strong>3D encounter preview</strong><span>Click to build · Right-drag or Alt-drag to orbit · Wheel to zoom</span></div><div id="battlePreviewViewport" class="battle-three-viewport"></div></div>
+        <div class="battle-edit-heading"><strong>Plan view</strong><span>Precise square placement</span></div>
         <div id="battleEditBoard" class="battle-edit-board" role="grid" aria-label="Paintable battle map"></div>
         <p class="helper" id="battleMapHint">Maps save automatically to the current room. Present the map when the encounter begins.</p>
       </div>
@@ -64,6 +67,7 @@ if(root){
     if(!state.characters.some(c=>c.id===placingId))placingId='';
     tokenSelect.value=placingId;
     const positions=getBattlePositions(map,state.characters);
+    preview?.setMap(map,state.characters,state.combat.activeId,state.presentation.cardScale);
     const cardByCell=new Map();
     for(const c of state.characters){const p=positions.get(c.id);if(p)cardByCell.set(`${p.x}:${p.y}`,c);}
     const signature=JSON.stringify([map.id,map.rows,map.width,map.height,[...cardByCell].map(([key,c])=>[key,c.id,c.name,c.faction])]);
@@ -80,6 +84,23 @@ if(root){
     board.innerHTML=html;
   }
   subscribe(render);
+  const section=root.closest('.dm-section');
+  const activatePreview=()=>{
+    if(preview||!section?.classList.contains('active'))return;
+    try{
+      preview=createBattleMap3D($('battlePreviewViewport'),{
+        onCell:(cell,phase)=>{if(phase==='start')lastCell=null;paintTo(cell);}
+      });
+      preview.setView('tactical');render(getState());
+    }catch(error){
+      console.warn('3D editor unavailable:',error);
+      $('battlePreviewViewport').textContent='3D preview unavailable on this device. The plan view below still works.';
+    }
+  };
+  const observer=new MutationObserver(activatePreview);
+  if(section)observer.observe(section,{attributes:true,attributeFilter:['class']});
+  activatePreview();
+  window.addEventListener('pagehide',()=>{observer.disconnect();preview?.dispose();preview=null;});
   $('battleMapSelect').onchange=e=>updateState(s=>{s.battleMaps.activeId=e.target.value;});
   $('battleMapName').onchange=e=>updateState(s=>{const map=getActiveBattleMap(s);if(map)map.name=String(e.target.value).trim().slice(0,48)||'Battlefield';});
   $('battleNewMap').onclick=()=>{

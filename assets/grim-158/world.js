@@ -40,7 +40,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  nativeCards.setReducedMotion(reducedMotion);
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null,fitRetreat=0,fitScale=1;
- let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',lastCardLayoutSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',lastCardLayoutSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,suspended=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
  const weatherBudget=createWeatherBudget();let weatherMatrixWrites=0,weatherDrawFrames=0,lightingSettled=false;
@@ -52,7 +52,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),target=new T.Vector3();
  const stageShell=document.getElementById('stageApp');
- function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
+ function wake(){if(!suspended&&!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
  function fitCardsZoom(z){return clampZoomToCards({requestedZoom:z,anchors,width,height,mode:viewMode,yaw,pitch,fieldWidth,fieldDepth,env,landscapeHeight});}
  function enforceCardVisibility(){
   // Work from the unadjusted camera each time. Otherwise a new DM update or
@@ -519,7 +519,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   spotlight.visible=active;
  }
  function tick(t){
-  frame=0;if(disposed||lost||document.hidden)return;
+  frame=0;if(disposed||suspended||lost||document.hidden)return;
   const elapsed=Math.max(0,(t-last)/1000||0);
   const dt=Math.min(elapsed,.05),cameraDt=Math.min(elapsed,.15);last=t;
   const transitionMoving=updateLighting(dt,t);
@@ -565,6 +565,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';terrainSignature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready','native-cards-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
  resize();return {
   update:rebuild,setCards,
+   setSuspended(value){const next=!!value;if(suspended===next)return;suspended=next;if(next){cancelAnimationFrame(frame);frame=0;}else{dirty=true;projectionDirty=true;wake();}},
   resize(){resize();wake();},
    orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose();wake();},
    setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose(true);wake();return viewMode;},
