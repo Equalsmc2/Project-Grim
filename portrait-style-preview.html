@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>Portrait study — Project Grim</title>
+  <style>
+    :root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#101010;color:#f4f2ed}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh}
+    a{color:inherit;text-underline-offset:4px}
+    .shell{width:min(1110px,calc(100% - 40px));margin:auto;padding:31px 0 42px}
+    .topline{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid #474747;padding-bottom:22px}
+    .eyebrow{margin:0;color:#b1ada7;letter-spacing:.15em;font:bold 13px/1.5 monospace;text-transform:uppercase}
+    .back{font-size:15px;text-decoration:none;border:1px solid #777;padding:12px 15px;background:#1b1b1b}
+    .back:focus-visible,.back:hover{background:#303030}
+    h1{font:normal clamp(37px,6.5vw,66px)/1.08 Georgia,'Times New Roman',serif;letter-spacing:-.037em;margin:24px 0 12px}
+    .intro{max-width:630px;color:#c4c0b9;font-size:18px;line-height:1.6;margin:0 0 27px}
+    .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+    figure{margin:0;min-width:0;border:1px solid #535353;background:#191919}
+    figcaption{min-height:68px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .caption-title{font-size:20px;font-weight:700}
+    .caption-tag{font-family:monospace;font-size:12px;letter-spacing:.08em;color:#b7b5ae;text-transform:uppercase}
+    .portrait{display:block;width:100%;aspect-ratio:3/4;overflow:hidden;background:#d0d0cb}
+    .portrait svg{width:100%;height:100%;display:block}
+    .controls{margin:26px 0 20px;display:flex;gap:18px;align-items:end;flex-wrap:wrap}
+    .control{display:grid;gap:8px;min-width:185px}
+    label{color:#c8c6c0;font-size:14px}
+    select{background:#202020;border:1px solid #747474;color:#fff;font:inherit;font-size:16px;min-height:46px;padding:9px 14px}
+    select:focus-visible{outline:2px solid #eee;outline-offset:2px}
+    .note{max-width:700px;font-size:15px;line-height:1.65;color:#aaa7a2;border-top:1px solid #454545;margin:26px 0 0;padding-top:19px}
+    @media(max-width:680px){.shell{width:min(530px,calc(100% - 24px));padding-top:18px}.topline{gap:12px;padding-bottom:15px}.back{font-size:13px;padding:10px}.pair{grid-template-columns:1fr;gap:16px}.intro{font-size:16px}.controls{margin-top:23px}.caption-title{font-size:18px}figcaption{padding:13px;min-height:60px}}
+    @media(prefers-reduced-motion:no-preference){.back,select{transition:background .16s ease}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topline">
+      <p class="eyebrow">Project Grim / Character studio</p>
+      <a class="back" href="./player.html">Back to player desk</a>
+    </header>
+    <h1>Mara Voss, redrawn.</h1>
+    <p class="intro">The same character choices, drawn two different ways. This is a study of the new art direction—not a replacement for the portrait creator yet.</p>
+
+    <section class="pair" aria-label="Portrait art style comparison">
+      <figure>
+        <figcaption><span class="caption-title">Current portrait</span><span class="caption-tag">Existing</span></figcaption>
+        <div class="portrait" id="existingPortrait" aria-label="Current portrait style"></div>
+      </figure>
+      <figure>
+        <figcaption><span class="caption-title">Hand-inked fantasy</span><span class="caption-tag">Study 01</span></figcaption>
+        <div class="portrait" id="storybookPortrait" aria-label="Proposed portrait style"></div>
+      </figure>
+    </section>
+
+    <section class="controls" aria-label="Compare colors">
+      <div class="control"><label for="hairColor">Hair color in both portraits</label><select id="hairColor"></select></div>
+      <div class="control"><label for="skinTone">Skin tone in both portraits</label><select id="skinTone"></select></div>
+      <div class="control"><label for="coatColor">Clothing color in both portraits</label><select id="coatColor"></select></div>
+    </section>
+    <p class="note">Neither portrait is saved from this page. The 16 existing character settings, saved codes, current hairstyles, and the player desk remain unchanged. This single-character study is for choosing the art direction before drawing every customization option.</p>
+  </main>
+
+  <script type="module">
+    import {AVATAR_PALETTES,normalizeAvatar,renderAvatarSvg} from './assets/grim-158/avatar-art.js';
+    import {MARA_STUDY,renderStorybookMaraSvg} from './assets/grim-158/avatar-storybook-concept.js';
+    const selected={...MARA_STUDY};
+    const current=document.getElementById('existingPortrait');
+    const concept=document.getElementById('storybookPortrait');
+    const controls=[['hairColor','hairColor'],['skinTone','skin'],['coatColor','outfitColor']];
+    function draw(){
+      const value=normalizeAvatar(selected);
+      current.innerHTML=renderAvatarSvg(value);
+      concept.innerHTML=renderStorybookMaraSvg(value);
+    }
+    for(const [id,key] of controls){
+      const select=document.getElementById(id);
+      for(const [index,[label]] of AVATAR_PALETTES[key].entries()){
+        const option=document.createElement('option');
+        option.value=String(index);option.textContent=label;select.append(option);
+      }
+      select.value=String(selected[key]);
+      select.addEventListener('change',()=>{selected[key]=Number(select.value);draw();});
+    }
+    draw();
+  </script>
+</body>
+</html>
