@@ -10,7 +10,7 @@ globalThis.BroadcastChannel=undefined;
 const {normalizePlayerEdit,playerRules}=await import('../assets/grim-158/player-fields.js');
 
 assert.equal(AVATAR_KEYS.length,16);
-assert.equal(AVATAR_ART_VERSION,5,'Artwork version triggers automatic refresh of earlier portraits');
+assert.equal(AVATAR_ART_VERSION,6,'Artwork version triggers automatic refresh of earlier portraits');
 const hair=AVATAR_GROUPS.find(group=>group.id==='hair');
 const eyes=AVATAR_GROUPS.find(group=>group.id==='eyes');
 assert(hair.parts.find(part=>part.key==='hairBack').choices.length>=8,'Separate back hairstyles');

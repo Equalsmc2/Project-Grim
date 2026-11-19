@@ -36,7 +36,7 @@ export const AVATAR_GROUPS=[
   {key:'outfitColor',label:'Clothing color',palette:'outfitColor'}]}
 ];
 // Bump when the SVG geometry changes so saved portraits are redrawn automatically.
-export const AVATAR_ART_VERSION=5;
+export const AVATAR_ART_VERSION=6;
 export const AVATAR_KEYS=AVATAR_GROUPS.flatMap(g=>g.parts.map(p=>p.key));
 const bounds=Object.fromEntries(AVATAR_GROUPS.flatMap(g=>g.parts.map(p=>[p.key,p.palette?AVATAR_PALETTES[p.palette].length:p.choices.length])));
 export const DEFAULT_AVATAR={hairBack:2,bangs:1,sides:1,hairColor:2,eyes:0,iris:0,eyeColor:0,brows:0,face:0,skin:1,nose:0,mouth:1,extras:0,backdrop:0,outfit:0,outfitColor:0};

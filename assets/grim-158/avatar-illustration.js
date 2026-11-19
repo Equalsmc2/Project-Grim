@@ -38,7 +38,10 @@ const fringeStyles = [
   'M68 113 Q106 99 145 108 Q140 124 123 134 L118 156 L105 141 L88 152 Q86 133 77 142 L68 145Z M143 108 Q159 113 174 128 L171 145 Q161 129 149 128Z',
   'M70 111 Q107 104 164 111 L175 135 Q156 132 151 140 L139 132 L127 146 L115 134 L98 145 L91 131 L77 144Z',
   'M70 110 Q118 99 173 113 L168 147 Q154 143 146 133 L139 162 Q126 145 120 143 L107 163 Q98 146 89 144 L71 155Z',
-  'M70 113 Q98 101 119 116 Q113 135 91 148 Q74 155 65 148 Q86 128 103 121Z M130 114 Q155 100 174 118 Q174 146 163 153 Q150 139 130 130Z',
+  // Parted curls: two broad, connected sweeps. In particular, the left lock
+  // must cover its temple all the way to the scalp; the old inward diagonal
+  // left an exposed triangular patch of skin between overlapping polygons.
+  'M63 114 C83 105 104 102 123 110 C116 127 107 139 94 146 C82 153 69 151 61 147 C71 133 75 121 63 114Z M120 110 C141 103 164 107 175 119 C178 133 175 145 168 151 C159 145 153 135 144 132 C131 127 123 118 120 110Z',
   'M69 110 Q116 98 172 112 L177 145 Q155 145 149 132 Q138 149 119 154 L121 122 Q97 145 70 148Z'
 ];
 
@@ -87,7 +90,7 @@ const fringeTexture = [
   'M83 117 Q103 115 118 124 M141 118 Q156 124 163 136',
   'M85 116 L90 130 M118 115 L116 133 M149 117 L146 131',
   'M85 116 Q109 113 119 127 M145 119 L138 146',
-  'M91 119 Q100 129 78 142 M143 117 Q153 128 163 143',
+  'M80 120 Q98 111 112 115 M139 116 Q153 123 161 137',
   'M83 116 Q105 110 121 117 M141 119 Q143 132 133 143'
 ];
 
@@ -256,7 +259,11 @@ export function drawIllustratedAvatar(a, palettes, code) {
     p.push(`<defs><clipPath id="${id}Fringe">${svgPath(fringe,'white')}</clipPath></defs>`);
     p.push(svgPath(fringe,hair));
     p.push(`<g clip-path="url(#${id}Fringe)">`);
-    p.push(svgPath('M126 92 Q178 98 185 153 L141 157 Q145 116 126 92Z',hairShade,'opacity=".20"'));
+    if(a.bangs===8){
+      p.push(svgPath('M131 113 C151 110 165 123 169 142 C158 135 149 123 131 113Z',hairShade,'opacity=".11"'));
+    }else{
+      p.push(svgPath('M126 92 Q178 98 185 153 L141 157 Q145 116 126 92Z',hairShade,'opacity=".20"'));
+    }
     p.push(inkLine(fringeTexture[a.bangs],hairHighlight,1.15,'opacity=".46"'));
     p.push('</g>');
   }
