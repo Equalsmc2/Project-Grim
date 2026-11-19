@@ -12,12 +12,14 @@ test('DM makes a layered shape portrait and it syncs to the player sheet',async(
  await expect(maker.getByRole('button',{name:'Back hair',exact:true})).toBeVisible();
  await maker.getByRole('button',{name:'Back hair',exact:true}).click();
  await expect(maker.locator('[data-choice]')).toHaveCount(10);
+ await expect(maker.locator('.grim-maker-thumb svg').first()).toHaveAttribute('viewBox','25 54 190 253');
  await maker.getByRole('button',{name:'Back hair: Long waves'}).click();
  await maker.getByRole('button',{name:'Fringe / bangs',exact:true}).click();
  await maker.getByRole('button',{name:'Fringe / bangs: Choppy'}).click();
  await maker.getByRole('tab',{name:'Eyes',exact:true}).click();
  await maker.getByRole('button',{name:'Eye shape',exact:true}).click();
  await expect(maker.locator('[data-choice]')).toHaveCount(8);
+ await expect(maker.locator('.grim-maker-thumb svg').first()).toHaveAttribute('viewBox','48 105 144 192');
  await maker.getByRole('button',{name:'Eye shape: Sharp'}).click();
  await maker.getByRole('button',{name:'Iris style',exact:true}).click();
  await maker.getByRole('button',{name:'Iris style: Shimmer'}).click();
@@ -53,7 +55,7 @@ test('saved portraits refresh to the improved shapes without a new upload',async
   const {getState}=await import('/assets/grim-158/state.js');
   const c=getState().characters[0];
   return {version:c.portraitArtVersion,redrawn:c.portrait.startsWith('data:image/png;base64,')&&!c.portrait.includes('OLDSTYLE'),recipeKept:c.portraitAvatar===c.avatar};
- })).toEqual({version:3,redrawn:true,recipeKept:true});
+ })).toEqual({version:4,redrawn:true,recipeKept:true});
 });
 
 test('player can make and revise portraits on a narrow touch screen',async({page,context})=>{

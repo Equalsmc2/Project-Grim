@@ -10,7 +10,7 @@ globalThis.BroadcastChannel=undefined;
 const {normalizePlayerEdit,playerRules}=await import('../assets/grim-158/player-fields.js');
 
 assert.equal(AVATAR_KEYS.length,16);
-assert.equal(AVATAR_ART_VERSION,3,'Artwork version triggers automatic refresh of earlier portraits');
+assert.equal(AVATAR_ART_VERSION,4,'Artwork version triggers automatic refresh of earlier portraits');
 const hair=AVATAR_GROUPS.find(group=>group.id==='hair');
 const eyes=AVATAR_GROUPS.find(group=>group.id==='eyes');
 assert(hair.parts.find(part=>part.key==='hairBack').choices.length>=8,'Separate back hairstyles');
@@ -34,7 +34,7 @@ const base=renderAvatarSvg(DEFAULT_AVATAR);
 assert(base.startsWith('<svg xmlns="http://www.w3.org/2000/svg"'));
 assert(base.endsWith('</svg>'));
 assert(base.includes('avatar-back-hair')&&base.includes('avatar-fringe')&&base.includes('avatar-side-hair'),'Independent hair layers keep stable anchors');
-assert(base.includes('clipPath')&&base.includes('avatar-eye-91')&&base.includes('avatar-eye-149'),'Eyes use centered masks so pupil shapes cannot overrun the eyelids');
+assert(base.includes('clipPath')&&base.includes('avatar-eye-92')&&base.includes('avatar-eye-148'),'Eyes use centered masks so pupil shapes cannot overrun the eyelids');
 assert(!/<(?:image|foreignObject|script|use|text)\b|<style|xlink:href=/i.test(base),'Artwork must only use hand-built SVG shapes and no remote assets');
 for(const key of ['hairBack','bangs','sides','eyes','iris','brows','face','outfit']){
  const variants=AVATAR_GROUPS.flatMap(g=>g.parts).find(part=>part.key===key).choices.length;

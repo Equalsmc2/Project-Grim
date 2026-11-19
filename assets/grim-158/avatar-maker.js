@@ -39,7 +39,7 @@ export function openAvatarMaker({name='Character',initial='',onSave}={}){
  const shell=document.createElement('div');
  shell.className='grim-maker-overlay';
  shell.innerHTML='<div class="grim-maker-dialog" role="dialog" aria-modal="true" aria-labelledby="grimMakerTitle">'+
-   '<div class="grim-maker-heading"><div><span class="grim-maker-kicker">PROJECT GRIM / CHARACTER STUDIO</span><h2 id="grimMakerTitle">Make '+clean(name)+'</h2><p>Build a portrait from simple, layered shapes.</p></div>'+
+   '<div class="grim-maker-heading"><div><span class="grim-maker-kicker">PROJECT GRIM / CHARACTER STUDIO</span><h2 id="grimMakerTitle">Make '+clean(name)+'</h2><p>Compose your portrait from illustrated layers.</p></div>'+
    '<button type="button" class="grim-maker-close" data-action="close" aria-label="Close character creator">×</button></div>'+
    '<div class="grim-maker-layout"><section class="grim-maker-view" aria-label="Portrait preview">'+
      '<div class="grim-maker-portrait" id="grimMakerPortrait"></div>'+
@@ -64,10 +64,13 @@ export function openAvatarMaker({name='Character',initial='',onSave}={}){
    query('#grimMakerPartTitle').textContent=part().label;
    const labels=partChoices(part());
    query('#grimMakerPartCount').textContent=labels.length+' choices';
+   // Close-ups make the selected feature readable, even on a small phone.
+   const view=group().id==='eyes'?'48 105 144 192':group().id==='face'||group().id==='details'?'39 67 162 216':group().id==='hair'?'25 54 190 253':'15 40 210 280';
    options.innerHTML=labels.map((label,index)=>{
      const selected=values[part().key]===index;
+     const cropped=part().palette?'':renderAvatarSvg({...values,[part().key]:index}).replace('viewBox="0 0 240 320"','viewBox="'+view+'"');
      const graphic=part().palette?'<span class="grim-maker-color" style="background:'+AVATAR_PALETTES[part().palette][index][1]+'"></span>':
-       '<span class="grim-maker-thumb">'+renderAvatarSvg({...values,[part().key]:index})+'</span>';
+       '<span class="grim-maker-thumb">'+cropped+'</span>';
      return '<button type="button" class="grim-maker-option" data-choice="'+index+'" aria-pressed="'+selected+'" aria-label="'+clean(part().label+': '+label)+'">'+graphic+'<small>'+clean(label)+'</small></button>';
    }).join('');
  }
