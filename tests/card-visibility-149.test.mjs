@@ -28,5 +28,5 @@ assert(strokes>10,'Burning finish draws visible rim/flame outlines');
 const world=readFileSync(new URL('../assets/grim-158/world.js',import.meta.url),'utf8');
 const stage=readFileSync(new URL('../assets/grim-158/stage.js',import.meta.url),'utf8');
 assert(world.includes('clampZoomToCards')&&world.includes('zoom=fitCardsZoom(zoom)'),'World camera enforces card-safe zoom');
-assert(stage.includes('zoom=world.zoomTo(zoom)'),'Stage uses actual permitted zoom');
+assert(stage.includes('zoom=active.zoomTo(zoom)')&&stage.includes('const active=cameraWorld()'),'Stage uses the active world’s permitted zoom in both board modes');
 console.log('PASS: visible burning, stable portrait-only laminate fractures, and camera/card-safe zoom limits.');

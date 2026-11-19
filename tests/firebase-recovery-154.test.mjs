@@ -9,6 +9,7 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
   cpSync(path.join(src,'cloud-outbox.js'),path.join(temp,'cloud-outbox.js'));
   cpSync(path.join(src,'player-fields.js'),path.join(temp,'player-fields.js'));
+  cpSync(path.join(src,'battle-map-state.js'),path.join(temp,'battle-map-state.js'));
   cpSync(path.join(src,'avatar-art.js'),path.join(temp,'avatar-art.js'));
   cpSync(path.join(src,'avatar-illustration.js'),path.join(temp,'avatar-illustration.js'));
   writeFileSync(path.join(temp,'package.json'),JSON.stringify({type:'module'}));
