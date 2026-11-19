@@ -103,9 +103,9 @@ export function drawIllustratedAvatar(a, palettes, code) {
   const iris=palettes.eyeColor[a.eyeColor][1], coat=palettes.outfitColor[a.outfitColor][1], background=palettes.backdrop[a.backdrop][1];
   const ink='#353036', dark='#242328', cream='#fbf7ee';
   const skinLuma=([1,3,5].reduce((sum,i)=>sum+parseInt(skin.slice(i,i+2),16),0))/3;
-  const skinShade=tint(skin,'#5a393a',.20),skinLit=tint(skin,'#fff9ef',.28),
+  const skinShade=tint(skin,'#5a393a',.16),skinLit=tint(skin,'#fff9ef',.24),
     skinInk=skinLuma>155?tint(skin,'#654c4c',.68):tint(skin,'#f7c9b3',.68),
-    hairShade=tint(hair,'#211d26',.28),hairHighlight=tint(hair,'#fffaf1',.22),
+    hairShade=tint(hair,'#211d26',.23),hairHighlight=tint(hair,'#fffaf1',.18),
     hairContour=tint(hair,'#17151c',.39),coatShade=tint(coat,'#111319',.32),coatLit=tint(coat,'#eee8e1',.24),
     sclera='#fbf9f3',eyeContour='#35343a',browTint=tint(hair,'#3c3030',.55);
   const id='gr'+code.slice(3);
@@ -163,9 +163,10 @@ export function drawIllustratedAvatar(a, palettes, code) {
     p.push(inkLine('M80 258 L106 290 M160 258 L134 290',coatLit,1.25));
   }
   if(a.outfit===6){
-    p.push(svgPath('M85 248 Q101 260 122 259 Q142 260 155 249 Q162 263 151 275 Q118 288 91 274Z',coatLit));
-    p.push(svgPath('M125 260 Q142 258 154 251 Q162 269 154 288 L145 310 L135 300 L137 277Z',coatShade));
-    p.push(inkLine('M94 269 Q118 280 147 268',coatShade,1.2,'opacity=".73"'));
+    // A wrapped cowl with a soft hanging fold; no abrupt dark rectangle.
+    p.push(svgPath('M85 249 Q105 264 123 261 Q146 261 155 249 Q158 260 151 269 Q136 279 119 278 Q101 277 89 267Z',coatLit));
+    p.push(svgPath('M125 263 Q142 261 153 252 Q158 265 149 280 Q143 292 141 306 Q133 296 133 284 Q137 274 125 263Z',coatShade,'opacity=".65"'));
+    p.push(inkLine('M94 266 Q120 278 150 265',coatShade,1.05,'opacity=".42"'));
   }
   if(a.outfit===7){
     p.push(svgPath('M105 246 L120 270 L135 246 L128 284 L120 297 L112 284Z',coatShade));
@@ -178,10 +179,10 @@ export function drawIllustratedAvatar(a, palettes, code) {
   p.push(`<defs><clipPath id="${id}Face">${svgPath(face,'white')}</clipPath></defs>`);
   p.push(svgPath(face,skin));
   p.push(`<g clip-path="url(#${id}Face)">`);
-  p.push(svgPath('M155 109 Q183 133 181 169 Q179 215 153 239 L120 262 Q158 215 159 181 Q161 137 155 109Z',skinShade,'opacity=".44"'));
-  p.push(svgPath('M67 131 Q76 113 92 109 Q80 142 78 185 Q74 198 69 201Z',skinLit,'opacity=".48"'));
-  p.push(svgPath('M80 218 Q101 240 121 245 Q143 239 162 218 Q151 243 120 255 Q88 242 80 218Z',skinShade,'opacity=".27"'));
-  p.push(inkLine('M74 190 Q77 201 84 207 M166 207 Q172 200 171 190',skinShade,1,'opacity=".28"'));
+  // Delicate cheek planes; avoid the broad angular wedge down the entire face.
+  p.push(svgPath('M157 128 C172 148 174 179 165 207 C159 221 146 235 129 244 C149 224 157 201 157 181Z',skinShade,'opacity=".23"'));
+  p.push(svgPath('M69 142 C74 126 83 118 88 119 C79 143 77 172 75 187 C70 182 68 164 69 142Z',skinLit,'opacity=".28"'));
+  p.push(svgPath('M87 226 Q105 240 120 242 Q142 238 153 226 Q145 247 120 250 Q96 245 87 226Z',skinShade,'opacity=".11"'));
   p.push('</g>');
 
   // Brows have their own gestures and are not a single recolored straight bar.
@@ -195,7 +196,9 @@ export function drawIllustratedAvatar(a, palettes, code) {
     }else{
       const shape=eyeShapes[a.eyes],eid=`${id}eye${x}`;
       p.push(`<defs><clipPath id="${eid}">${svgPath(shape,'white')}</clipPath></defs>`);
-      p.push(svgPath(shape,sclera,`stroke="${eyeContour}" stroke-width="1.45"`));
+      // A single upper lid defines the eye. A second thick outline made
+      // lashes look like overlapping marker strokes at portrait size.
+      p.push(svgPath(shape,sclera));
       p.push(`<g clip-path="url(#${eid})">`);
       const radius=Math.min([7,9.4,5,7,6.7,8.3][a.iris]||7,[8,10,6.5,7,4,10,3.5][a.eyes]);
       const pupilY=a.eyes===4?0:1;
@@ -206,8 +209,8 @@ export function drawIllustratedAvatar(a, palettes, code) {
       p.push(`<ellipse cx="0" cy="${pupilY+1}" rx="${a.iris===3?1.5:2.7}" ry="${Math.min(radius*.7,4.7)}" fill="${dark}"/>`);
       if(a.iris!==5){p.push('<circle cx="-2.6" cy="-3.1" r="2.4" fill="#fffdfa"/>');p.push('<circle cx="3.8" cy="4.1" r=".85" fill="#fffaf6" opacity=".75"/>');}
       p.push('</g>');
-      p.push(inkLine('M-19 0 Q-6 -13 19 -3',eyeContour,a.eyes===5?2.8:2.3));
-      p.push(inkLine('M-14 7 Q1 13 13 6',skinShade,.88,'opacity=".38"'));
+      p.push(inkLine('M-19 0 Q-6 -13 19 -3',eyeContour,a.eyes===5?2.3:1.9));
+      p.push(inkLine('M-15 6 Q1 11 14 5',skinShade,.75,'opacity=".27"'));
       if(a.eyes===3||a.eyes===5)p.push(inkLine('M-17 0 l-4 -4',eyeContour,1.4));
     }
     p.push('</g>');
@@ -233,17 +236,17 @@ export function drawIllustratedAvatar(a, palettes, code) {
   if(a.extras===3)p.push(inkLine('M155 194 l12 11 M159 201 l7 -4',tint(skin,'#9a4147',.70),1.9));
   if(a.extras===4)p.push('<circle cx="152" cy="212" r="2.1" fill="'+skinInk+'"/>');
 
-  // The scalp is a single foundation; varied fringe locks sit on top of it.
+  // The scalp is one continuous, softly rounded mass. No visible construction
+  // line between the crown and the separately selected fringe pieces.
   if(hasHair){
-    const scalp='M62 143 Q55 107 72 84 Q87 63 113 67 Q139 61 158 74 Q183 87 183 120 Q186 135 175 149 L169 133 Q158 118 146 117 Q130 125 112 124 Q92 126 83 116 Q74 137 62 143Z';
+    const scalp='M60 143 C54 118 61 92 81 75 C103 56 137 58 159 73 C181 87 188 111 181 142 C175 145 172 130 163 123 C147 112 138 117 127 122 C108 130 96 123 84 117 C74 127 70 139 60 143Z';
     p.push(`<defs><clipPath id="${id}Scalp">${svgPath(scalp,'white')}</clipPath></defs>`);
     // Never stroke the hidden lower edge of the scalp: a continuous outline
     // there makes every hairstyle resemble a helmet sitting on the forehead.
     p.push(svgPath(scalp,hair));
-    if(a.hairBack===0)p.push(inkLine('M62 126 Q60 94 80 78 Q117 59 150 72 Q180 87 183 123',hairContour,.75));
     p.push(`<g clip-path="url(#${id}Scalp)">`);
-    p.push(svgPath('M151 69 Q183 85 188 127 L167 152 Q167 115 142 85Z',hairShade,'opacity=".34"'));
-    p.push(inkLine('M78 96 Q92 75 123 75',hairHighlight,2.6,'opacity=".75"'));
+    p.push(svgPath('M150 69 C174 84 184 105 182 131 C171 118 171 93 150 69Z',hairShade,'opacity=".20"'));
+    p.push(inkLine('M78 95 Q94 78 122 76',hairHighlight,2.2,'opacity=".48"'));
     p.push('</g>');
   }
 
@@ -251,10 +254,10 @@ export function drawIllustratedAvatar(a, palettes, code) {
   p.push(`<g id="avatar-fringe">`);
   if(fringe){
     p.push(`<defs><clipPath id="${id}Fringe">${svgPath(fringe,'white')}</clipPath></defs>`);
-    p.push(svgPath(fringe,hair,`stroke="${hairContour}" stroke-width=".65" stroke-linejoin="round"`));
+    p.push(svgPath(fringe,hair));
     p.push(`<g clip-path="url(#${id}Fringe)">`);
     p.push(svgPath('M126 92 Q178 98 185 153 L141 157 Q145 116 126 92Z',hairShade,'opacity=".20"'));
-    p.push(inkLine(fringeTexture[a.bangs],hairHighlight,1.55,'opacity=".70"'));
+    p.push(inkLine(fringeTexture[a.bangs],hairHighlight,1.15,'opacity=".46"'));
     p.push('</g>');
   }
   p.push('</g>');
@@ -262,18 +265,20 @@ export function drawIllustratedAvatar(a, palettes, code) {
   const side=sideStyles[a.sides];
   p.push('<g id="avatar-side-hair">');
   if(side){
-    p.push(svgPath(side,hair,`stroke="${hairContour}" stroke-width=".6" stroke-linejoin="round"`));
-    if(a.sides===2||a.sides===4||a.sides===5)p.push(inkLine('M65 146 Q67 177 61 211 M175 146 Q173 177 180 211',hairHighlight,1.2,'opacity=".47"'));
-    if(a.sides===3||a.sides===6)p.push(inkLine('M65 153 Q70 163 65 175 M175 153 Q170 163 175 175',hairShade,1.3,'opacity=".55"'));
+    p.push(svgPath(side,hair));
+    if(a.sides===2||a.sides===4||a.sides===5)p.push(inkLine('M65 151 Q66 179 60 209 M175 151 Q174 179 181 209',hairHighlight,1,'opacity=".35"'));
+    if(a.sides===3||a.sides===6)p.push(inkLine('M65 156 Q69 165 65 175 M175 156 Q171 165 175 175',hairShade,1.05,'opacity=".35"'));
   }
   p.push('</g>');
 
   // Accessories are drawn last, so eyewear and earrings do not disappear
   // behind a new hairstyle. The strap remains deliberately thin.
   if(a.extras===5){
-    p.push(inkLine('M136 162 Q104 145 66 149',eyeContour,2));
-    p.push(svgPath('M135 163 Q148 155 162 162 Q171 171 165 185 Q148 192 134 183 Q131 173 135 163Z',dark,`stroke="${coatLit}" stroke-width="1.2"`));
-    p.push(inkLine('M139 165 Q150 161 160 166',coatLit,.9,'opacity=".67"'));
+    // The strap disappears beneath the hair at the temple, while the soft
+    // oval patch follows the actual eye position.
+    p.push(inkLine('M136 169 Q113 157 93 158',tint(skin,'#303034',.72),1.4,'opacity=".72"'));
+    p.push(svgPath('M135 165 C142 159 158 159 165 167 C169 173 166 183 160 187 C150 191 138 188 134 182 C131 177 132 170 135 165Z',dark,`stroke="${coatLit}" stroke-width=".9"`));
+    p.push(inkLine('M139 167 Q150 163 160 169',coatLit,.7,'opacity=".42"'));
   }
   if(a.extras===6){
     p.push(svgPath('M72 165 Q89 160 110 165 L108 181 Q90 188 74 181Z M130 165 Q150 160 168 165 L166 181 Q149 188 132 181Z','none',`stroke="${eyeContour}" stroke-width="1.9" stroke-linejoin="round"`));

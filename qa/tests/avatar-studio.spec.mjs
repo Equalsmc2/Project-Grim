@@ -55,7 +55,7 @@ test('saved portraits refresh to the improved shapes without a new upload',async
   const {getState}=await import('/assets/grim-158/state.js');
   const c=getState().characters[0];
   return {version:c.portraitArtVersion,redrawn:c.portrait.startsWith('data:image/png;base64,')&&!c.portrait.includes('OLDSTYLE'),recipeKept:c.portraitAvatar===c.avatar};
- })).toEqual({version:4,redrawn:true,recipeKept:true});
+ })).toEqual({version:5,redrawn:true,recipeKept:true});
 });
 
 test('player can make and revise portraits on a narrow touch screen',async({page,context})=>{
