@@ -1,5 +1,6 @@
 import {CONDITION_OPTIONS} from './state.js';
 import {isAvatarCode} from './avatar-art.js';
+import {MAP_STEPS,moveBattleToken} from './battle-map-state.js';
 
 // Only these card values are editable on a shared player sheet. In particular,
 // faction, hidden, combat turns, presentation, and scene data are DM-owned.
@@ -13,10 +14,11 @@ export const PLAYER_NUMBER_FIELDS={
   perception:{label:'Perception',min:-20,max:80}
 };
 export const PLAYER_TEXT_FIELDS={name:48,ancestry:35,className:35};
-export const PLAYER_EDIT_FIELDS=[...Object.keys(PLAYER_NUMBER_FIELDS),...Object.keys(PLAYER_TEXT_FIELDS),'conditions','avatar'];
+export const PLAYER_EDIT_FIELDS=[...Object.keys(PLAYER_NUMBER_FIELDS),...Object.keys(PLAYER_TEXT_FIELDS),'conditions','avatar','mapMove'];
 
 export function normalizePlayerEdit(field,value){
   if(field==='avatar')return isAvatarCode(value)?value:null;
+  if(field==='mapMove')return typeof value==='string'&&Object.hasOwn(MAP_STEPS,value)?value:null;
   if(field in PLAYER_TEXT_FIELDS){
     const clean=String(value??'').trim().slice(0,PLAYER_TEXT_FIELDS[field]);
     return clean.length?clean:null;
@@ -35,6 +37,12 @@ export function applyPlayerEdit(state,characterId,field,value){
   if(!character)return false;
   const clean=normalizePlayerEdit(field,value);
   if(clean===null)return false;
+  if(field==='mapMove'){
+    // Even a blocked step is acknowledged. Otherwise an old Firebase command
+    // would be replayed every time another campaign field changes.
+    moveBattleToken(state,characterId,clean,{playerOnly:true});
+    return true;
+  }
   if(field==='conditions')character.conditions=clean;
   else{
     character[field]=clean;
@@ -70,7 +78,7 @@ export function playerRules(){
       '.read':"auth != null",
       '$characterId':{'$uid':{'$field':{
         '.write':`auth != null && root.child('grim/rooms').child($roomId).exists() && auth.uid === $uid && (${known}) && newData.exists() && (!data.exists() || newData.child('revision').val() > data.child('revision').val())`,
-        '.validate':"newData.hasChildren(['revision', 'value']) && newData.child('revision').isNumber() && newData.child('revision').val() > 0 && newData.child('revision').val() < 9000000000000000 && ($field === 'avatar' ? (newData.child('value').isString() && newData.child('value').val().matches(/^v1-[0-9a-z]{16}$/)) : ($field === 'conditions' ? (newData.child('value').isString() && newData.child('value').val().length <= 220) : (($field === 'name' || $field === 'ancestry' || $field === 'className') ? (newData.child('value').isString() && newData.child('value').val().length > 0 && newData.child('value').val().length <= 48) : (newData.child('value').isNumber() && newData.child('value').val() >= -100 && newData.child('value').val() <= 9999))))"
+        '.validate':"newData.hasChildren(['revision', 'value']) && newData.child('revision').isNumber() && newData.child('revision').val() > 0 && newData.child('revision').val() < 9000000000000000 && ($field === 'avatar' ? (newData.child('value').isString() && newData.child('value').val().matches(/^v1-[0-9a-z]{16}$/)) : ($field === 'mapMove' ? (newData.child('value').isString() && newData.child('value').val().matches(/^(up|down|left|right)$/)) : ($field === 'conditions' ? (newData.child('value').isString() && newData.child('value').val().length <= 220) : (($field === 'name' || $field === 'ancestry' || $field === 'className') ? (newData.child('value').isString() && newData.child('value').val().length > 0 && newData.child('value').val().length <= 48) : (newData.child('value').isNumber() && newData.child('value').val() >= -100 && newData.child('value').val() <= 9999)))))"
       }}}
     }}
   }}};

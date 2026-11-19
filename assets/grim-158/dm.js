@@ -14,7 +14,7 @@ function go(to){
    if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
  });
  document.querySelectorAll('.dm-section').forEach(el=>el.classList.toggle('active',el.dataset.section===to));
- $('pageTitle').textContent=({overview:'Overview',environment:'Environment',music:'Music library',scene:'Scene controls',combat:'Combat controls',cast:'Card editor',settings:'Connection & Setup'})[to];
+ $('pageTitle').textContent=({overview:'Overview',environment:'Environment',music:'Music library',scene:'Scene controls',combat:'Combat controls',battlemap:'Battle maps',cast:'Card editor',settings:'Connection & Setup'})[to];
  render(getState());
  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  window.scrollTo?.({top:0,behavior:reduced?'instant':'smooth'});
@@ -110,7 +110,7 @@ document.querySelectorAll('.dm-sidebar [data-section]').forEach(button=>{
 });
 document.querySelectorAll('.dm-section[data-section]').forEach(panel=>{
  panel.id='dm-panel-'+panel.dataset.section;
- panel.setAttribute('aria-label',({overview:'Overview',scene:'Scene director',environment:'Environment',music:'Music library',combat:'Combat controls',cast:'Combatant cards',settings:'Connection settings'})[panel.dataset.section]);
+ panel.setAttribute('aria-label',({overview:'Overview',scene:'Scene director',environment:'Environment',music:'Music library',combat:'Combat controls',battlemap:'Battle maps',cast:'Combatant cards',settings:'Connection settings'})[panel.dataset.section]);
 });
 const mainMenu=$('dmNav');
 mainMenu.addEventListener('keydown',event=>{

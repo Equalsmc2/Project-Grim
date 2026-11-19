@@ -2,6 +2,7 @@ import {CONDITION_OPTIONS,getState,getOptions,subscribe,updateState,escapeHtml} 
 import {PLAYER_NUMBER_FIELDS,PLAYER_TEXT_FIELDS,normalizePlayerEdit,applyPlayerEdit} from './player-fields.js';
 import {openAvatarMaker,refreshAvatarArt} from './avatar-maker.js';
 import {AVATAR_ART_VERSION} from './avatar-art.js';
+import {getActiveBattleMap,getBattlePositions,canMoveBattleToken,moveBattleToken} from './battle-map-state.js';
 
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search),options=getOptions();
@@ -13,6 +14,7 @@ let cloud=null,ready=!online,connectionLabel='',connectionKind='warning';
 let expandedConditions=!matchMedia('(max-width:600px)').matches;
 let expandedProfile=!matchMedia('(max-width:600px)').matches;
 const pending=new Map(),writeChains=new Map();
+let mapMoveChain=Promise.resolve(),mapMoveQueued=0;
 const playerCharacters=()=>getState().characters.filter(c=>c.faction!=='enemy');
 const valueFor=(c,field)=>pending.get(`${c.id}/${field}`)?.value??c[field];
 const initial=(name)=>String(name||'').trim().charAt(0).toUpperCase()||'◇';
@@ -51,9 +53,13 @@ function render(){
     return `<div class="player-stat"><label for="p-${field}">${def.label}</label><input id="p-${field}" data-field="${field}" type="number" inputmode="numeric" min="${def.min}" max="${def.max}" step="1" value="${escapeHtml(valueFor(c,field)??0)}" aria-label="${def.label}"></div>`;
   };
   const profileField=(field,label)=>`<div class="player-profile-field"><label for="p-${field}">${label}</label><input id="p-${field}" data-field="${field}" maxlength="${PLAYER_TEXT_FIELDS[field]}" value="${escapeHtml(valueFor(c,field)||'')}" aria-label="${label}"></div>`;
+  const state=getState(),battleMap=state.mode==='combat'&&state.battleMaps?.enabled?getActiveBattleMap(state):null;
+  const position=battleMap&&getBattlePositions(battleMap,state.characters).get(c.id);
+  const arrows=[['up','↑','Move north'],['left','←','Move west'],['right','→','Move east'],['down','↓','Move south']];
+  const mapControls=battleMap?`<section class="player-move-card" aria-label="Battle map movement"><div class="player-move-heading"><strong>Move on the map</strong><small>${escapeHtml(battleMap.name)}</small></div><p>One square per tap · 5 ft. The DM's board updates live.${position?` Current square: ${position.x+1}, ${position.y+1}.`:''}</p><div class="player-move-pad"><div class="player-move-center" aria-hidden="true">5 FT</div>${arrows.map(([direction,symbol,title])=>`<button type="button" data-map-move="${direction}" aria-label="${title}" title="${title}" ${canMoveBattleToken(state,c.id,direction)?'':'disabled'}>${symbol}</button>`).join('')}</div><small class="player-move-status">${mapMoveQueued?'Waiting for the DM to confirm movement…':'Walls, solid cover and other cards stop movement.'}</small></section>`:'';
   $('playerSheet').innerHTML=`
     <div class="player-sheet-hero"><div class="player-hero-row"><div class="player-hero-art">${visual(c)}</div><div class="player-hero-copy"><span class="player-kicker">PLAYER CHARACTER · LIVE SHEET</span><h2>${escapeHtml(valueFor(c,'name'))}</h2><p>${escapeHtml(valueFor(c,'ancestry')||'Adventurer')} · ${escapeHtml(valueFor(c,'className')||'Adventurer')}</p><div class="player-hero-tags"><span>LEVEL ${escapeHtml(valueFor(c,'level'))}</span><span>${c.hidden?'HIDDEN FROM STAGE':'ON THE PARTY ROSTER'}</span></div><div class="player-hero-tools"><button type="button" data-open-maker="1" aria-label="Make a portrait for this character">Make portrait</button></div></div></div></div>
-    <div class="player-sheet-body"><section aria-label="Hit point controls"><div class="player-section-title"><h3>Hit points</h3><small>Update your HP quickly</small></div><div class="player-health-card"><div class="player-health-top"><div class="player-health-total">${hp} <span>/ ${maxHp} HP</span></div><strong class="player-health-percent">${pct}%</strong></div><div class="player-health-track" role="progressbar" aria-label="Current hit points" aria-valuenow="${hp}" aria-valuemin="0" aria-valuemax="${maxHp}"><i class="${pct<=30?'low':''}" style="width:${pct}%"></i></div><div class="player-hp-actions"><button type="button" data-hp-step="-5" aria-label="Subtract five hit points">− 5</button><button type="button" data-hp-step="-1" aria-label="Subtract one hit point">− 1</button><button type="button" data-hp-step="1" aria-label="Add one hit point">+ 1</button><button type="button" data-hp-step="5" aria-label="Add five hit points">+ 5</button></div></div></section>
+    <div class="player-sheet-body">${mapControls}<section aria-label="Hit point controls"><div class="player-section-title"><h3>Hit points</h3><small>Update your HP quickly</small></div><div class="player-health-card"><div class="player-health-top"><div class="player-health-total">${hp} <span>/ ${maxHp} HP</span></div><strong class="player-health-percent">${pct}%</strong></div><div class="player-health-track" role="progressbar" aria-label="Current hit points" aria-valuenow="${hp}" aria-valuemin="0" aria-valuemax="${maxHp}"><i class="${pct<=30?'low':''}" style="width:${pct}%"></i></div><div class="player-hp-actions"><button type="button" data-hp-step="-5" aria-label="Subtract five hit points">− 5</button><button type="button" data-hp-step="-1" aria-label="Subtract one hit point">− 1</button><button type="button" data-hp-step="1" aria-label="Add one hit point">+ 1</button><button type="button" data-hp-step="5" aria-label="Add five hit points">+ 5</button></div></div></section>
       <section aria-label="Character statistics"><div class="player-section-title"><h3>Character values</h3><small>Tap a value to edit</small></div><div class="player-stats-grid">${['hp','maxHp','tempHp','ac','initiative','perception','level'].map(numberField).join('')}</div></section>
       <details class="player-detail-section" data-expand="conditions" ${expandedConditions?'open':''}><summary class="player-section-title"><h3>Conditions</h3><small>${cond.length?`${cond.length} active · `:''}Tap to ${expandedConditions?'collapse':'expand'} <span aria-hidden="true">⌄</span></small></summary><div class="player-conditions">${CONDITION_OPTIONS.map(name=>`<button type="button" class="player-condition" data-condition="${escapeHtml(name)}" aria-pressed="${!!activeCondition(name)}">${escapeHtml(activeCondition(name)||name)}${activeCondition(name)?' ✓':''}</button>`).join('')}</div></details>
       <details class="player-detail-section" data-expand="profile" ${expandedProfile?'open':''}><summary class="player-section-title"><h3>Character details</h3><small>Shown on your stage card <span aria-hidden="true">⌄</span></small></summary><div class="player-profile-fields">${profileField('name','Name')}${profileField('ancestry','Ancestry')}${profileField('className','Class')}</div></details>
@@ -87,6 +93,35 @@ function edit(field,value,portrait){
   });
 }
 
+function moveOnBattleMap(direction){
+  const c=currentCharacter(),state=getState();
+  if(!c||!ready||!canMoveBattleToken(state,c.id,direction))return;
+  if(!online){updateState(next=>moveBattleToken(next,c.id,direction,{playerOnly:true}));status('Moved one square · stage updated');return;}
+  if(!cloud){status('Waiting for the DM connection','warning');return;}
+  if(mapMoveQueued>=6){status('Wait for the last movement to reach the DM','warning');return;}
+  mapMoveQueued++;
+  const id=c.id;
+  const task=mapMoveChain.catch(()=>{}).then(async()=>{
+    if(!getState().battleMaps?.enabled||getState().mode!=='combat')return;
+    const revision=await cloud.submitPlayerEdit(id,'mapMove',direction);
+    const cursorKey=`${id}/${cloud.getUid()}/mapMove`;
+    await new Promise((resolve,reject)=>{
+      let off=()=>{};
+      const timeout=setTimeout(()=>{off();reject(new Error('DM has not confirmed movement yet'));},12000);
+      off=subscribe(next=>{
+        if(Number(next.playerEditCursors?.[cursorKey]||0)>=revision){
+          clearTimeout(timeout);queueMicrotask(()=>off());resolve();
+        }
+      });
+    });
+  });
+  mapMoveChain=task;
+  status('Moving your card… waiting for DM','warning');render();
+  void task.then(()=>{if(mapMoveQueued===1)status('Map movement confirmed');}).catch(error=>{
+    status(/PERMISSION_DENIED|permission_denied/.test(error.message)?'Map control needs the updated Firebase rules':error.message,'error');
+  }).finally(()=>{mapMoveQueued--;render();});
+}
+
 $('playerCharacters').addEventListener('click',event=>{
   const button=event.target.closest('[data-character]');if(!button)return;
   selectedId=button.dataset.character;
@@ -94,6 +129,8 @@ $('playerCharacters').addEventListener('click',event=>{
   render();
 });
 $('playerSheet').addEventListener('click',event=>{
+  const direction=event.target.closest('[data-map-move]')?.dataset.mapMove;
+  if(direction){moveOnBattleMap(direction);return;}
   const creator=event.target.closest('[data-open-maker]');
   if(creator){
     const c=currentCharacter();if(!c)return;

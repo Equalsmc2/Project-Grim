@@ -1,6 +1,7 @@
 import {normalizeMusic} from './music-playback.js';
 import {normalizeSceneSnapshots} from './scene-snapshots.js';
 import {normalizeEnvironment} from './environment-state.js';
+import {defaultBattleMaps,normalizeBattleMaps} from './battle-map-state.js';
 export const SCENES = [
   { id:'chapel', name:'Training Grid', kicker:'STAGE 01 / GRID', description:'A neutral test environment for checking layout and camera framing.', palette:'grid', ambience:'GRID ON / NEUTRAL LIGHT', sigil:'01' },
   { id:'forest', name:'White Studio', kicker:'STAGE 02 / BLANK', description:'A plain white background for checking readability and contrast.', palette:'blank', ambience:'GRID OFF / NEUTRAL LIGHT', sigil:'02' },
@@ -17,8 +18,8 @@ export const DEMO_CHARACTERS = [
 const KEY='grim:campaign:v1';
 const OPTIONS_KEY='grim:options:v1';
 const clone=x=>JSON.parse(JSON.stringify(x));
-export function defaultState(){return {version:1,music:normalizeMusic(),environment:normalizeEnvironment(),updatedAt:Date.now(),campaign:'PROJECT GRIM',subtitle:'PATHFINDER 2E',mode:'scene',sceneId:'chapel',sceneOverrides:{},sceneSnapshots:[],combat:{round:1,activeId:'sable'},characters:clone(DEMO_CHARACTERS),presentation:{cardScale:1,showHud:true,showSceneCards:false},log:[{id:'intro',time:Date.now(),text:'Stage ready.'}]};}
-function normalize(candidate){if(!candidate||typeof candidate!=='object')return defaultState();let d=defaultState();return {...d,...candidate,environment:normalizeEnvironment(candidate.environment),music:normalizeMusic(candidate.music),mode:candidate.mode==='combat'?'combat':'scene',sceneOverrides:{...d.sceneOverrides,...(candidate.sceneOverrides||{})},sceneSnapshots:normalizeSceneSnapshots(candidate.sceneSnapshots),combat:{...d.combat,...(candidate.combat||{})},presentation:{...d.presentation,...(candidate.presentation||{})},characters:Array.isArray(candidate.characters)?candidate.characters.map(c=>({...c,faction:c.faction==='enemy'?'enemy':'player'})):d.characters,log:Array.isArray(candidate.log)?candidate.log.slice(-35):d.log};}
+export function defaultState(){return {version:1,music:normalizeMusic(),environment:normalizeEnvironment(),battleMaps:defaultBattleMaps(),updatedAt:Date.now(),campaign:'PROJECT GRIM',subtitle:'PATHFINDER 2E',mode:'scene',sceneId:'chapel',sceneOverrides:{},sceneSnapshots:[],combat:{round:1,activeId:'sable'},characters:clone(DEMO_CHARACTERS),presentation:{cardScale:1,showHud:true,showSceneCards:false},log:[{id:'intro',time:Date.now(),text:'Stage ready.'}]};}
+function normalize(candidate){if(!candidate||typeof candidate!=='object')return defaultState();let d=defaultState();const characters=Array.isArray(candidate.characters)?candidate.characters.map(c=>({...c,faction:c.faction==='enemy'?'enemy':'player'})):d.characters;return {...d,...candidate,environment:normalizeEnvironment(candidate.environment),music:normalizeMusic(candidate.music),battleMaps:normalizeBattleMaps(candidate.battleMaps,characters),mode:candidate.mode==='combat'?'combat':'scene',sceneOverrides:{...d.sceneOverrides,...(candidate.sceneOverrides||{})},sceneSnapshots:normalizeSceneSnapshots(candidate.sceneSnapshots),combat:{...d.combat,...(candidate.combat||{})},presentation:{...d.presentation,...(candidate.presentation||{})},characters,log:Array.isArray(candidate.log)?candidate.log.slice(-35):d.log};}
 let state;
 try{state=normalize(JSON.parse(localStorage.getItem(KEY)));}catch{state=defaultState();}
 const subscribers=new Set();
