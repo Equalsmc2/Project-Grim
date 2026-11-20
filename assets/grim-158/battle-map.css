@@ -35,12 +35,6 @@
 .battle-edit-piece{position:absolute;z-index:2;display:grid;place-items:center;inset:8% 25%;min-height:0;min-width:0;border-radius:2px;background:#e7e7e7;border:2px solid #292929;color:#101010;font:bold clamp(8px,1vw,13px) sans-serif;box-shadow:0 2px 5px #0006;pointer-events:none;}
 .battle-edit-piece.is-enemy{background:#333;color:#fff;border-color:#fff;}
 .battle-edit-stage>.helper{margin:10px 0 0;}
-.battle-map-stage[hidden]{display:none!important;}
-.stage-app.battle-map-active #worldCanvas,.stage-app.battle-map-active .three-world,.stage-app.battle-map-active .card-positions,.stage-app.battle-map-active .stage-background,.stage-app.battle-map-active #worldStatus{display:none!important;}
-.battle-map-stage{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;background:#15191d;color:#f4f4f4;}
-.battle-stage-topline{position:absolute;top:15px;left:50%;transform:translateX(-50%);z-index:1;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 12px;min-width:min(600px,75%);font-size:15px;background:#090b0dd9;border:1px solid #444;pointer-events:none;}
-.battle-stage-topline span{font:10px monospace;color:#b4b4b4;letter-spacing:.06em;}
-.battle-stage-canvas{flex:1;min-height:0;min-width:0;}
 .battle-three-preview{margin:0 0 10px;border:1px solid #40454a;background:#15191d;}
 .battle-three-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;background:#101317;color:#eee;font-size:12px;flex-wrap:wrap;}
 .battle-preview-controls{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
@@ -53,10 +47,10 @@
 .battle-plan-details summary span{font-size:10px;font-weight:400;color:#aaa;margin-left:10px;}
 .battle-plan-details[open]{padding-bottom:10px;}
 .battle-plan-details .battle-edit-board{width:calc(100% - 20px);margin:0 10px;}
-.stage-app.battle-map-active .view-controls{z-index:12;}
-.stage-app.battle-map-active .auto-pan-control,.stage-app.battle-map-active .stage-camera-settings,.stage-app.battle-map-active .camera-guide{display:none!important;}
-.stage-app.battle-map-active .combat-info{bottom:12px;padding:8px 12px;background:#0c0c0ce0;border:1px solid #303030;max-width:min(800px,90vw);}
-.stage-app.battle-map-active .stage-bottom-left{display:none;}
+.stage-app.tactical-mode .view-controls{z-index:12;}
+.stage-app.tactical-mode .auto-pan-control{display:none!important;}
+.stage-app.tactical-mode .combat-info{bottom:12px;padding:8px 12px;background:#0c0c0ce0;border:1px solid #303030;max-width:min(800px,90vw);}
+.stage-app.tactical-mode .camera-guide::after{content:' · SHIFT + DRAG: PAN · FREE ORBIT';}
 .player-move-card{margin-bottom:18px;border:1px solid #777;background:#151515;padding:18px;color:#eee;}
 .player-move-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
 .player-move-heading strong{font-size:18px;}.player-move-heading small{color:#aaa;font-size:11px;}
@@ -69,4 +63,4 @@
 .player-move-status{display:block;text-align:center;margin-top:11px;color:#bdbdbd;font-size:11px;}
 @media(max-width:950px){.battle-editor-workspace{grid-template-columns:minmax(0,1fr);}.battle-tools{grid-template-columns:1fr 1fr;}.battle-tools>strong,.battle-tools>.helper{grid-column:1/-1;}.battle-brushes{grid-template-columns:repeat(3,minmax(0,1fr));}.battle-edit-board{min-height:180px;}.battle-three-viewport{height:clamp(320px,48dvh,560px);}}
 @media(max-width:670px){.battle-editor-top{grid-template-columns:minmax(0,1fr) repeat(2,auto);}.battle-editor-top .field:first-child{grid-column:1/-1;}.battle-editor-top #battlePresent{grid-column:1/-1;}.battle-editor-settings{grid-template-columns:minmax(0,1fr) 70px 70px;}.battle-editor-settings #battleResize{grid-column:1/-1;}.battle-brushes{grid-template-columns:repeat(2,minmax(0,1fr));}}
-@media(max-width:560px){#battleMapEditor{padding:10px;}.battle-tools{grid-template-columns:1fr;}.battle-tools>strong,.battle-tools>.helper{grid-column:auto;}.battle-stage-topline{top:4px;min-width:65%;max-width:90%;font-size:12px;padding:5px;}.battle-stage-topline span{display:none;}.battle-three-header{align-items:flex-start;}.battle-three-viewport{height:340px;}.battle-preview-controls .button{font-size:10px;padding:5px 7px;}}
+@media(max-width:560px){#battleMapEditor{padding:10px;}.battle-tools{grid-template-columns:1fr;}.battle-tools>strong,.battle-tools>.helper{grid-column:auto;}.battle-three-header{align-items:flex-start;}.battle-three-viewport{height:340px;}.battle-preview-controls .button{font-size:10px;padding:5px 7px;}}

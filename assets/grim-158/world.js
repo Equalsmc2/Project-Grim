@@ -3,6 +3,8 @@ import {normalizeEnvironment} from './environment-state.js';
 import {effectiveTime,skyAt,smoothValue,isPrecipitation} from './atmosphere.js';
 import {clusteredProps,accumulationTarget,pathDistance} from './world-polish.js';
 import {createNativeCardLayer} from './native-cards.js';
+import {getBattlePositions} from './battle-map-state.js';
+import {createSceneTacticalOverlay,tacticalCellCenter,tacticalCellSize} from './scene-tactical-overlay.js';
 import {clampZoomToCards} from './camera-guard.js';
 import {fitAllCardsInView} from './card-framing.js';
 import {GRAPHICS_QUALITY,normalizeGraphicsQuality,graphicsPixelRatio,weatherParticleCount} from './graphics-quality.js';
@@ -40,7 +42,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  nativeCards.setReducedMotion(reducedMotion);
  const groundShadow=shadowTexture();
  let zoom=1,viewMode=DEFAULT_CAMERA_VIEW,transition=null,fitRetreat=0,fitScale=1;
- let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',lastCardLayoutSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,suspended=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
+ let tacticalMap=null,tacticalOverlay=null,tacticalSignature='',tacticalPan={x:0,z:0},previousCamera=null,gridOpacity=0,gridTarget=0;
+ let width=1,height=1,yaw=0,pitch=0,env=normalizeEnvironment(),signature='',terrainSignature='',lastCardLayoutSignature='',weatherSystems=[],fogMeshes=[],anchors=[],disposed=false,lost=false,frame=0,last=0,lastFxFrame=0,dirty=true,projectionDirty=true,lastStatsAt=0,markerSignature='';
  let skyMesh=null,sunBody=null,moonBody=null,sunHalo=null,moonHalo=null,starMesh=null,cloudMesh=null,cloudShadowMesh=null,terrainMaterial=null,wetPatches=null,snowPatches=null,sandPatches=null;
  let scenicMaterials=[],accumulation={wet:0,snow:0,sand:0},nightStage=false;
  const weatherBudget=createWeatherBudget();let weatherMatrixWrites=0,weatherDrawFrames=0,lightingSettled=false;
@@ -52,9 +55,10 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  const cloudDummy=new T.Object3D(),cloudTint=new T.Color(),skyTop=new T.Color(),skyBottom=new T.Color(),fogTint=new T.Color();
  const dummy=new T.Object3D(),target=new T.Vector3();
  const stageShell=document.getElementById('stageApp');
- function wake(){if(!suspended&&!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
- function fitCardsZoom(z){return clampZoomToCards({requestedZoom:z,anchors,width,height,mode:viewMode,yaw,pitch,fieldWidth,fieldDepth,env,landscapeHeight});}
+ function wake(){if(!frame&&!disposed&&!lost&&!document.hidden)frame=requestAnimationFrame(tick);}
+ function fitCardsZoom(z){return tacticalMap?z:clampZoomToCards({requestedZoom:z,anchors,width,height,mode:viewMode,yaw,pitch,fieldWidth,fieldDepth,env,landscapeHeight});}
  function enforceCardVisibility(){
+  if(tacticalMap){fitRetreat=0;fitScale=1;return;}
   // Work from the unadjusted camera each time. Otherwise a new DM update or
   // camera tick would pile another retreat onto a previously fitted camera.
   if(fitRetreat){
@@ -69,8 +73,19 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
  }
  function cameraPose(animate=false){
   zoom=fitCardsZoom(zoom);
-  const pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
-  if(cinematicEnabled&&!reducedMotion&&performance.now()>=cinematicPauseUntil){pose.position.x+=cinematicGlide;pose.target.x+=cinematicGlide;}
+  let pose;
+  if(tacticalMap){
+   const fov=42,aspect=Math.max(.25,width/height),angle=fov*Math.PI/360;
+   const size=tacticalCellSize(tacticalMap,fieldWidth,fieldDepth);
+   const halfWidth=tacticalMap.width*size*.5,halfDepth=tacticalMap.height*size*.5;
+   const distance=clamp(Math.max(halfWidth/(Math.tan(angle)*aspect),halfDepth/Math.tan(angle))*1.48,12,150)/zoom;
+   const elevation=clamp((viewMode==='ground'?20:viewMode==='overhead'?74:48)+pitch,7,87)*Math.PI/180;
+   const center=new T.Vector3(tacticalPan.x,landscapeHeight(tacticalPan.x,tacticalPan.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills)+.25,tacticalPan.z);
+   pose={fov,aspect,target:center,position:center.clone().add(new T.Vector3(Math.sin(yaw)*Math.cos(elevation)*distance,Math.sin(elevation)*distance,Math.cos(yaw)*Math.cos(elevation)*distance))};
+  }else{
+   pose=calculateCameraPose({width,height,yaw,pitch,zoom,mode:viewMode,fieldWidth,fieldDepth});
+   if(cinematicEnabled&&!reducedMotion&&performance.now()>=cinematicPauseUntil){pose.position.x+=cinematicGlide;pose.target.x+=cinematicGlide;}
+  }
   const previousUnfitted=camera.position.clone();
   if(fitRetreat)previousUnfitted.addScaledVector(new T.Vector3(0,0,1).applyQuaternion(camera.quaternion),-fitRetreat);
   fitRetreat=0;fitScale=1;
@@ -455,6 +470,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    anchors.push({id,x,z,active:p.active,layout:p});
   }
   const nextSig=JSON.stringify(anchors.map(a=>[a.id,a.x,a.z,a.active,a.layout.side]));
+  markerGroup.visible=!tacticalMap;
   if(nextSig!==markerSignature){
    markerSignature=nextSig;disposeObject(markerGroup);markerGroup.clear();
    for(const a of anchors){
@@ -466,8 +482,43 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    }
   }
   nativeCards.setCards(anchors,characters,combat);
-  if(anchors.length){const fit=fitCardsZoom(zoom);if(fit<zoom-.001){zoom=fit;cameraPose();}else enforceCardVisibility();}
+  if(anchors.length&&!tacticalMap&&!transition){const fit=fitCardsZoom(zoom);if(fit<zoom-.001){zoom=fit;cameraPose();}else enforceCardVisibility();}
   stageShell.classList.toggle('native-cards-ready',true);
+  dirty=true;projectionDirty=true;wake();
+ }
+ function setTacticalMap(map,characters=[],activeId=null){
+  const entering=!!map&&!tacticalMap,leaving=!map&&!!tacticalMap;
+  if(entering){
+   previousCamera={yaw,pitch,zoom,viewMode};
+   tacticalPan={x:0,z:0};viewMode='tactical';yaw=0;pitch=0;zoom=1;
+  }
+  if(leaving){
+   const original=previousCamera||{yaw:0,pitch:0,zoom:1,viewMode:DEFAULT_CAMERA_VIEW};
+   ({yaw,pitch,zoom,viewMode}=original);
+   previousCamera=null;tacticalPan={x:0,z:0};
+   gridTarget=0;tacticalSignature='';
+   // Cover is removed with the mode. The lines dissolve during the camera move.
+   if(tacticalOverlay)for(const child of tacticalOverlay.group.children)if(!child.isLineSegments)child.visible=false;
+  }
+  tacticalMap=map||null;
+  if(tacticalMap){
+   const next=JSON.stringify([map.id,map.width,map.height,map.rows,fieldWidth,fieldDepth,env.seed,env.variation,env.hills]);
+   if(next!==tacticalSignature){
+    if(tacticalOverlay){scene.remove(tacticalOverlay.group);disposeObject(tacticalOverlay.group);}
+    tacticalOverlay=createSceneTacticalOverlay(map,fieldWidth,fieldDepth,env);
+    scene.add(tacticalOverlay.group);tacticalSignature=next;
+    gridOpacity=entering?0:1;gridTarget=1;
+   }
+   const positions=getBattlePositions(map,characters);
+   const placements=new Map();const cellSize=tacticalCellSize(map,fieldWidth,fieldDepth);
+   for(const [i,c] of characters.entries()){
+    const cell=positions.get(c.id);if(!cell)continue;
+    const point=tacticalCellCenter(map,cellSize,cell.x,cell.y);
+    placements.set(c.id,{worldX:point.x,worldZ:point.z,side:c.faction==='enemy'?'enemy':'player',scale:1,rank:i+1,active:c.id===activeId});
+   }
+   setCards(placements,characters,true);
+  }
+  if(entering||leaving){lastCardLayoutSignature='';markerGroup.visible=!tacticalMap;cameraPose(true);}
   dirty=true;projectionDirty=true;wake();
  }
  function updateCinematicSettings(e){
@@ -484,7 +535,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   }
  }
  function cinematicStep(t,dt){
-  if(reducedMotion||!cinematicEnabled||transition||t<cinematicPauseUntil)return false;
+  if(reducedMotion||!cinematicEnabled||tacticalMap||transition||t<cinematicPauseUntil)return false;
   // Integrate only the time spent actually moving. Changing speed, switching
   // tabs or manually pausing no longer causes a sudden jump in orbit phase.
   cinematicPhase+=dt*.16*cinematicSpeed;
@@ -509,7 +560,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   // Real 3D billboards share opaque geometry's depth buffer. No CSS silhouette
   // masks, delayed bitmap generation, or independently sorted HTML overlay.
   camera.updateMatrixWorld();
-  nativeCards.update(camera,width,height,env,landscapeHeight,time,fitScale);
+  if(tacticalMap)nativeCards.update(camera,width,height,env,landscapeHeight,time,fitScale,tacticalCellSize(tacticalMap,fieldWidth,fieldDepth)*.58);
+  else nativeCards.update(camera,width,height,env,landscapeHeight,time,fitScale);
   let active=false;
   for(const a of anchors)if(a.active){
    const y=landscapeHeight(a.x,a.z,fieldWidth,fieldDepth,env.seed,env.variation,env.hills);
@@ -519,7 +571,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   spotlight.visible=active;
  }
  function tick(t){
-  frame=0;if(disposed||suspended||lost||document.hidden)return;
+  frame=0;if(disposed||lost||document.hidden)return;
   const elapsed=Math.max(0,(t-last)/1000||0);
   const dt=Math.min(elapsed,.05),cameraDt=Math.min(elapsed,.15);last=t;
   const transitionMoving=updateLighting(dt,t);
@@ -538,9 +590,19 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    projectionDirty=true;dirty=true;if(f>=1)transition=null;
   }
   const cinematicMoving=cinematicStep(t,cameraDt);
+  const gridMoving=!!tacticalOverlay&&Math.abs(gridOpacity-gridTarget)>.01;
+  if(tacticalOverlay){
+   if(gridMoving)gridOpacity+=(gridTarget-gridOpacity)*Math.min(1,dt*9);
+   else gridOpacity=gridTarget;
+   for(const {material,opacity} of tacticalOverlay.materials)material.opacity=opacity*gridOpacity;
+   if(gridTarget===0&&gridOpacity===0){
+    scene.remove(tacticalOverlay.group);disposeObject(tacticalOverlay.group);tacticalOverlay=null;
+    dirty=true;
+   }
+  }
   // Enforce visibility after transitions and cinematic movement as well as
   // manual zoom. There must never be a frame with a clipped card.
-  if(transition||cinematicMoving||projectionDirty)enforceCardVisibility();
+  if(!tacticalMap&&(transition||cinematicMoving||projectionDirty))enforceCardVisibility();
   const cardFxMoving=nativeCards.needsAnimation(t);
   // Card-only FX frames need no environmental simulation or camera geometry.
   // Cap foil-only redraws to ~30 FPS, but keep normal camera/weather frames
@@ -549,7 +611,7 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   if(fxOnly && t-lastFxFrame<(quality==='low'?66:33)){frame=requestAnimationFrame(tick);return;}
   // A scheduled frame is not necessarily a changed frame. Skip redundant
   // WebGL draws between weather/cloud simulation steps.
-  const visiblyChanged=dirty||transitionMoving||accMoving||!!weatherDt||!!cloudMoved||!!fogMoved||!!env.cycleEnabled||transition||cinematicMoving||cardFxMoving;
+  const visiblyChanged=dirty||transitionMoving||accMoving||!!weatherDt||!!cloudMoved||!!fogMoved||!!env.cycleEnabled||transition||cinematicMoving||gridMoving||cardFxMoving;
   if(visiblyChanged){
    if(projectionDirty){projectCards(t);projectionDirty=false;}
    else if(cardFxMoving)nativeCards.animate(t);
@@ -557,18 +619,32 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
    renderer.render(scene,camera);dirty=false;
    if(t-lastStatsAt>1000||!lastStatsAt){lastStatsAt=t;window.grim3DStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,particles:weatherSystems.reduce((n,s)=>n+s.points.length,0),geometries:renderer.info.memory.geometries,pixelRatio:renderer.getPixelRatio(),weatherPerformance:{steps:weatherBudget.steps,matrixWrites:weatherMatrixWrites,renderedWeatherFrames:weatherDrawFrames},cardPerformance:nativeCards.getPerformanceStats(),camera:{yawDegrees:yaw*180/Math.PI,pitchDegrees:pitch,glide:cinematicGlide,phase:cinematicPhase,cardScale:fitScale,retreat:fitRetreat,cinematicEnabled},hour:currentHour,cloudCover:currentCloud,accumulation:{...accumulation}};}
   }
-  if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)frame=requestAnimationFrame(tick);
+  if(tacticalMap){
+   if(environmentMoving||transition||gridMoving||cardFxMoving)frame=requestAnimationFrame(tick);
+  }else if(environmentMoving||transition||(cinematicEnabled&&!reducedMotion)||cardFxMoving)frame=requestAnimationFrame(tick);
+  else if(gridMoving)frame=requestAnimationFrame(tick);
  }
  function visibility(){if(document.hidden){cancelAnimationFrame(frame);frame=0;}else{last=performance.now();dirty=true;wake();}}
  document.addEventListener('visibilitychange',visibility);
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(frame);frame=0;host.classList.add('world-lost');document.getElementById('stageApp').classList.remove('webgl-ready','native-cards-ready');document.getElementById('worldStatus').textContent='3D paused · restoring graphics';});
  renderer.domElement.addEventListener('webglcontextrestored',()=>{lost=false;frame=0;signature='';terrainSignature='';projectionDirty=true;rebuild(env);host.classList.remove('world-lost');document.getElementById('stageApp').classList.add('webgl-ready','native-cards-ready');document.getElementById('worldStatus').textContent='3D WORLD';});
  resize();return {
-  update:rebuild,setCards,
-   setSuspended(value){const next=!!value;if(suspended===next)return;suspended=next;if(next){cancelAnimationFrame(frame);frame=0;}else{dirty=true;projectionDirty=true;wake();}},
+  update:rebuild,setCards,setTacticalMap,isTacticalMode(){return !!tacticalMap;},
   resize(){resize();wake();},
    orbit(y,p){yaw=y*Math.PI/180;pitch=p;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose();wake();},
    setView(mode){if(!['tactical','ground','overhead'].includes(mode))return viewMode;viewMode=mode;yaw=0;pitch=0;zoom=1;cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;cameraPose(true);wake();return viewMode;},
+  resetView(){yaw=0;pitch=0;zoom=1;tacticalPan={x:0,z:0};cameraPose(true);wake();},
+  pan(dx,dy){
+   if(!tacticalMap)return;
+   const cell=tacticalCellSize(tacticalMap,fieldWidth,fieldDepth);
+   const amount=Math.max(mapWidth(),mapDepth())*.0013/zoom;
+   const right=new T.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+   const up=new T.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+   tacticalPan.x=clamp(tacticalPan.x+(-dx*right.x+dy*up.x)*amount,-mapWidth()*.48,mapWidth()*.48);
+   tacticalPan.z=clamp(tacticalPan.z+(-dx*right.z+dy*up.z)*amount,-mapDepth()*.48,mapDepth()*.48);
+   function mapWidth(){return tacticalMap.width*cell;}function mapDepth(){return tacticalMap.height*cell;}
+   cameraPose();wake();
+  },
   getView(){return viewMode;},
   getOrbit(){return {yaw:yaw*180/Math.PI,pitch};},
    pauseCinematic(ms=4500){cinematicPauseUntil=performance.now()+clamp(ms,0,60000);cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;},
@@ -594,8 +670,8 @@ export function createWorld(host,stage,{quality='balanced',reducedMotion=false}=
   },
   getQuality(){return quality;},
   getCinematic(){return cinematicEnabled;},
-   zoomTo(v){cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;zoom=fitCardsZoom(clamp(Number(v)||1,MIN_CAMERA_ZOOM,MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
+   zoomTo(v){cinematicPauseUntil=performance.now()+4500;cinematicGlide=0;cinematicYawVelocity=cinematicPitchVelocity=cinematicGlideVelocity=0;zoom=fitCardsZoom(clamp(Number(v)||1,tacticalMap?.35:MIN_CAMERA_ZOOM,tacticalMap?4.5:MAX_CAMERA_ZOOM));cameraPose();wake();return zoom;},
   getZoom(){return zoom;},
-  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);disposeObject(root);scene.remove(root);disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
+  dispose(){disposed=true;cancelAnimationFrame(frame);frame=0;stageShell.classList.remove('native-cards-ready');nativeCards.dispose();document.removeEventListener('visibilitychange',visibility);if(tacticalOverlay){disposeObject(tacticalOverlay.group);scene.remove(tacticalOverlay.group);}disposeObject(root);scene.remove(root);disposeObject(markerGroup);markerGroup.clear();groundShadow.dispose();scene.remove(markerGroup);renderer.dispose();renderer.domElement.remove();}
  };
 }
