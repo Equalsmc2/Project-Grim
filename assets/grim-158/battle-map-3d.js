@@ -1,10 +1,11 @@
 import * as T from './vendor/three.module.js';
-import {createNativeCardLayer} from './native-cards.js';
+import {createNativeCardLayer} from './native-cards.js?v=2';
 import {disposeSceneGraph} from './scene-resources.js';
 import {BATTLE_CELL_SIZE,buildBattleGeometry,worldCell,cellAtWorld} from './battle-map-geometry.js';
 import {getBattlePositions} from './battle-map-state.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+const wrapYaw=value=>((value+180)%360+360)%360-180;
 const FLAT_GROUND=()=>0;
 
 /** A genuine 3D encounter stage, shared by the TV and the DM's live preview. */
@@ -26,7 +27,7 @@ export function createBattleMap3D(host,{onCell=null,quality='balanced',reducedMo
   let map=null,geometry=null,signature='',frame=0,disposed=false;
   const cards=createNativeCardLayer(scene,{onChange:()=>draw(),onError:e=>console.warn('Battle cards:',e)});
   cards.setReducedMotion(reducedMotion);
-  let yaw=0,pitch=0,zoom=1,view='tactical',width=1,height=1;
+  let yaw=0,pitch=0,zoom=1,view='tactical',width=1,height=1,panX=0,panZ=0,interactionMode='build';
   const picker=new T.Raycaster(),cursor=new T.Vector2();
   const env={terrainWidth:32,terrainDepth:20,seed:0,variation:0,hills:'flat'};
   function cameraPose(){
@@ -37,9 +38,9 @@ export function createBattleMap3D(host,{onCell=null,quality='balanced',reducedMo
     const elevation=clamp((view==='overhead'?79:view==='ground'?29:55)+pitch,12,86)*Math.PI/180;
     const distance=(base+7)*(view==='ground'?1.18:1.05)/zoom;
     const az=yaw*Math.PI/180;
-    const target=new T.Vector3(0,.2,0);
+    const target=new T.Vector3(panX,.2,panZ);
     const horizontal=distance*Math.cos(elevation);
-    camera.position.set(Math.sin(az)*horizontal,Math.sin(elevation)*distance+target.y,Math.cos(az)*horizontal);
+    camera.position.set(target.x+Math.sin(az)*horizontal,Math.sin(elevation)*distance+target.y,target.z+Math.cos(az)*horizontal);
     camera.lookAt(target);camera.updateMatrixWorld(true);
   }
   function resize(){
@@ -51,7 +52,9 @@ export function createBattleMap3D(host,{onCell=null,quality='balanced',reducedMo
   function draw(){if(!disposed&&map&&!frame)frame=requestAnimationFrame(tick);}
   function tick(time){
     frame=0;if(disposed||!map||document.hidden)return;
-    cards.update(camera,width,height,env,FLAT_GROUND,time);
+    // A full card fits inside one 5-ft square in both width and height:
+    // 0.58 tiles wide × (268/160) = 0.97 tiles tall. Never screen-size it.
+    cards.update(camera,width,height,env,FLAT_GROUND,time,1,BATTLE_CELL_SIZE*.58);
     renderer.render(scene,camera);
     if(!reducedMotion&&cards.needsAnimation(time))draw();
   }
@@ -86,33 +89,53 @@ export function createBattleMap3D(host,{onCell=null,quality='balanced',reducedMo
     return hit?cellAtWorld(map,hit.point.x,hit.point.z):null;
   }
   if(onCell){
-    let painting=false,last='';
+    let pointerAction=null,last='';
     renderer.domElement.addEventListener('contextmenu',event=>event.preventDefault());
     renderer.domElement.addEventListener('pointerdown',event=>{
-      if(event.button!==0||event.altKey)return;
-      painting=true;last='';renderer.domElement.setPointerCapture?.(event.pointerId);
-      const cell=pickCell(event);if(cell){last=`${cell.x}:${cell.y}`;onCell(cell,'start');}
+      if(event.button>2)return;
+      const kind=event.button===1||event.shiftKey?'pan':event.button===2||event.altKey?'orbit':interactionMode;
+      if(kind==='build'&&event.button!==0)return;
+      event.preventDefault();
+      pointerAction={id:event.pointerId,kind,x:event.clientX,y:event.clientY};last='';
+      renderer.domElement.setPointerCapture?.(event.pointerId);
+      if(kind==='build'){
+        const cell=pickCell(event);if(cell){last=`${cell.x}:${cell.y}`;onCell(cell,'start');}
+      }
     });
     renderer.domElement.addEventListener('pointermove',event=>{
-      if(!painting)return;
-      const cell=pickCell(event),id=cell&&`${cell.x}:${cell.y}`;
-      if(cell&&id!==last){last=id;onCell(cell,'move');}
+      if(!pointerAction||pointerAction.id!==event.pointerId)return;
+      const dx=event.clientX-pointerAction.x,dy=event.clientY-pointerAction.y;
+      pointerAction.x=event.clientX;pointerAction.y=event.clientY;
+      if(pointerAction.kind==='orbit')orbit(yaw+dx*.38,pitch-dy*.29);
+      else if(pointerAction.kind==='pan')pan(dx,dy);
+      else{
+        const cell=pickCell(event),id=cell&&`${cell.x}:${cell.y}`;
+        if(cell&&id!==last){last=id;onCell(cell,'move');}
+      }
     });
-    for(const type of ['pointerup','pointercancel'])renderer.domElement.addEventListener(type,()=>{painting=false;last='';});
-    // The DM can hold Alt and drag with the right mouse button to orbit the preview.
-    let drag=null;
-    renderer.domElement.addEventListener('pointerdown',event=>{if(event.button===2||event.altKey){drag={x:event.clientX,y:event.clientY};renderer.domElement.setPointerCapture?.(event.pointerId);}});
-    renderer.domElement.addEventListener('pointermove',event=>{if(!drag)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;drag={x:event.clientX,y:event.clientY};orbit(clamp(yaw+dx*.3,-180,180),clamp(pitch-dy*.3,-20,20));});
-    renderer.domElement.addEventListener('pointerup',()=>drag=null);
+    for(const type of ['pointerup','pointercancel'])renderer.domElement.addEventListener(type,event=>{if(pointerAction?.id===event.pointerId)pointerAction=null;last='';});
     renderer.domElement.addEventListener('wheel',event=>{event.preventDefault();zoomTo(zoom*Math.exp(-event.deltaY*.001));},{passive:false});
   }
-  function orbit(nextYaw,nextPitch){yaw=clamp(Number(nextYaw)||0,-180,180);pitch=clamp(Number(nextPitch)||0,-20,20);cameraPose();draw();}
-  function zoomTo(next){zoom=clamp(Number(next)||1,.55,2.1);cameraPose();draw();return zoom;}
+  function orbit(nextYaw,nextPitch){yaw=wrapYaw(Number(nextYaw)||0);pitch=clamp(Number(nextPitch)||0,-70,58);cameraPose();draw();}
+  function pan(dx,dy){
+    if(!map)return;
+    const depth=camera.position.distanceTo(new T.Vector3(panX,.2,panZ));
+    const units=(2*depth*Math.tan(camera.fov*Math.PI/360))/Math.max(1,height);
+    const right=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,0);
+    const up=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,1);
+    const limitX=map.width*BATTLE_CELL_SIZE*.8,limitZ=map.height*BATTLE_CELL_SIZE*.8;
+    panX=clamp(panX+(-dx*right.x+dy*up.x)*units,-limitX,limitX);
+    panZ=clamp(panZ+(-dx*right.z+dy*up.z)*units,-limitZ,limitZ);
+    cameraPose();draw();
+  }
+  function zoomTo(next){zoom=clamp(Number(next)||1,.35,4.5);cameraPose();draw();return zoom;}
+  function resetView(){yaw=0;pitch=0;zoom=1;panX=0;panZ=0;cameraPose();draw();}
   const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(resize):null;observer?.observe(host);
   const visibility=()=>{if(!document.hidden)draw();};document.addEventListener('visibilitychange',visibility);
   resize();
   return {
-    setMap,resize,orbit,zoomTo,getOrbit:()=>({yaw,pitch}),getZoom:()=>zoom,
+    setMap,resize,orbit,pan,zoomTo,resetView,getOrbit:()=>({yaw,pitch}),getZoom:()=>zoom,
+    setInteractionMode(next){if(['build','orbit','pan'].includes(next))interactionMode=next;return interactionMode;},
     getView:()=>view,setView(next){if(['ground','tactical','overhead'].includes(next)){view=next;cameraPose();draw();}return view;},
     pauseCinematic(){},setQuality(next){quality=next;renderer.shadowMap.enabled=quality!=='low';resize();},
     setReducedMotion(next){reducedMotion=!!next;cards.setReducedMotion(reducedMotion);draw();},

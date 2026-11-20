@@ -697,7 +697,7 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
     for(const [id, entry] of entries) if(!used.has(id)){ disposeEntry(entry); entries.delete(id); }
   }
 
-  function update(camera, viewportWidth, viewportHeight, env, landscapeHeight, frameTime, fitScale=1){
+  function update(camera, viewportWidth, viewportHeight, env, landscapeHeight, frameTime, fitScale=1, maxWorldWidth=Infinity){
     if(!available) return;
     layoutUpdates++;
     const camQuaternion = camera.quaternion;
@@ -713,8 +713,14 @@ export function createNativeCardLayer(scene, { onError = () => {}, onChange = ()
       const pix = cardPixelSize(viewportWidth, a.layout.scale, distance);
       fromCamera.set(a.x - camera.position.x, ground + hover - camera.position.y, a.z - camera.position.z);
       const depth = Math.max(.1, fromCamera.dot(cameraForward));
-      const h = worldHeightForPixels(pix.height*fitScale, viewportHeight, depth, camera.fov);
-      const w = h * CARD_WIDTH_PX / CARD_HEIGHT_PX;
+      let h = worldHeightForPixels(pix.height*fitScale, viewportHeight, depth, camera.fov);
+      let w = h * CARD_WIDTH_PX / CARD_HEIGHT_PX;
+      // Digital battle maps cap card width to one grid square in world units.
+      // The ordinary IRL-board stage keeps its existing screen-sized cards.
+      if(Number.isFinite(maxWorldWidth) && maxWorldWidth > 0 && w > maxWorldWidth){
+        h *= maxWorldWidth / w;
+        w = maxWorldWidth;
+      }
       entry.root.scale.set(w, h, 1);
       entry.root.position.set(a.x, ground + hover + h * .5, a.z);
       entry.root.quaternion.copy(camQuaternion);

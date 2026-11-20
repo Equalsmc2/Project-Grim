@@ -1,6 +1,6 @@
 import {subscribe} from './state.js';
 import {getActiveBattleMap} from './battle-map-state.js';
-import {createBattleMap3D} from './battle-map-3d.js';
+import {createBattleMap3D} from './battle-map-3d.js?v=2';
 
 const app=document.getElementById('stageApp');
 const root=document.getElementById('battleMapStage');

@@ -4,11 +4,11 @@ import {
   createBattleMap,getActiveBattleMap,getBattlePositions,tileType,
   paintBattleTile,placeBattleToken,resizeBattleMap
 } from './battle-map-state.js';
-import {createBattleMap3D} from './battle-map-3d.js';
+import {createBattleMap3D} from './battle-map-3d.js?v=2';
 
 const root=document.getElementById('battleMapEditor');
 if(root){
-  let brush='wall',placingId='',painting=false,lastCell=null,rendered='',preview=null;
+  let brush='wall',placingId='',painting=false,lastCell=null,rendered='',preview=null,previewMode='build';
   root.innerHTML=`
     <div class="battle-editor-top">
       <label class="field"><span>Map</span><select id="battleMapSelect" aria-label="Choose saved battle map"></select></label>
@@ -34,9 +34,23 @@ if(root){
       </div>
       <div class="battle-edit-stage">
         <div class="battle-edit-heading"><strong id="battleEditTitle">Battlefield</strong><span id="battleEditSize">16 × 12 · 5 ft squares</span></div>
-        <div class="battle-three-preview"><div class="battle-three-header"><strong>3D encounter preview</strong><span>Click to build · Right-drag or Alt-drag to orbit · Wheel to zoom</span></div><div id="battlePreviewViewport" class="battle-three-viewport"></div></div>
-        <div class="battle-edit-heading"><strong>Plan view</strong><span>Precise square placement</span></div>
-        <div id="battleEditBoard" class="battle-edit-board" role="grid" aria-label="Paintable battle map"></div>
+        <div class="battle-three-preview">
+          <div class="battle-three-header">
+            <strong>3D encounter</strong>
+            <div class="battle-preview-controls" role="group" aria-label="3D camera and building tools">
+              <button type="button" class="button button-secondary" data-preview-mode="build" aria-pressed="true">Build</button>
+              <button type="button" class="button button-secondary" data-preview-mode="orbit" aria-pressed="false">Rotate</button>
+              <button type="button" class="button button-secondary" data-preview-mode="pan" aria-pressed="false">Move camera</button>
+              <button type="button" class="button button-secondary" id="battleViewReset">Reset view</button>
+            </div>
+          </div>
+          <div id="battlePreviewViewport" class="battle-three-viewport"></div>
+          <div class="battle-view-hint">Drag to use the selected tool · Right/Alt-drag to rotate · Shift/middle-drag to pan · Scroll to zoom</div>
+        </div>
+        <details class="battle-plan-details">
+          <summary>Plan view <span>Open the precise 2D placement grid</span></summary>
+          <div id="battleEditBoard" class="battle-edit-board" role="grid" aria-label="Paintable battle map"></div>
+        </details>
         <p class="helper" id="battleMapHint">Maps save automatically to the current room. Present the map when the encounter begins.</p>
       </div>
     </div>`;
@@ -91,7 +105,7 @@ if(root){
       preview=createBattleMap3D($('battlePreviewViewport'),{
         onCell:(cell,phase)=>{if(phase==='start')lastCell=null;paintTo(cell);}
       });
-      preview.setView('tactical');render(getState());
+      preview.setView('tactical');preview.setInteractionMode(previewMode);render(getState());
     }catch(error){
       console.warn('3D editor unavailable:',error);
       $('battlePreviewViewport').textContent='3D preview unavailable on this device. The plan view below still works.';
@@ -130,6 +144,12 @@ if(root){
     brush=b.dataset.brush;placingId='';rendered='';render(getState());
   };
   $('battleTokenSelect').onchange=e=>{placingId=e.target.value;rendered='';render(getState());};
+  root.querySelectorAll('[data-preview-mode]').forEach(button=>button.addEventListener('click',()=>{
+    previewMode=button.dataset.previewMode;
+    preview?.setInteractionMode(previewMode);
+    root.querySelectorAll('[data-preview-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.previewMode===previewMode)));
+  }));
+  $('battleViewReset').onclick=()=>preview?.resetView();
 
   function cellFromPointer(event){
     const map=getActiveBattleMap(getState());if(!map)return null;
