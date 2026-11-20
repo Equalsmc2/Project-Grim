@@ -14,7 +14,7 @@ if(root){
       <label class="field"><span>Map</span><select id="battleMapSelect" aria-label="Choose saved battle map"></select></label>
       <button type="button" class="button button-secondary" id="battleNewMap">+ New map</button>
       <button type="button" class="button button-secondary" id="battleDeleteMap">Delete</button>
-      <button type="button" class="button button-primary" id="battlePresent">Present on stage</button>
+      <button type="button" class="button button-primary" id="battlePresent">Enter tactical mode</button>
     </div>
     <div class="battle-editor-settings">
       <label class="field battle-name"><span>Map name</span><input id="battleMapName" maxlength="48" autocomplete="off"></label>
@@ -24,7 +24,7 @@ if(root){
     </div>
     <div class="battle-editor-workspace">
       <div class="battle-tools">
-        <strong>Build the 3D battlefield</strong>
+        <strong>Add tactical obstacles</strong>
         <div id="battleBrushes" class="battle-brushes" role="group" aria-label="Terrain paint tools">
           ${TERRAIN.map(t=>`<button type="button" data-brush="${t.key}" class="battle-brush battle-terrain-${t.key}" aria-pressed="false">${t.label}</button>`).join('')}
         </div>
@@ -36,7 +36,7 @@ if(root){
         <div class="battle-edit-heading"><strong id="battleEditTitle">Battlefield</strong><span id="battleEditSize">16 × 12 · 5 ft squares</span></div>
         <div class="battle-three-preview">
           <div class="battle-three-header">
-            <strong>3D encounter</strong>
+            <strong>Placement preview</strong>
             <div class="battle-preview-controls" role="group" aria-label="3D camera and building tools">
               <button type="button" class="button button-secondary" data-preview-mode="build" aria-pressed="true">Build</button>
               <button type="button" class="button button-secondary" data-preview-mode="orbit" aria-pressed="false">Rotate</button>
@@ -45,7 +45,7 @@ if(root){
             </div>
           </div>
           <div id="battlePreviewViewport" class="battle-three-viewport"></div>
-          <div class="battle-view-hint">Drag to use the selected tool · Right/Alt-drag to rotate · Shift/middle-drag to pan · Scroll to zoom</div>
+          <div class="battle-view-hint">Simplified layout for building. Tactical mode keeps your live stage environment and adds these pieces and a grid. Right/Alt-drag: rotate · Shift/middle-drag: pan · Scroll: zoom.</div>
         </div>
         <details class="battle-plan-details">
           <summary>Plan view <span>Open the precise 2D placement grid</span></summary>
@@ -68,11 +68,11 @@ if(root){
     if(document.activeElement!==$('battleMapHeight'))$('battleMapHeight').value=map.height;
     $('battleDeleteMap').disabled=state.battleMaps.maps.length<=1;
     $('battleNewMap').disabled=state.battleMaps.maps.length>=MAP_LIMIT;
-    $('battlePresent').textContent=state.battleMaps.enabled&&state.mode==='combat'?'Hide battle map':'Present on stage';
+    $('battlePresent').textContent=state.battleMaps.enabled&&state.mode==='combat'?'Return to IRL stage':'Enter tactical mode';
     $('battlePresent').setAttribute('aria-pressed',String(state.battleMaps.enabled&&state.mode==='combat'));
     $('battleEditTitle').textContent=map.name;
     $('battleEditSize').textContent=`${map.width} × ${map.height} · 5 ft squares`;
-    $('battleMapHint').textContent=state.battleMaps.enabled&&state.mode==='combat'?'Battle map is live on the stage. Players can move their selected cards with the arrows on their phones.':'Map is not presented. Editing still saves to the room.';
+    $('battleMapHint').textContent=state.battleMaps.enabled&&state.mode==='combat'?'Tactical grid is live over the current 3D scene. Players can move their cards with arrows on their phones.':'Tactical mode is off. The normal stage and your saved map are unchanged.';
     $('battleBrushes').querySelectorAll('[data-brush]').forEach(b=>b.setAttribute('aria-pressed',String(!placingId&&b.dataset.brush===brush)));
     const tokenList=state.characters.map(c=>`<option value="${escapeHtml(c.id)}">${c.faction==='enemy'?'◆':'●'} ${escapeHtml(c.name)}</option>`).join('');
     const tokenSelect=$('battleTokenSelect');
@@ -132,7 +132,7 @@ if(root){
   };
   $('battlePresent').onclick=()=>{
     const live=getState().battleMaps.enabled&&getState().mode==='combat';
-    updateState(s=>{s.battleMaps.enabled=!live;if(!live)s.mode='combat';},live?'Battle map hidden':'Battle map presented');
+    updateState(s=>{s.battleMaps.enabled=!live;if(!live)s.mode='combat';},live?'Returned to IRL stage':'Tactical mode active');
   };
   $('battleResize').onclick=()=>updateState(s=>{resizeBattleMap(s,Number($('battleMapWidth').value),Number($('battleMapHeight').value));},'Battle map resized');
   $('battleClearTerrain').onclick=()=>{
