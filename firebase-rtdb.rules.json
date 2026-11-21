@@ -22,6 +22,18 @@
             }
           }
         }
+      },
+      "chat": {
+        "$roomId": {
+          ".read": "auth != null",
+          "$msgId": {
+            ".write": "auth != null && !data.exists() && root.child('grim/rooms').child($roomId).exists()",
+            ".validate": "newData.hasChildren(['uid','name','text','at']) && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 48 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('at').isNumber() && newData.child('at').val() <= now + 60000 && (!newData.child('toStage').exists() || newData.child('toStage').isBoolean())",
+            "$other": {
+              ".validate": "$other === 'uid' || $other === 'name' || $other === 'text' || $other === 'at' || $other === 'toStage'"
+            }
+          }
+        }
       }
     }
   }
