@@ -10,6 +10,8 @@ import { Rail } from './rail.js';
 import { CombatantPanel, WorldPanel, MapPanel, ScenePanel, SessionPanel, fileToPortrait } from './inspector.js';
 import { Dock } from './dock.js';
 import { createAudioDirector } from '../../audio/director.js';
+import { FIREBASE_RULES } from '../../sync/rules.js';
+import { listBackups, getBackup, deleteBackup } from '../../sync/backups.js';
 
 const store = createStore();
 window.__grim = { store };
@@ -21,9 +23,15 @@ const session = createSession({
   store, role: 'gm',
   onStatus: (s) => { sessionStatus = s; statusListeners.forEach((f) => f(s)); },
   onRoomChanged: (room) => toast(`This room belonged to another browser. Moved your campaign to ${room}.`),
+  onNotice: (n) => {
+    if (n.kind === 'upgraded') toast('Room upgraded to 2.0. The original 1.5.8 room is kept as a backup (Session tab).');
+    if (n.kind === 'rejected') toast(`Ignored an edit to ${n.names.join(', ')} from a device that does not own that sheet.`, 'error');
+    statusListeners.forEach((f) => f(sessionStatus));
+  },
 });
 let sessionStatus = { state: 'local', text: 'Local · this computer' };
 const statusListeners = new Set();
+window.__grim.session = session;
 startPortraitService(store);
 const audio = createAudioDirector({ store });
 
@@ -184,7 +192,18 @@ function App() {
     exportCampaign: () => { const { log, camera, cursors, ...rest } = store.getState(); download(`grim-campaign-${new Date().toISOString().slice(0, 10)}.json`, rest); },
     importCampaign: async (file) => { try { const data = normalizeCampaign(await readJson(file)); dispatch('campaign/replace', { campaign: data, label: `Imported ${file.name}` }); toast('Campaign imported · Ctrl+Z to undo'); } catch (e) { toast(`Import failed: ${e.message}`, 'error'); } },
     resetDemo: () => { if (confirm('Replace the campaign with the test data? You can undo this.')) dispatch('campaign/replace', { campaign: defaultCampaign(), label: 'Reset to test data' }); },
-    copyRules: async () => { const text = await (await fetch('firebase-rtdb.rules.json')).text().catch(() => ''); try { await navigator.clipboard.writeText(text); toast('Rules copied'); } catch { prompt('Rules', text); } },
+    copyRules: async () => { const text = JSON.stringify(FIREBASE_RULES, null, 2); try { await navigator.clipboard.writeText(text); toast('Firebase rules copied (2.0.1)'); } catch { prompt('Copy these Firebase rules', text); } },
+    cloud: () => session.cloud,
+    backups: { list: listBackups, remove: deleteBackup,
+      download: async (id) => { const b = await getBackup(id); if (b) download(`grim-backup-${b.room || 'local'}-${new Date(b.at).toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`, b.data); },
+      restore: async (id) => { const b = await getBackup(id); if (!b) return; if (!confirm(`Load this backup (${b.reason}) into the GM deck? The current campaign is kept in undo history and a new backup.`)) return; dispatch('campaign/replace', { campaign: normalizeCampaign(b.data), label: `Restored backup: ${b.reason}` }); toast('Backup loaded · Ctrl+Z to undo'); } },
+    releaseClaims: () => { if (confirm('Release every character, so players pick again on their phones?')) { dispatch('claims/release', {}); } },
+    removeLegacyBackup: async () => { if (!confirm('Delete the 1.5.8 copy stored inside this room? Download a local backup first if unsure.')) return; await session.cloud?.removeLegacyBackup(); toast('1.5.8 room copy removed'); force((n) => n + 1); },
+    restoreLegacyRoom: async () => {
+      if (!confirm('Put the original 1.5.8 room back for the legacy build? The current 2.0 room is saved as a local backup first, and online sync in 2.0 is switched off so it does not upgrade the room again.')) return;
+      try { await session.cloud.restoreLegacyRoom(); const next = setOptions({ online: false }); setOpts(next); session.disconnect(); sessionStatus = { state: 'local', text: 'Local · 1.5.8 room restored' }; statusListeners.forEach((f) => f(sessionStatus)); toast('1.5.8 room restored. Open legacy/dm.html to use it.'); }
+      catch (e) { toast(e.message, 'error'); }
+    },
   };
 
   const openStudio = (c) => setStudio({ id: c.id, name: c.name, code: c.avatar });
@@ -219,7 +238,7 @@ function App() {
     <aside class="inspector" aria-label="Inspector">
       <nav class="tabs" role="tablist">${TABS.map((t) => html`<button type="button" role="tab" aria-selected=${String(tab === t.id)} class=${cx('tab', tab === t.id && 'is-on')} onClick=${() => setTab(t.id)} title=${t.label}><${Icon} name=${t.icon} /><span>${t.label}</span></button>`)}</nav>
       <div class="inspector-body">
-        ${tab === 'combatant' ? html`<${CombatantPanel} state=${state} id=${selectedId} dispatch=${dispatch} onPortrait=${() => openStudio(state.characters.find((c) => c.id === selectedId))} onSpeak=${(c) => setOverlayPreset({ kind: 'dialogue', characterId: c.id })} />` : null}
+        ${tab === 'combatant' ? html`<${CombatantPanel} state=${state} id=${selectedId} dispatch=${dispatch} onPortrait=${() => openStudio(state.characters.find((c) => c.id === selectedId))} onRelease=${(id) => dispatch('claims/release', { id })} onSpeak=${(c) => setOverlayPreset({ kind: 'dialogue', characterId: c.id })} />` : null}
         ${tab === 'world' ? html`<${WorldPanel} state=${state} dispatch=${dispatch} onExportScenes=${() => download('grim-prepared-scenes.json', { version: 2, snapshots: state.snapshots })} onImportScenes=${async (f) => { try { const d = await readJson(f); dispatch('snapshot/import', { list: d.snapshots || d.sceneSnapshots || d }); toast('Scenes imported'); } catch (e) { toast(`Import failed: ${e.message}`); } }} />` : null}
         ${tab === 'map' ? html`<${MapPanel} state=${state} dispatch=${dispatch} tool=${tool} setTool=${(t) => setTool({ ...tool, ...t })} />` : null}
         ${tab === 'scene' ? html`<${ScenePanel} state=${state} dispatch=${dispatch} />` : null}

@@ -17,6 +17,7 @@ import { createCloudOutbox } from './outbox.js';
 import { SECTIONS } from '../core/schema.js';
 import { PLAYER_EDIT_FIELDS, encodePlayerEdit } from '../core/commands.js';
 import { toPlain, uid } from '../core/util.js';
+import { saveBackup } from './backups.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1';
 const SYNCED = SECTIONS.filter((s) => s !== 'log');
@@ -37,7 +38,7 @@ export async function loadFirebase() {
  * @param {object} [o.sdk] injected Firebase SDK (tests)
  * @param {{host:string,port:number,authPort:number}} [o.emulator]
  */
-export async function connectCloud({ store, role, room, onStatus = () => {}, onRoomProblem = () => {}, onChatDenied = () => {}, sdk = null, emulator = null }) {
+export async function connectCloud({ store, role, room, onStatus = () => {}, onRoomProblem = () => {}, onChatDenied = () => {}, onClaims = () => {}, onNotice = () => {}, sdk = null, emulator = null }) {
   const safeRoom = cleanRoom(room);
   if (!safeRoom) throw new Error('Room name required');
   const gm = role === 'gm';
@@ -59,8 +60,16 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
   const roomRef = F.ref(db, `grim/rooms/${safeRoom}`);
   const editsRef = F.ref(db, `grim/playerEdits/${safeRoom}`);
   const chatRef = F.ref(db, `grim/chat/${safeRoom}`);
+  const claimsRef = F.ref(db, `grim/claims/${safeRoom}`);
   const markerKey = `grim:sync:${safeRoom}`;
-  const readMarker = () => { try { return JSON.parse(localStorage.getItem(markerKey) || 'null') || {}; } catch { return {}; } };
+  // 1.5.8 left 'grim:cloud-unsynced:{room}' when this browser had unpublished work; honour it once.
+  const legacyMarkerKey = `grim:cloud-unsynced:${safeRoom}`;
+  const readMarker = () => {
+    let m = {};
+    try { m = JSON.parse(localStorage.getItem(markerKey) || 'null') || {}; } catch {}
+    try { if (gm && localStorage.getItem(legacyMarkerKey)) m = { ...m, pending: true, rev: typeof m.rev === 'number' ? m.rev : 0 }; } catch {}
+    return m;
+  };
   const writeMarker = (m) => { try { localStorage.setItem(markerKey, JSON.stringify({ ...readMarker(), ...m })); } catch {} };
 
   let alive = true;
@@ -70,6 +79,13 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
   const dirty = new Set();
   const sentPortraits = new Map();
   const unsubs = [];
+  let legacyBackup = null;     // 1.5.8 room kept inside the upgraded room
+  let claimsNode = null;       // grim/claims/{room}; null when the deployed rules predate claims
+  let claimsSupported = false;
+  const hasContent = (s) => s && Array.isArray(s.characters) && s.characters.length > 0;
+  const backup = async (reason, data) => {
+    try { await saveBackup({ room: safeRoom, reason, data }); } catch (e) { console.warn('[grim] backup failed', e); }
+  };
 
   // ------------------------------------------------------------ GM writes
   const canWrite = () => alive && gm && !!auth.currentUser && navigator.onLine !== false;
@@ -98,7 +114,9 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     const s = store.getState();
     const full = { dmUid: user.uid, mode: s.meta.mode, sceneId: s.meta.sceneId, schema: 2, rev: s.rev, updatedAt: Date.now(), s: {} };
     for (const n of SYNCED) full.s[n] = toPlain(s[n]);
+    if (legacyBackup) full.legacyBackup = legacyBackup;
     await F.set(roomRef, full);
+    try { localStorage.removeItem(legacyMarkerKey); } catch {}
     sentPortraits.clear();
     for (const [id, img] of Object.entries(s.portraits)) sentPortraits.set(id, img);
     writeMarker({ rev: s.rev, pending: false });
@@ -139,10 +157,21 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     return out;
   }
 
+  /**
+   * GM only: decide between the cloud copy and this device's copy. Whichever
+   * copy loses is saved to the local backup store first, so nothing is lost.
+   *  - room missing                    -> create it from this device
+   *  - owned by another GM browser      -> never touched; move to a new room
+   *  - 1.5.8 room without an owner      -> adopt its data, then move (rules forbid claiming it)
+   *  - 1.5.8 room owned by this browser -> upgrade in place, keeping the old room inside it
+   *  - 2.0 room this device never synced-> take the cloud copy
+   *  - unsent work on this device       -> publish it
+   *  - otherwise                        -> the newer revision wins
+   */
   async function reconcile(remote) {
-    // GM only: decide between the cloud copy and this device's copy.
     const marker = readMarker();
     const local = store.getState();
+    const syncedHereBefore = typeof marker.rev === 'number';
     if (!remote) {
       await writeAll();
       status('live', `Room created · ${safeRoom}`);
@@ -154,24 +183,37 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       throw new Error('room-owned');
     }
     if (!remote.dmUid) {
+      if (!marker.pending && hasContent(remote)) {
+        await backup('Before adopting an ownerless 1.5.8 room', local);
+        store.replaceAll(remote, { origin: 'remote', keepHistory: true });
+      }
       onRoomProblem({ reason: 'legacy-unowned', room: safeRoom });
       status('blocked', 'This room predates room ownership');
       throw new Error('room-unowned');
     }
     if (remote.schema !== 2) {
-      // 1.5.8 room owned by this browser: adopt it unless this device has unsent work.
-      if (!marker.pending) store.replaceAll(remote, { origin: 'remote' });
+      // 1.5.8 room owned by this browser. Keep a full copy of it, locally and in the room.
+      await backup('1.5.8 room before upgrade', remote);
+      legacyBackup = { at: Date.now(), from: '1.5.8', data: remote };
+      if (marker.pending) await backup('This device before upgrade (unsent work kept)', local);
+      else { await backup('This device before adopting the upgraded room', local); store.replaceAll(remote, { origin: 'remote', keepHistory: true }); }
       await writeAll();
+      onNotice({ kind: 'upgraded', room: safeRoom });
       status('live', `Room upgraded · ${safeRoom}`);
       return;
     }
-    if (marker.pending || Number(remote.rev) <= Number(local.rev)) {
-      // This device holds the newest work (offline edits or refresh mid-save).
+    legacyBackup = remote.legacyBackup || null;
+    const remoteRev = Number(remote.rev) || 0;
+    const localWins = syncedHereBefore && (marker.pending || remoteRev < Number(marker.rev));
+    if (localWins) {
+      await backup(marker.pending ? 'Cloud copy before publishing unsent work' : 'Older cloud copy before republishing', { ...remote, legacyBackup: undefined });
       await writeAll();
     } else {
-      store.applyRemote(remoteToSections(remote), { rev: Number(remote.rev), origin: 'remote', force: true });
+      if (!syncedHereBefore && hasContent(local) && local.rev > 0) await backup('This device before first sync with this room', local);
+      store.applyRemote(remoteToSections(remote), { rev: remoteRev, origin: 'remote', force: true });
       const s = store.getState().portraits;
       for (const [id, img] of Object.entries(s)) sentPortraits.set(id, img);
+      writeMarker({ rev: store.getState().rev, pending: false });
     }
     status('live', `Live · ${safeRoom}`);
   }
@@ -183,6 +225,7 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       try {
         await reconcile(remote);
         ready = true;
+        if (claimsNode) store.dispatch('claims/replace', { claims: claimsNode });
         lastRemoteRev = store.getState().rev;
         if (dirty.size) outbox.queue(true);
       } catch (e) {
@@ -222,8 +265,23 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       }
       accepted.sort((a, b) => a.rev - b.rev);
       const next = {};
-      for (const e of accepted) { store.dispatch('player/edit', { id: e.charId, field: e.field, value: e.value }, { origin: 'player' }); next[e.key] = e.rev; }
+      const rejected = new Set();
+      for (const e of accepted) {
+        next[e.key] = e.rev; // acknowledged either way, so a rejected edit is never replayed
+        const puid = e.key.split('|')[1];
+        const st = store.getState();
+        const ch = st.characters.find((c) => c.id === e.charId);
+        if (!ch || ch.faction === 'enemy') continue;
+        const owner = st.claims[e.charId]?.uid;
+        if (!owner) {
+          // Older deployed rules have no claims path: the first device to edit a sheet owns it.
+          store.dispatch('claims/set', { id: e.charId, uid: puid });
+          mirrorClaim(e.charId, puid);
+        } else if (owner !== puid) { rejected.add(ch.name); continue; }
+        store.dispatch('player/edit', { id: e.charId, field: e.field, value: e.value }, { origin: 'player' });
+      }
       if (accepted.length) store.dispatch('cursors/set', { cursors: next });
+      if (rejected.size) onNotice({ kind: 'rejected', names: [...rejected] });
     }, () => status('warn', 'Player edits unavailable · check the project rules')));
 
     unsubs.push(F.onValue(F.query(chatRef, F.limitToLast(60)), (snap) => {
@@ -233,11 +291,74 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       snap.forEach((child) => {
         const m = child.val();
         if (!m || Number(m.at) <= cursor) return;
-        store.dispatch('chat/post', { id: child.key, from: 'player', name: m.name, text: m.text, at: Number(m.at), toStage: m.toStage !== false });
+        const owned = Object.entries(store.getState().claims).find(([, c]) => c.uid === m.uid);
+        const name = owned ? store.getState().characters.find((c) => c.id === owned[0])?.name || m.name : m.name;
+        store.dispatch('chat/post', { id: child.key, from: 'player', name, text: m.text, at: Number(m.at), toStage: m.toStage !== false });
         latest = Math.max(latest, Number(m.at));
       });
       if (latest > cursor) store.dispatch('cursors/set', { cursors: { chat: latest } });
     }, () => {}));
+  }
+
+  // ------------------------------------------------------------ character claims
+  // With the 2.0.1 rules, grim/claims/{room}/{characterId} = {uid, at} decides
+  // which device may write that sheet's player edits; the GM mirrors it into
+  // the 'claims' section so every screen can show it. With older rules the
+  // path is unreadable and the GM's first-edit ownership applies instead.
+  function mirrorClaim(id, owner) {
+    if (!claimsSupported) return;
+    F.set(F.ref(db, `grim/claims/${safeRoom}/${id}`), owner ? { uid: owner, at: Date.now() } : null).catch(() => {});
+  }
+  unsubs.push(F.onValue(claimsRef, (snap) => {
+    if (!alive) return;
+    claimsSupported = true;
+    claimsNode = {};
+    snap.forEach((c) => { const v = c.val(); if (v?.uid) claimsNode[c.key] = { uid: v.uid, at: Number(v.at) || 0 }; });
+    onClaims({ supported: true, claims: claimsNode });
+    if (gm && ready) store.dispatch('claims/replace', { claims: claimsNode });
+  }, () => { claimsSupported = false; claimsNode = null; onClaims({ supported: false, claims: null }); }));
+  if (gm) {
+    // GM releases and first-edit assignments are pushed to the claims path when the rules have it.
+    let lastClaims = JSON.stringify(store.getState().claims);
+    unsubs.push(store.subscribe((s, change) => {
+      if (!change.sections.includes('claims') || change.origin === 'remote') return;
+      const now = JSON.stringify(s.claims);
+      if (now === lastClaims) return;
+      lastClaims = now;
+      if (!claimsSupported || !claimsNode) return;
+      for (const id of Object.keys(claimsNode)) if (!s.claims[id]) mirrorClaim(id, null);
+      for (const [id, c] of Object.entries(s.claims)) if (claimsNode[id]?.uid !== c.uid) mirrorClaim(id, c.uid);
+    }, { immediate: false }));
+  }
+  async function claim(characterId) {
+    if (!claimsSupported) return { ok: true, enforced: false };
+    const cur = claimsNode?.[characterId];
+    if (cur && cur.uid !== user.uid) return { ok: false, enforced: true };
+    if (cur?.uid === user.uid) return { ok: true, enforced: true };
+    try { await F.set(F.ref(db, `grim/claims/${safeRoom}/${characterId}`), { uid: user.uid, at: Date.now() }); return { ok: true, enforced: true }; }
+    catch { return { ok: false, enforced: true }; }
+  }
+  async function release(characterId) {
+    if (!claimsSupported) return false;
+    if (gm || claimsNode?.[characterId]?.uid === user.uid) { await F.set(F.ref(db, `grim/claims/${safeRoom}/${characterId}`), null); return true; }
+    return false;
+  }
+
+  // ------------------------------------------------------------ 1.5.8 backup inside the room
+  async function removeLegacyBackup() {
+    if (!gm || !legacyBackup) return false;
+    await F.update(roomRef, { legacyBackup: null });
+    legacyBackup = null;
+    return true;
+  }
+  /** Puts the original 1.5.8 room back exactly as it was (for the legacy build). */
+  async function restoreLegacyRoom() {
+    if (!gm || !legacyBackup?.data) throw new Error('No 1.5.8 backup in this room');
+    await backup('2.0 room before restoring the 1.5.8 room', store.getState());
+    alive = false;
+    outbox?.dispose();
+    await F.set(roomRef, { ...legacyBackup.data, dmUid: user.uid });
+    return true;
   }
 
   // ------------------------------------------------------------ player actions
@@ -247,6 +368,8 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     if (!PLAYER_EDIT_FIELDS.includes(field)) throw new Error('That field is GM-only');
     const encoded = encodePlayerEdit(field, value);
     if (encoded === null) throw new Error('Invalid value');
+    const owner = claimsNode?.[characterId]?.uid || store.getState().claims[characterId]?.uid;
+    if (owner && owner !== user.uid) throw new Error('This character is played on another device');
     lastRevision = Math.max(Date.now(), lastRevision + 1);
     await F.set(F.ref(db, `grim/playerEdits/${safeRoom}/${characterId}/${user.uid}/${field}`), { value: encoded, revision: lastRevision });
     return lastRevision;
@@ -269,6 +392,12 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     room: safeRoom,
     submitPlayerEdit,
     sendChat,
+    claim,
+    release,
+    get claimsEnforced() { return claimsSupported; },
+    get hasLegacyBackup() { return !!legacyBackup; },
+    removeLegacyBackup,
+    restoreLegacyRoom,
     flush: () => (gm ? outbox.flush({ force: true }) : Promise.resolve(true)),
     get pending() { return gm ? dirty.size > 0 || outbox.hasPending : false; },
     disconnect() {

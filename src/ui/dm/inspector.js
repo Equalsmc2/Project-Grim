@@ -1,5 +1,5 @@
 // Context inspector: combatant, world, map, scene and session panels.
-import { html, useState, Icon, Button, Segmented, Slider, Toggle, Select, Field, cx, toast, readFileAsDataUrl } from '../kit.js';
+import { html, useState, useEffect, Icon, Button, Segmented, Slider, Toggle, Select, Field, cx, toast, readFileAsDataUrl } from '../kit.js';
 import { CONDITIONS, SCENES } from '../../core/catalog.js';
 import { PRESETS, ATMOSPHERES, GROUNDS, HILLS, WEATHERS, PROP_SETS, AMBIENCES } from '../../core/environment.js';
 import { TERRAIN, MAP_MIN_W, MAP_MAX_W, MAP_MIN_H, MAP_MAX_H, activeMap } from '../../core/battlemap.js';
@@ -16,7 +16,7 @@ function Section({ title, children, aside }) {
 }
 
 // ------------------------------------------------------------ combatant
-export function CombatantPanel({ state, id, dispatch, onPortrait, onSpeak }) {
+export function CombatantPanel({ state, id, dispatch, onPortrait, onSpeak, onRelease }) {
   const c = state.characters.find((x) => x.id === id);
   const [cond, setCond] = useState('');
   if (!c) return html`<div class="empty-panel"><${Icon} name="users" size=${28} /><p>Select a combatant in the initiative list or on the stage.</p></div>`;
@@ -61,6 +61,11 @@ export function CombatantPanel({ state, id, dispatch, onPortrait, onSpeak }) {
         <${Field} compact label="Perception" type="number" value=${c.perception} min=${-20} max=${80} onCommit=${(v) => upd({ perception: v })} />
       </div>
     </div>
+
+    ${c.faction !== 'enemy' ? html`<div class="claim-line">
+      <${Icon} name="users" size=${14} />
+      ${state.claims[c.id] ? html`<span>Played on a linked phone since ${new Date(state.claims[c.id].at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span><${Button} size="sm" onClick=${() => onRelease(c.id)}>Release<//>` : html`<span class="muted">No player device yet · the first phone to pick this sheet owns it</span>`}
+    </div>` : null}
 
     <${Section} title="Conditions">
       <div class="cond-list">
@@ -216,7 +221,12 @@ export function ScenePanel({ state, dispatch }) {
 
 // ------------------------------------------------------------ session
 export function SessionPanel({ state, dispatch, session }) {
-  const { online, room, status, links, setOnline, setRoom, publish, exportCampaign, importCampaign, resetDemo, copyRules } = session;
+  const { online, room, status, links, setOnline, setRoom, publish, exportCampaign, importCampaign, resetDemo, copyRules, backups, releaseClaims, removeLegacyBackup, restoreLegacyRoom } = session;
+  const cloud = session.cloud();
+  const [list, setList] = useState(null);
+  const refresh = () => backups.list().then(setList).catch(() => setList([]));
+  useEffect(() => { refresh(); }, [status.text]);
+  const claimed = Object.keys(state.claims).length;
   return html`<div class="panel-body">
     <${Section} title="Online play">
       <${Toggle} label="Sync to the TV and phones through Firebase" checked=${online} onChange=${setOnline} />
@@ -228,6 +238,16 @@ export function SessionPanel({ state, dispatch, session }) {
         <${Button} icon="sync" onClick=${publish} disabled=${!online}>Publish now<//>
       </div>
       <p class="hint">No logins. Each room belongs to this browser; players can only edit the allowed fields on party sheets. Without online play, tabs on this computer stay in sync on their own.</p>
+    <//>
+    <${Section} title="Player devices" aside=${claimed ? html`<${Button} size="sm" onClick=${releaseClaims}>Release all<//>` : null}>
+      <p class="hint">${claimed} of ${state.characters.filter((c) => c.faction !== 'enemy').length} party sheets are linked to a phone. Each sheet can be edited from one phone only; release one in the Combatant tab to let someone else take it.${cloud && !cloud.claimsEnforced ? ' Your deployed Firebase rules predate 2.0.1, so this is enforced by this GM browser only — deploy the 2.0.1 rules to enforce it in Firebase too.' : ''}</p>
+    <//>
+    ${cloud?.hasLegacyBackup ? html`<${Section} title="1.5.8 room copy">
+      <p class="hint">This room was upgraded from 1.5.8. The original room is stored inside it, unchanged.</p>
+      <div class="row wrap"><${Button} icon="reset" onClick=${restoreLegacyRoom}>Restore 1.5.8 room<//><${Button} icon="trash" class="danger" onClick=${removeLegacyBackup}>Delete the copy<//></div>
+    <//>` : null}
+    <${Section} title="Safety copies" aside=${html`<${Button} size="sm" icon="sync" title="Refresh" onClick=${refresh} />`}>
+      ${list === null ? html`<p class="hint">Loading…</p>` : list.length ? html`<ul class="snaps">${list.slice(0, 8).map((b) => html`<li><div class="snap-apply" style="cursor:default"><b>${b.reason}</b><small>${new Date(b.at).toLocaleString()} · ${b.room || 'local'} · ${Math.max(1, Math.round(b.size / 1024))} KB</small></div><button type="button" class="icon-x" title="Download" aria-label="Download backup" onClick=${() => backups.download(b.id)}><${Icon} name="download" size=${13} /></button><button type="button" class="icon-x" title="Load into the deck" aria-label="Load backup" onClick=${() => backups.restore(b.id)}><${Icon} name="upload" size=${13} /></button></li>`)}</ul>` : html`<p class="hint">Grim saves a copy here automatically whenever syncing would replace one version of a campaign with another.</p>`}
     <//>
     <${Section} title="Backups">
       <div class="row wrap">

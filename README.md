@@ -1,4 +1,4 @@
-# Project Grim 2.0
+# Project Grim 2.0.1
 
 A Pathfinder 2e presentation and encounter tool. The GM runs the session from a laptop, and the table watches a lit, weathered 3D stage on a TV. Players manage their own sheets on their phones.
 
@@ -53,7 +53,8 @@ No logins, no build step, no terminal. The site runs from GitHub Pages or Fireba
 
 - Your 1.5.8 campaign (characters, portraits, avatar codes, maps, environment, prepared scenes) loads automatically the first time you open the new GM deck in the same browser. The old data is left untouched, so `legacy/` still works.
 - An existing online room owned by your GM browser is upgraded in place the first time you connect.
-- Firebase: the existing rules keep working. **Player chat** needs the updated `firebase-rtdb.rules.json` to be deployed once; see `GO_LIVE.md`. Everything else works without it.
+- Firebase: 2.0.1 works with the rules you have deployed today. Deploying the 2.0.1 rules once adds Firebase-enforced character ownership and player chat. Follow `GO_LIVE.md` for the safe, step-by-step upgrade; `docs/FIREBASE_SETUP.md` explains the rules.
+- Each phone owns the party sheet it picked; the GM can release a sheet at any time. Upgrading a 1.5.8 room keeps an exact copy of it, plus local safety copies, all restorable from **Session**.
 
 ## Tests
 
@@ -61,7 +62,7 @@ No logins, no build step, no terminal. The site runs from GitHub Pages or Fireba
 |---|---|
 | `RUN-TESTS.bat` or `npm test` | Unit and regression suites: the 2.0 core plus the preserved 1.5.8 suites |
 | `npm run test:ui` | Real pages in Chromium: card framing at 5 screen shapes, initiative order, tactical round trip, no-scroll GM layout, portrait studio, phone layout |
-| `npm run test:sync` | GM + TV + two players in separate browser profiles against the Firebase emulator with the real rules: sync, overlays, chat, player edits, permissions, offline/online, refresh, bursts, legacy room upgrade |
+| `npm run test:sync` / `npm run test:sync:deployed` | Against the 2.0.1 rules / against the 1.5.8 rules deployed today. GM + TV + two players in separate browser profiles against the Firebase emulator with the real rules: sync, overlays, chat, player edits, permissions, offline/online, refresh, bursts, legacy room upgrade |
 
 The browser tests need Playwright, plus Java and `firebase-tools` for the sync test. GitHub Actions runs them in Chromium and Firefox on every push (`.github/workflows/project-qa.yml`).
 

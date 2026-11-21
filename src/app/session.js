@@ -47,7 +47,7 @@ export function shareUrl(page, room) {
  * Connects when online sync is enabled. Returns a controller whose `cloud`
  * may be null (local-only play over browser tabs).
  */
-export function createSession({ store, role, onStatus, onChatDenied, onRoomChanged }) {
+export function createSession({ store, role, onStatus, onChatDenied, onRoomChanged, onClaims, onNotice }) {
   let cloud = null;
   let epoch = 0;
   const api = {
@@ -60,7 +60,7 @@ export function createSession({ store, role, onStatus, onChatDenied, onRoomChang
       if (!conn.online) { onStatus({ state: 'local', text: 'Local · this computer' }); return null; }
       try {
         const c = await connectCloud({
-          store, role, room: conn.room, emulator: conn.emulator, onStatus, onChatDenied,
+          store, role, room: conn.room, emulator: conn.emulator, onStatus, onChatDenied, onClaims, onNotice,
           onRoomProblem: () => {
             if (role !== 'gm' || my !== epoch) return;
             // Never claim another GM's (or an ownerless legacy) room: move this campaign to a fresh private room.

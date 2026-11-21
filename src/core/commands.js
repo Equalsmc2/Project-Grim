@@ -87,7 +87,7 @@ def('char/add', {
   },
 });
 def('char/remove', {
-  sections: ['characters', 'combat', 'portraits', 'battleMaps'],
+  sections: ['characters', 'combat', 'portraits', 'battleMaps', 'claims'],
   label: (p, s) => `Removed ${nameOf(s, p.id)}`,
   apply(s, { id }) {
     const i = s.characters.findIndex((c) => c.id === id);
@@ -99,6 +99,7 @@ def('char/remove', {
     }
     s.characters.splice(i, 1);
     delete s.portraits[id];
+    delete s.claims[id];
     for (const m of s.battleMaps.maps) delete m.positions[id];
   },
 });
@@ -490,6 +491,33 @@ def('player/edit', {
     if (field === 'maxHp' && c.hp > v) c.hp = v;
     if (field === 'hp') c.hp = Math.min(v, c.maxHp);
   },
+});
+
+// ---------------------------------------------------------------- player device claims
+def('claims/set', {
+  sections: ['claims'],
+  undoable: false,
+  label: (p, s) => `${nameOf(s, p.id)} linked to a player device`,
+  apply(s, { id, uid, at }) {
+    if (!s.characters.some((c) => c.id === id && c.faction !== 'enemy') || !uid) return false;
+    if (s.claims[id]?.uid === uid) return false;
+    s.claims[id] = { uid, at: at || Date.now() };
+  },
+});
+def('claims/release', {
+  sections: ['claims'],
+  undoable: false,
+  label: (p, s) => (p.id ? `${nameOf(s, p.id)} released for another player` : 'All player devices released'),
+  apply(s, { id }) {
+    if (!id) { if (!Object.keys(s.claims).length) return false; s.claims = {}; return; }
+    if (!s.claims[id]) return false;
+    delete s.claims[id];
+  },
+});
+def('claims/replace', {
+  sections: ['claims'],
+  undoable: false,
+  apply(s, { claims }) { s.claims = { ...claims }; },
 });
 
 def('cursors/set', {

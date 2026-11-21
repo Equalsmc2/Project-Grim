@@ -110,3 +110,23 @@
   - Two GM tabs in the same browser share state locally. Two GM *devices* cannot share a room, by design of the security rules.
 - **Music:** soundtrack audio is still local-only per device (unchanged from 1.5.8).
 - **Not ported:** the old `qa/` Playwright agent targets the 1.5.8 page structure. It is kept for reference but no longer runs in CI.
+
+---
+
+## 2.0.1 addendum: Firebase stabilization
+See `docs/RELEASE_NOTES_2.0.1.md` for the full list.
+
+| Suite | Result |
+|---|---|
+| `npm test` | 46/46 passed |
+| `npm run test:ui` (Chromium) | 16/16 passed |
+| `npm run test:sync:deployed` (Chromium, emulator with the **1.5.8 rules deployed today**, separate GM, TV and two player browser profiles) | 23/23 passed |
+| `npm run test:sync` (Chromium, emulator with the **2.0.1 rules**) | 23/23 passed |
+
+New checks:
+- **Claimed sheets:** a claimed sheet shows as taken on another phone. A forged edit from another phone is refused by Firebase (2.0.1 rules) or ignored by the GM (deployed rules). A second phone can claim a free sheet. A GM release moves ownership and bounces the old phone.
+- **Player chat:** works and is named after the claimed character (2.0.1 rules), or is refused cleanly while GM chat keeps working (deployed rules).
+- **Room upgrade:** the 1.5.8 copy is stored inside the room and as a local safety copy, survives later partial writes, and **Restore 1.5.8 room** puts back the exact original.
+- **Wrong room:** pointing the GM deck at another existing room adopts the cloud copy without overwriting it, after saving the local campaign.
+
+**Not executed:** the guard inside the 1.5.8 build is covered by a static test only. Running the legacy page in a test would connect to your live Firebase project, which was deliberately avoided. Firefox runs in CI, not here (the download is blocked in this environment).

@@ -20,6 +20,10 @@ const WEB = 'http://127.0.0.1:4179';
 const EMU = '127.0.0.1:9000:9099';
 const ROOM = `e2e-${Date.now().toString(36)}`;
 const browserName = process.env.BROWSER || 'chromium';
+// RULES=deployed runs against the rules currently live for 1.5.8; RULES=current (default) against 2.0.1.
+const RULESET = process.env.RULES === 'deployed' ? 'deployed' : 'current';
+const RULES_FILE = RULESET === 'deployed' ? join(dirname(fileURLToPath(import.meta.url)), 'rules-deployed-1.5.8.json') : null;
+const NEW = RULESET === 'current';
 const results = [];
 const procs = [];
 
@@ -42,7 +46,8 @@ async function step(name, fn) {
 
 // ------------------------------------------------------------ infrastructure
 const dir = mkdtempSync(join(tmpdir(), 'grim-emu-'));
-copyFileSync(join(root, 'firebase-rtdb.rules.json'), join(dir, 'rules.json'));
+copyFileSync(RULES_FILE || join(root, 'firebase-rtdb.rules.json'), join(dir, 'rules.json'));
+console.log(`Rules under test: ${RULESET === 'deployed' ? 'currently deployed (1.5.8)' : 'Project Grim 2.0.1'}`);
 writeFileSync(join(dir, 'firebase.json'), JSON.stringify({ database: { rules: 'rules.json' }, emulators: { database: { port: 9000, host: '127.0.0.1' }, auth: { port: 9099, host: '127.0.0.1' }, ui: { enabled: false } } }));
 const fbBin = process.env.FIREBASE_BIN || 'npx';
 const fbArgs = process.env.FIREBASE_BIN ? [] : ['-y', 'firebase-tools@13'];
@@ -127,11 +132,66 @@ await step('player token movement in tactical view', async () => {
   await poll(async () => { const m = (await S(gm)).battleMaps.maps[0]; return m.positions.ilyra && JSON.stringify(m.positions.ilyra) !== JSON.stringify(before.positions.ilyra); }, 15000, 'moved');
 });
 
-await step('player chat reaches the GM and the TV', async () => {
+await step(NEW ? 'player chat reaches the GM and the TV, named after the claimed character' : 'player chat is refused cleanly by the deployed rules; GM chat still works', async () => {
   await p1.fill('[aria-label="Message"]', 'I hold the line');
   await p1.press('[aria-label="Message"]', 'Enter');
-  await poll(async () => (await S(gm)).chat.some((m) => m.text === 'I hold the line'), 15000, 'GM chat');
-  await poll(async () => (await S(tv)).chat.some((m) => m.text === 'I hold the line'), 15000, 'TV chat');
+  if (NEW) {
+    await poll(async () => (await S(gm)).chat.some((m) => m.text === 'I hold the line' && m.name === 'Fighter 02'), 15000, 'GM chat');
+    await poll(async () => (await S(tv)).chat.some((m) => m.text === 'I hold the line'), 15000, 'TV chat');
+  } else {
+    await poll(() => p1.evaluate(() => document.getElementById('grimToast')?.textContent.includes('updated Firebase rules')), 10000, 'denied message shown');
+    await D(gm, 'chat/post', { from: 'gm', name: 'GM', text: 'GM chat works' });
+    await poll(async () => (await S(tv)).chat.some((m) => m.text === 'GM chat works'), 15000, 'GM chat on TV');
+    assert.ok(!(await S(gm)).chat.some((m) => m.text === 'I hold the line'));
+  }
+});
+
+await step('ownership: the claimed sheet shows as taken on a second phone', async () => {
+  p2 = await open(p2Ctx, `player.html?online=1&room=${ROOM}&emulator=${EMU}`);
+  await poll(async () => (await S(p2)).characters.length > 0, 20000, 'p2 loaded');
+  await poll(() => p2.evaluate(() => [...document.querySelectorAll('.picker li button')].some((b) => b.textContent.includes('Fighter 02') && b.textContent.includes('another phone'))), 15000, 'shown as taken');
+  await p2.click('text=Fighter 02', { force: true }); // the button is aria-disabled; force the tap anyway
+  await p2.waitForTimeout(800);
+  assert.ok(await p2.evaluate(() => !document.querySelector('.sheet')), 'p2 cannot open the claimed sheet');
+});
+
+await step(NEW ? 'ownership: a forged edit from another phone is denied by Firebase' : 'ownership: a forged edit from another phone is ignored by the GM (deployed rules)', async () => {
+  const res = await p2.evaluate(async (room) => {
+    const { getDatabase, ref, set } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js');
+    const { getApps } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
+    const app = getApps()[0];
+    const uid = window.__grim.session.cloud.uid;
+    try { await set(ref(getDatabase(app), `grim/playerEdits/${room}/ilyra/${uid}/hp`), { value: 1, revision: Date.now() }); return 'WRITTEN'; } catch (e) { return e.code || e.message; }
+  }, ROOM);
+  if (NEW) assert.match(String(res), /permission/i);
+  else assert.equal(res, 'WRITTEN', 'the old rules accept the write; the GM must reject it');
+  await new Promise((r) => setTimeout(r, 2500));
+  assert.equal((await S(gm)).characters.find((c) => c.id === 'ilyra').hp, 25, 'HP unchanged');
+  assert.equal((await S(tv)).characters.find((c) => c.id === 'ilyra').hp, 25);
+});
+
+await step('ownership: the second phone can claim and play a free character', async () => {
+  await p2.click('text=Fighter 03');
+  await p2.waitForSelector('.sheet');
+  await p2.fill('[aria-label="Adjust hit points"]', '-2');
+  await p2.press('[aria-label="Adjust hit points"]', 'Enter');
+  await poll(async () => (await S(gm)).characters.find((c) => c.id === 'borin').hp === 50, 15000, 'p2 edit applied');
+});
+
+await step('ownership: after the GM releases a sheet, another phone can take it', async () => {
+  await D(gm, 'claims/release', { id: 'ilyra' });
+  await poll(async () => !(await S(p2)).claims.ilyra, 15000, 'release visible');
+  await p2.click('[aria-label="Choose another character"]');
+  await p2.click('text=Fighter 02');
+  await p2.waitForSelector('.sheet');
+  await p2.fill('[aria-label="Adjust hit points"]', '+3');
+  await p2.press('[aria-label="Adjust hit points"]', 'Enter');
+  await poll(async () => (await S(gm)).characters.find((c) => c.id === 'ilyra').hp === 28, 15000, 'new owner edit applied');
+  const p2uid = await p2.evaluate(() => window.__grim.session.cloud.uid);
+  await poll(async () => (await S(gm)).claims.ilyra?.uid === p2uid, 15000, 'claim moved');
+  // The previous phone is bounced back to the picker.
+  await poll(() => p1.evaluate(() => !document.querySelector('.sheet')), 15000, 'p1 bounced');
+  await D(gm, 'claims/release', { id: 'ilyra' });
 });
 
 await step('authorization: a player cannot write the room or edit enemies', async () => {
@@ -156,7 +216,7 @@ await step('authorization: a player cannot write the room or edit enemies', asyn
 
 await step('TV refresh restores the full state', async () => {
   await tv.reload();
-  await poll(async () => { const s = await S(tv); return s.characters.find((c) => c.id === 'ilyra')?.hp === 25 && s.stage.view === 'tactical'; }, 20000, 'restored');
+  await poll(async () => { const s = await S(tv); return s.characters.find((c) => c.id === 'ilyra')?.hp === 28 && s.stage.view === 'tactical'; }, 20000, 'restored');
 });
 
 await step('GM offline edits are kept and published on reconnect', async () => {
@@ -203,9 +263,10 @@ await step('a second GM browser cannot take over the room', async () => {
   await otherCtx.close();
 });
 
-await step('second player sees the first player\'s change', async () => {
-  p2 = await open(p2Ctx, `player.html?online=1&room=${ROOM}&emulator=${EMU}`);
-  await poll(async () => (await S(p2)).characters.find((c) => c.id === 'ilyra')?.hp === 25, 20000, 'p2 state');
+await step('second player sees GM changes live', async () => {
+  await D(gm, 'char/hp', { id: 'ilyra', amount: -1 });
+  const hp = (await S(gm)).characters.find((c) => c.id === 'ilyra').hp;
+  await poll(async () => (await S(p2)).characters.find((c) => c.id === 'ilyra')?.hp === hp, 20000, 'p2 state');
 });
 
 await step('legacy 1.5.8 room owned by this GM upgrades in place', async () => {
@@ -222,6 +283,40 @@ await step('legacy 1.5.8 room owned by this GM upgrades in place', async () => {
   const stored = await (await fetch(`http://127.0.0.1:9000/grim/rooms/${legacyRoom}.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
   assert.equal(stored.schema, 2);
   assert.equal(stored.dmUid, uid);
+  assert.deepEqual(stored.legacyBackup.data.characters[0].name, 'Old Knight', 'original 1.5.8 room kept inside the upgraded room');
+  assert.equal(stored.legacyBackup.data.combat.round, 7);
+  const local = await gm.evaluate(async () => (await import('/src/sync/backups.js')).listBackups());
+  assert.ok(local.some((b) => b.reason === '1.5.8 room before upgrade'), 'local safety copy saved');
+  // A later edit (partial write) must not drop the 1.5.8 copy.
+  await D(gm, 'round/set', { round: 8 });
+  await new Promise((r) => setTimeout(r, 1500));
+  const after = await (await fetch(`http://127.0.0.1:9000/grim/rooms/${legacyRoom}.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
+  assert.equal(after.s.combat.round, 8);
+  assert.ok(after.legacyBackup, 'copy survives normal sync');
+  // Restoring puts the exact 1.5.8 room back for the legacy build.
+  await gm.evaluate(() => window.__grim.session.cloud.restoreLegacyRoom());
+  const restored = await (await fetch(`http://127.0.0.1:9000/grim/rooms/${legacyRoom}.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
+  assert.equal(restored.schema, undefined);
+  assert.equal(restored.characters[0].name, 'Old Knight');
+  assert.equal(restored.combat.round, 7);
+  assert.equal(restored.dmUid, uid);
+});
+
+await step('switching the GM deck to another room it owns takes the cloud copy (no overwrite) and backs up the local one', async () => {
+  const uid = await gm.evaluate(() => window.__grim.session.cloud?.uid || null) || await gm.evaluate(async () => { const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'); const { getApps } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'); return getAuth(getApps()[0]).currentUser.uid; });
+  const other = `${ROOM}-other`;
+  const v2 = { dmUid: uid, mode: 'scene', sceneId: 'chapel', schema: 2, rev: 1, updatedAt: Date.now(), s: { characters: [{ id: 'z1', name: 'Zara of Room B', faction: 'player', hp: 9, maxHp: 9 }], meta: { mode: 'scene', sceneId: 'chapel' } } };
+  const r = await fetch(`http://127.0.0.1:9000/grim/rooms/${other}.json?ns=project-grim-ef4f0-default-rtdb`, { method: 'PUT', headers: { Authorization: 'Bearer owner' }, body: JSON.stringify(v2) });
+  assert.equal(r.status, 200);
+  const before = (await S(gm)).characters.map((c) => c.name);
+  await gm.evaluate((room) => localStorage.setItem('grim:options:v1', JSON.stringify({ online: true, room })), other);
+  await gm.evaluate(() => window.__grim.session.connect());
+  await poll(async () => (await S(gm)).characters.some((c) => c.name === 'Zara of Room B'), 20000, 'adopted room B');
+  const stored = await (await fetch(`http://127.0.0.1:9000/grim/rooms/${other}.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
+  assert.equal(stored.s.characters[0].name, 'Zara of Room B', 'room B was not overwritten by the local campaign');
+  const local = await gm.evaluate(async () => (await import('/src/sync/backups.js')).listBackups());
+  assert.ok(local.some((b) => b.reason === 'This device before first sync with this room'), 'local campaign saved first');
+  assert.ok(before.length > 0);
 });
 
 await step('no uncaught page errors', async () => { assert.deepEqual(errors, []); });
@@ -229,6 +324,6 @@ await step('no uncaught page errors', async () => { assert.deepEqual(errors, [])
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r.ok);
-console.log(`\n${results.length - failed.length}/${results.length} multi-client checks passed (${browserName}).`);
-writeFileSync(join(root, 'qa-reports', `e2e-sync-${browserName}.json`), JSON.stringify({ browser: browserName, at: new Date().toISOString(), results }, null, 2));
+console.log(`\n${results.length - failed.length}/${results.length} multi-client checks passed (${browserName}, ${RULESET === 'deployed' ? 'deployed 1.5.8 rules' : '2.0.1 rules'}).`);
+writeFileSync(join(root, 'qa-reports', `e2e-sync-${browserName}-${RULESET}.json`), JSON.stringify({ browser: browserName, rules: RULESET, at: new Date().toISOString(), results }, null, 2));
 process.exit(failed.length ? 1 : 0);

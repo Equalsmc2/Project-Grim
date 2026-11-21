@@ -11,9 +11,9 @@ import { clamp, int, isObj, num, text } from './util.js';
 import { normalizeMusic } from '../audio/music-playback.js';
 
 export const SCHEMA = 2;
-export const SECTIONS = ['meta', 'stage', 'characters', 'portraits', 'combat', 'environment', 'battleMaps', 'music', 'presentation', 'overlay', 'chat', 'snapshots', 'log', 'cursors', 'camera'];
+export const SECTIONS = ['meta', 'stage', 'characters', 'portraits', 'combat', 'environment', 'battleMaps', 'music', 'presentation', 'overlay', 'chat', 'snapshots', 'log', 'cursors', 'camera', 'claims'];
 /** Sections that are never part of undo history. */
-export const VOLATILE = new Set(['log', 'chat', 'camera', 'cursors', 'music']);
+export const VOLATILE = new Set(['log', 'chat', 'camera', 'cursors', 'music', 'claims']);
 
 const asArray = (v) => (Array.isArray(v) ? v : isObj(v) ? Object.keys(v).sort((a, b) => Number(a) - Number(b)).map((k) => v[k]) : []);
 const safeImg = (x) => (typeof x === 'string' && /^data:image\/(png|jpeg|webp);base64,[\w+/=]+$/.test(x) && x.length < 1_500_000 ? x : '');
@@ -64,6 +64,7 @@ export function defaultCampaign(now = Date.now()) {
     log: [{ id: 'intro', time: now, text: 'Stage ready.' }],
     cursors: {},
     camera: { pose: null, at: 0 },
+    claims: {},
   };
 }
 
@@ -160,6 +161,15 @@ export function normalizeSection(name, value, campaign) {
       const out = {};
       // Firebase keys may not contain '/', so 1.5.8 cursor keys are rewritten with '|'.
       if (isObj(value)) for (const [k, v] of Object.entries(value)) if (Number.isSafeInteger(Number(v))) out[k.replace(/[/.#$[\]]/g, '|').slice(0, 160)] = Number(v);
+      return out;
+    }
+    case 'claims': {
+      // characterId -> { uid, at }: which player device may edit that party sheet.
+      const out = {};
+      if (isObj(value)) for (const [k, v] of Object.entries(value)) {
+        const id = String(k).replace(/[^a-z0-9-]/gi, '').slice(0, 60);
+        if (id && isObj(v) && typeof v.uid === 'string' && v.uid && v.uid.length <= 128) out[id] = { uid: v.uid, at: Math.max(0, num(v.at)) };
+      }
       return out;
     }
     case 'camera': return { pose: isObj(value?.pose) ? normalizePose(value.pose) : null, at: num(value?.at) };

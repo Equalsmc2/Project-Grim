@@ -226,3 +226,6 @@ select.mini { height: 26px; font-size: var(--t-xs); width: auto; }
   .dock { position: sticky; bottom: 0; overflow-x: auto; }
   .dock-music { max-width: none; }
 }
+
+.claim-line { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-2); background: var(--slate-dim); border: 1px solid var(--line); font-size: var(--t-sm); color: var(--bone-2); }
+.claim-line span { flex: 1; }

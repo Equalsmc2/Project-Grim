@@ -65,3 +65,6 @@ body { background: radial-gradient(120% 60% at 50% 0%, #1d1915, var(--ink-1) 60%
 .pchat .chat-form input { height: 40px !important; }
 .pchat .chat-form .btn { height: 40px; width: 44px; }
 .hint { color: var(--ash); }
+
+.picker li button.is-taken { opacity: .45; }
+.release { margin-top: 6px; padding: 0; border: 0; background: none; color: var(--ash); font-size: 12px; text-decoration: underline; cursor: pointer; }

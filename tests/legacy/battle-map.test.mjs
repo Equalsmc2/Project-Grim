@@ -76,4 +76,7 @@ assert.deepEqual(playerRules(),installedRules,'Firebase rules must agree with cl
 console.log('Battle-map data, grid movement, DM edits, and Firebase rule parity passed.');
 
 // 2.0 adds an independent, append-only player chat path; the 1.5.8 paths must stay identical.
-function withoutV2Chat(r){const c=JSON.parse(JSON.stringify(r));delete c.rules.grim.chat;return c;}
+function withoutV2Chat(r){const c=JSON.parse(JSON.stringify(r));delete c.rules.grim.chat;delete c.rules.grim.claims;
+ // 2.0.1 binds player edits to a character claim; everything else in the 1.5.8 condition must be unchanged.
+ const f=c.rules.grim.playerEdits.$roomId.$characterId.$uid.$field;f['.write']=f['.write'].replace(" root.child('grim/claims').child($roomId).child($characterId).child('uid').val() === auth.uid &&",'');
+ c.rules.grim={rooms:c.rules.grim.rooms,playerEdits:c.rules.grim.playerEdits};return c;}

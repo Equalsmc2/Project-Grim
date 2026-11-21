@@ -2,10 +2,10 @@
 
 The plan is in `docs/REFORGE_PLAN.md`, the outcome in `docs/REPORT-2.0.md`.
 
-## Status: 2.0.0 feature-complete, awaiting owner hardware testing
+## Status: 2.0.1 (Firebase stabilization) complete, awaiting owner upgrade per GO_LIVE.md
 - **Branch:** `claude/intelligent-lovelace-0sw4s0`. Not merged, and production is not touched.
 - **Fallback:** tag `legacy-1.5.8` and `/legacy/*.html`.
-- **Releases:** `RELEASES/Project-Grim-2.0.0.zip` (full) and `-website-only.zip`. Rebuild with `node tools/package-release.mjs`.
+- **Releases:** `RELEASES/Project-Grim-2.0.1.zip` (full) and `-website-only.zip`. Rebuild with `node tools/package-release.mjs`.
 
 | Milestone | Status |
 |---|---|
@@ -18,6 +18,7 @@ The plan is in `docs/REFORGE_PLAN.md`, the outcome in `docs/REPORT-2.0.md`.
 | M6 Overlays, chat, resources, music/ambience | done |
 | M7 TV stage and player desk | done |
 | M8 Tests, CI, docs, release, uploader | done; Firefox runs in CI only |
+| 2.0.1 Character claims, embedded rules, recoverable migration, tests under deployed and new rules | done |
 
 ## How to resume
 - **Unit tests:** `node tools/run-tests.mjs`.
@@ -27,6 +28,9 @@ The plan is in `docs/REFORGE_PLAN.md`, the outcome in `docs/REPORT-2.0.md`.
 - **Debug hooks:** `window.__grim.store` (and `.world` on the TV) exist on every page.
 
 ## Architecture notes for the next session
+- Claims: the `claims` section is the GM's view; `grim/claims/{room}` is authoritative when the 2.0.1 rules are deployed. The player inbox in `src/sync/cloud.js` enforces ownership either way.
+- Backups: `src/sync/backups.js` (IndexedDB). `reconcile()` in `cloud.js` documents every overwrite rule.
+- Rules: edit `firebase-rtdb.rules.json`, then run `node tools/sync-rules.mjs`.
 - Every change is a command in `src/core/commands.js`. Add new behaviour there with its `sections` list; undo, sync and logging follow automatically.
 - `VOLATILE` sections (`log`, `chat`, `camera`, `cursors`, `music`) are excluded from undo.
 - Firebase room layout: `grim/rooms/{room}/{dmUid,mode,sceneId,schema,rev,s/<section>}`. The root keys are required by the deployed rules' `.validate`.

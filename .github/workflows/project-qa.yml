@@ -29,6 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox]
+        rules: [current, deployed]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,11 +40,12 @@ jobs:
         run: npm install --no-save --no-package-lock playwright@1.56.1 firebase@10.14.1
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Page checks (layout, card visibility, tactical round trip)
+        if: ${{ matrix.rules == 'current' }}
         env: { BROWSER: '${{ matrix.browser }}' }
         run: node tests/v2/e2e/ui.e2e.mjs
       - name: Multi-client sync against the Firebase emulator
-        env: { BROWSER: '${{ matrix.browser }}', FIREBASE_SDK_DIR: node_modules/firebase }
+        env: { BROWSER: '${{ matrix.browser }}', RULES: '${{ matrix.rules }}', FIREBASE_SDK_DIR: node_modules/firebase }
         run: node tests/v2/e2e/sync.e2e.mjs
       - if: ${{ always() }}
         uses: actions/upload-artifact@v4
-        with: { name: browser-${{ matrix.browser }}-${{ github.run_id }}, path: qa-reports/, retention-days: 14, if-no-files-found: warn }
+        with: { name: browser-${{ matrix.browser }}-${{ matrix.rules }}-${{ github.run_id }}, path: qa-reports/, retention-days: 14, if-no-files-found: warn }

@@ -1,0 +1,28 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "grim": {
+      "rooms": {
+        "$roomId": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('dmUid').val() === auth.uid) || (data.child('dmUid').val() === auth.uid && newData.child('dmUid').val() === auth.uid))",
+          ".validate": "newData.hasChildren(['dmUid', 'mode', 'sceneId']) && newData.child('dmUid').isString()"
+        }
+      },
+      "playerEdits": {
+        "$roomId": {
+          ".read": "auth != null",
+          "$characterId": {
+            "$uid": {
+              "$field": {
+                ".write": "auth != null && root.child('grim/rooms').child($roomId).exists() && auth.uid === $uid && ($field === 'level' || $field === 'maxHp' || $field === 'hp' || $field === 'tempHp' || $field === 'ac' || $field === 'initiative' || $field === 'perception' || $field === 'name' || $field === 'ancestry' || $field === 'className' || $field === 'conditions' || $field === 'avatar' || $field === 'mapMove') && newData.exists() && (!data.exists() || newData.child('revision').val() > data.child('revision').val())",
+                ".validate": "newData.hasChildren(['revision', 'value']) && newData.child('revision').isNumber() && newData.child('revision').val() > 0 && newData.child('revision').val() < 9000000000000000 && ($field === 'avatar' ? (newData.child('value').isString() && newData.child('value').val().matches(/^v1-[0-9a-z]{16}$/)) : ($field === 'mapMove' ? (newData.child('value').isString() && newData.child('value').val().matches(/^(up|down|left|right)$/)) : ($field === 'conditions' ? (newData.child('value').isString() && newData.child('value').val().length <= 220) : (($field === 'name' || $field === 'ancestry' || $field === 'className') ? (newData.child('value').isString() && newData.child('value').val().length > 0 && newData.child('value').val().length <= 48) : (newData.child('value').isNumber() && newData.child('value').val() >= -100 && newData.child('value').val() <= 9999)))))"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

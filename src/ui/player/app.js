@@ -14,7 +14,11 @@ window.__grim = { store };
 let status = { state: 'local', text: 'Same computer' };
 const subs = new Set();
 let chatDenied = false;
-const session = createSession({ store, role: 'player', onStatus: (s) => { status = s; subs.forEach((f) => f()); }, onChatDenied: () => { chatDenied = true; subs.forEach((f) => f()); } });
+let claimsInfo = { supported: false, claims: null };
+const session = createSession({ store, role: 'player', onStatus: (s) => { status = s; subs.forEach((f) => f()); }, onChatDenied: () => { chatDenied = true; subs.forEach((f) => f()); }, onClaims: (c) => { claimsInfo = c; subs.forEach((f) => f()); } });
+const ownerOf = (state, id) => (claimsInfo.claims ? claimsInfo.claims[id]?.uid : state.claims[id]?.uid) || '';
+const myUid = () => session.cloud?.uid || '';
+window.__grim.session = session;
 const PICK_KEY = `grim:player-pick:${conn.online ? conn.room : 'local'}`;
 const PLAYER_CONDITIONS = CONDITIONS.filter((c) => !['Persistent damage', 'Controlled'].includes(c.name));
 
@@ -30,7 +34,7 @@ function Stat({ label, field, c, min, max, onSend }) {
   return html`<label class="pstat"><span>${label}</span><input type="number" inputmode="numeric" min=${min} max=${max} value=${v ?? c[field]} onInput=${(e) => setV(e.currentTarget.value)} onBlur=${commit} onKeyDown=${(e) => e.key === 'Enter' && e.currentTarget.blur()} /></label>`;
 }
 
-function Sheet({ state, c, onBack }) {
+function Sheet({ state, c, onBack, onRelease }) {
   const [pending, setPending] = useState({});
   const [hpIn, setHpIn] = useState('');
   const [studio, setStudio] = useState(false);
@@ -87,6 +91,7 @@ function Sheet({ state, c, onBack }) {
       <div class="hero-id">
         <h1 class="serif">${c.name}</h1>
         <p>${[c.ancestry, c.className].filter(Boolean).join(' · ')} · Level ${c.level}</p>
+        ${session.cloud ? html`<button type="button" class="release" onClick=${onRelease}>Not your character? Release it</button>` : null}
       </div>
     </div>
     ${myTurn ? html`<div class="your-turn"><span class="eyebrow">Round ${state.combat.round}</span><b class="serif">It's your turn</b></div>` : null}
@@ -145,17 +150,43 @@ function App() {
   const [pick, setPick] = useState(() => { try { return localStorage.getItem(PICK_KEY) || ''; } catch { return ''; } });
   useEffect(() => { const f = () => force((n) => n + 1); subs.add(f); return () => subs.delete(f); }, []);
   const party = state.characters.filter((c) => c.faction !== 'enemy' && !c.hidden);
-  const chosen = party.find((c) => c.id === pick);
-  const choose = (id) => { setPick(id); try { localStorage.setItem(PICK_KEY, id); } catch {} };
+  const chosenRaw = party.find((c) => c.id === pick);
+  const takenByOther = (id) => { const o = ownerOf(state, id); return !!(session.cloud && o && o !== myUid()); };
+  // If the GM gives this sheet to another phone, step back to the picker.
+  const chosen = chosenRaw && !takenByOther(chosenRaw.id) ? chosenRaw : null;
+  useEffect(() => { if (chosenRaw && !chosen) toast(`${chosenRaw.name} is now linked to another phone.`); }, [!!chosenRaw && !chosen]);
+  const remember = (id) => { setPick(id); try { localStorage.setItem(PICK_KEY, id); } catch {} };
+  const choose = async (id) => {
+    if (!id) return remember('');
+    const c = party.find((x) => x.id === id);
+    if (takenByOther(id)) return toast(`${c.name} is played on another phone. Ask your GM to release it.`);
+    if (session.cloud) {
+      const res = await session.cloud.claim(id);
+      if (!res.ok) return toast(`${c.name} is played on another phone. Ask your GM to release it.`);
+    }
+    remember(id);
+  };
+  // A sheet remembered from a previous visit is claimed again once the connection is up.
+  useEffect(() => {
+    if (!session.cloud || !claimsInfo.supported || !pick || takenByOther(pick)) return;
+    if (claimsInfo.claims?.[pick]?.uid === myUid()) return;
+    session.cloud.claim(pick).then((r) => { if (!r.ok) remember(''); });
+  }, [claimsInfo.supported, pick, !!session.cloud]);
+  const release = async () => {
+    if (!chosen || !confirm(`Release ${chosen.name} so another player can take it?`)) return;
+    const ok = await session.cloud?.release(chosen.id);
+    if (!ok) toast('Ask your GM to release this sheet (Combatant tab → Release).');
+    remember('');
+  };
   return html`<div class="player">
     <header class="ptop">
       <div class="brand"><span class="mark serif">G</span><b>GRIM</b></div>
       <span class=${cx('pconn', `st-${status.state}`)}><i></i>${status.text}</span>
     </header>
-    ${chosen ? html`<${Sheet} state=${state} c=${chosen} onBack=${() => choose('')} />` : html`<main class="picker">
+    ${chosen ? html`<${Sheet} state=${state} c=${chosen} onBack=${() => remember('')} onRelease=${release} />` : html`<main class="picker">
       <span class="eyebrow">The party</span>
       <h1 class="serif">Who are you playing?</h1>
-      <ul>${party.map((c) => { const hp = hpState(c); const img = state.portraits[c.id]; return html`<li><button type="button" onClick=${() => choose(c.id)}><span class="pk-art" style=${img ? `background-image:url(${img})` : ''}></span><span class="pk-id"><b class="serif">${c.name}</b><small>${[c.ancestry, c.className].filter(Boolean).join(' · ')}</small></span><span class="num pk-hp">${hp.hp}/${hp.max}</span></button></li>`; })}</ul>
+      <ul>${party.map((c) => { const hp = hpState(c); const img = state.portraits[c.id]; return html`<li><button type="button" class=${cx(takenByOther(c.id) && 'is-taken')} aria-disabled=${String(takenByOther(c.id))} onClick=${() => choose(c.id)}><span class="pk-art" style=${img ? `background-image:url(${img})` : ''}></span><span class="pk-id"><b class="serif">${c.name}</b><small>${takenByOther(c.id) ? 'Played on another phone' : ownerOf(state, c.id) === myUid() && myUid() ? 'Yours' : [c.ancestry, c.className].filter(Boolean).join(' · ')}</small></span><span class="num pk-hp">${hp.hp}/${hp.max}</span></button></li>`; })}</ul>
       ${!party.length ? html`<p class="hint">${status.state === 'waiting' ? 'Waiting for the GM to open the room.' : 'Your GM has not added party members yet.'}</p>` : html`<p class="hint">Only the GM adds or removes characters. You can edit your own sheet.</p>`}
     </main>`}
   </div>`;
