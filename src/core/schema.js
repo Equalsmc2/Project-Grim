@@ -158,7 +158,8 @@ export function normalizeSection(name, value, campaign) {
     case 'log': return asArray(value).filter(isObj).map((l) => ({ id: text(l.id, 40), time: num(l.time), text: text(l.text, 160) })).slice(-40);
     case 'cursors': {
       const out = {};
-      if (isObj(value)) for (const [k, v] of Object.entries(value)) if (Number.isSafeInteger(Number(v))) out[k.slice(0, 160)] = Number(v);
+      // Firebase keys may not contain '/', so 1.5.8 cursor keys are rewritten with '|'.
+      if (isObj(value)) for (const [k, v] of Object.entries(value)) if (Number.isSafeInteger(Number(v))) out[k.replace(/[/.#$[\]]/g, '|').slice(0, 160)] = Number(v);
       return out;
     }
     case 'camera': return { pose: isObj(value?.pose) ? normalizePose(value.pose) : null, at: num(value?.at) };

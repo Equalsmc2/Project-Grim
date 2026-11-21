@@ -44,7 +44,7 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
   const status = (state, text) => onStatus({ state, text });
   status('connecting', 'Connecting…');
   const F = sdk || (await loadFirebase());
-  const appName = emulator ? `grim-emu-${uid('a')}` : '[DEFAULT]';
+  const appName = emulator ? 'grim-emulator' : '[DEFAULT]';
   const app = F.getApps().find((a) => a.name === appName) || F.initializeApp(emulator ? { ...firebaseConfig, databaseURL: `http://${emulator.host}:${emulator.port}?ns=${firebaseConfig.projectId}-default-rtdb` } : firebaseConfig, appName === '[DEFAULT]' ? undefined : appName);
   const auth = F.getAuth(app);
   const db = F.getDatabase(app);
@@ -216,7 +216,7 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       for (const [charId, ids] of Object.entries(edits)) for (const [puid, fields] of Object.entries(ids || {})) for (const [field, entry] of Object.entries(fields || {})) {
         if (!PLAYER_EDIT_FIELDS.includes(field) || !entry || typeof entry !== 'object') continue;
         const rev = Number(entry.revision);
-        const key = `${charId}/${puid}/${field}`;
+        const key = `${charId}|${puid}|${field}`;
         if (!Number.isSafeInteger(rev) || rev <= Number(cursors[key] || 0)) continue;
         accepted.push({ key, charId, field, value: field === 'conditions' ? String(entry.value || '').split(',').filter(Boolean) : entry.value, rev });
       }

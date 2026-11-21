@@ -47,7 +47,7 @@ test('legacy 1.5.8 campaigns migrate losslessly', () => {
   assert.equal(c.environment.weather, 'rain');
   assert.equal(c.environment.bogus, undefined);
   assert.equal(c.snapshots[0].name, 'Rainy');
-  assert.equal(c.cursors['mara/u1/hp'], 1700000000001);
+  assert.equal(c.cursors['mara|u1|hp'], 1700000000001, 'Firebase-safe cursor key');
   assert.equal(c.presentation.cardScale, 1.1);
 });
 
