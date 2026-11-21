@@ -23,7 +23,10 @@ function publicPath(requestUrl){
   const relative=segments.filter(Boolean).join('/') || 'index.html';
   // Do not accidentally serve .env, .git, project sources, secrets or test files.
   if(relative==='index.html'||relative==='dm.html'||relative==='player.html'||relative==='favicon.ico')return relative;
-  if(relative.startsWith('assets/') && segments.filter(Boolean).length>=2)return relative;
+  if(relative==='favicon.svg')return relative;
+  if(/^(assets|src|vendor|legacy)\//.test(relative) && segments.filter(Boolean).length>=2)return relative;
+  // Browser test harnesses are served only when explicitly requested.
+  if(process.env.GRIM_TEST==='1' && relative.startsWith('tests/v2/harness/'))return relative;
   return null;
 }
 const server=http.createServer((req,res)=>{

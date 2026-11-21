@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>World harness</title>
+<script type="importmap">{"imports":{"three":"../../../vendor/three.module.js"}}</script>
+<link rel="stylesheet" href="../../../src/ui/theme.css">
+<style>html,body{height:100%;margin:0;background:#000}#w{position:fixed;inset:0}</style></head>
+<body><div id="w"></div><script type="module">
+import {createWorld} from '../../../src/stage/world.js';
+import {createStore} from '../../../src/core/store.js';
+const store=createStore({storage:null,channelName:null});
+window.store=store;
+await document.fonts.load('600 40px Cormorant');await document.fonts.load('600 20px Inter');
+const world=createWorld(document.getElementById('w'),{role:new URLSearchParams(location.search).get('role')||'stage',quality:new URLSearchParams(location.search).get('q')||'balanced',onEvent:e=>{window.lastEvent=e;}});
+window.world=world;
+store.subscribe(s=>world.setCampaign(s));
+window.ready=true;
+</script></body></html>
