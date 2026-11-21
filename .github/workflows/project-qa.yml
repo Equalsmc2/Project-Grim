@@ -3,70 +3,47 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-    inputs:
-      generate_baselines:
-        description: Generate candidate Linux screenshots for review (does not commit them)
-        type: boolean
-        default: false
 permissions:
   contents: read
 concurrency:
   group: qa-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  browser-tests:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: qa
-    env:
-      CI: 'true'
-      QA_VISUAL: ${{ vars.QA_VISUAL || 'capture' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: qa/package-lock.json
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - run: npm run test:unit
-      - name: Run tests
-        if: ${{ !inputs.generate_baselines }}
-        run: npm test
-      - name: Generate candidate baselines
-        if: ${{ inputs.generate_baselines }}
-        env:
-          QA_VISUAL: compare
-        run: npm run baseline
-      - name: Save reports even when tests fail
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: qa-evidence-${{ github.run_id }}
-          path: |
-            qa/artifacts/
-            qa/tests/baselines/
-          retention-days: 14
-          if-no-files-found: warn
-
-  project-regressions:
+  unit:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Existing project regressions
+        with: { node-version: '22' }
+      - name: Unit and regression suites (v2 + preserved 1.5.8)
         run: node tools/run-tests.mjs
-      - name: Save existing test results
-        if: ${{ always() }}
+      - if: ${{ always() }}
         uses: actions/upload-artifact@v4
-        with:
-          name: grim-existing-regressions-${{ github.run_id }}
-          path: qa-reports/
-          retention-days: 14
-          if-no-files-found: warn
+        with: { name: unit-${{ github.run_id }}, path: qa-reports/, retention-days: 14, if-no-files-found: warn }
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - name: Test-only dependencies (not part of the website)
+        run: npm install --no-save --no-package-lock playwright@1.56.1 firebase@10.14.1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Page checks (layout, card visibility, tactical round trip)
+        env: { BROWSER: '${{ matrix.browser }}' }
+        run: node tests/v2/e2e/ui.e2e.mjs
+      - name: Multi-client sync against the Firebase emulator
+        env: { BROWSER: '${{ matrix.browser }}', FIREBASE_SDK_DIR: node_modules/firebase }
+        run: node tests/v2/e2e/sync.e2e.mjs
+      - if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with: { name: browser-${{ matrix.browser }}-${{ github.run_id }}, path: qa-reports/, retention-days: 14, if-no-files-found: warn }

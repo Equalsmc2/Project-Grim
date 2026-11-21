@@ -7,6 +7,7 @@ import { activeMap } from '../../core/battlemap.js';
 import { createSession, resolveConnection } from '../../app/session.js';
 import { createAudioDirector } from '../../audio/director.js';
 import { TRACK_MAP } from '../../audio/music-playback.js';
+import { importMusicArchives } from '../../audio/music-local.js';
 
 const conn = resolveConnection('stage');
 // Online viewers keep their own cache so they never overwrite the GM's local campaign.
@@ -182,6 +183,7 @@ function App() {
       <button type="button" onClick=${toggleSound} title=${sound ? 'Mute this display' : 'Enable sound'} aria-pressed=${String(sound)}><${Icon} name=${sound ? 'volume' : 'mute'} /></button>
       <select value=${quality} aria-label="Graphics quality" onChange=${(e) => { setQuality(e.currentTarget.value); savePref('grim:quality:v1', e.currentTarget.value); }}><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select>
       <select value=${motion} aria-label="Motion" onChange=${(e) => { setMotion(e.currentTarget.value); savePref('grim:motion:v1', e.currentTarget.value); }}><option value="system">Motion: system</option><option value="reduce">Motion: reduced</option><option value="full">Motion: full</option></select>
+      <label class="vc-file" title="Load personal soundtrack ZIPs into this display"><${Icon} name="music" /><input type="file" accept=".zip,application/zip" multiple hidden onChange=${async (e) => { const f = [...e.currentTarget.files]; if (!f.length) return; try { await importMusicArchives(f); audio.setEnabled(sound); alert('Soundtracks stored on this display.'); } catch (err) { alert(err.message); } }} /></label>
       <button type="button" title="Reset camera [0]" onClick=${() => window.__grim.world?.resetCamera()}><${Icon} name="cam" /></button>
       <button type="button" title="Hide labels [H]" aria-pressed=${String(hideHud)} onClick=${() => setHideHud((v) => { savePref('grim:hideHud', String(!v)); return !v; })}><${Icon} name=${hideHud ? 'eye' : 'eyeOff'} /></button>
       <button type="button" title="Fullscreen [F]" onClick=${() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.())}><${Icon} name="fullscreen" /></button>

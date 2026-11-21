@@ -21,6 +21,13 @@
       "**/*.bat",
       "server.js",
       "README.md",
+      "qa/**",
+      "tools/**",
+      "RELEASES/**",
+      "qa-reports/**",
+      "legacy/tests/**",
+      "*.md",
+      "package.json",
       "firebase-rtdb.rules.json"
     ],
     "headers": [

@@ -1,32 +1,38 @@
-# Project Grim Reforge — Progress Log
+# Project Grim Reforge — progress log
 
-Resume here. The full vision and milestone plan is in `docs/REFORGE_PLAN.md`.
+The plan is in `docs/REFORGE_PLAN.md`, the outcome in `docs/REPORT-2.0.md`.
 
-## Current status
-- **Phase:** Step 1 complete (inspection + plan). **Waiting for owner approval** before any implementation.
-- **Branch:** `claude/intelligent-lovelace-0sw4s0`
-- **Live code:** unchanged 1.5.8 (`assets/grim-158`). Existing suite: `node tools/run-tests.mjs` → 43/43 pass (2026-11-21).
+## Status: 2.0.0 feature-complete, awaiting owner hardware testing
+- **Branch:** `claude/intelligent-lovelace-0sw4s0`. Not merged, and production is not touched.
+- **Fallback:** tag `legacy-1.5.8` and `/legacy/*.html`.
+- **Releases:** `RELEASES/Project-Grim-2.0.0.zip` (full) and `-website-only.zip`. Rebuild with `node tools/package-release.mjs`.
 
-## Key findings from inspection
-- Legendary actions, dialogue/presentation overlays and chat do **not** exist in 1.5.8 (new features, not regressions).
-- Tactical mode presentation is broken: the combat-info panel covers the board (screenshot-verified in Chromium/SwiftShader).
-- Firebase writes the whole campaign (with base64 portraits) on every change.
-- Root `app.js`, `styles.css`, `firebase-config.js`, `database.rules.json` belong to an unrelated project (MuseSink) and are unused by Grim.
-- `assets/battlefield-118`, `grim-148`, `grim-149` are unused old builds.
-- Environment: Chromium + SwiftShader WebGL works for screenshots; Java is available (Firebase emulator feasible); Firefox not preinstalled.
-
-## Open questions for the owner
-See the end of the plan summary message / `docs/REFORGE_PLAN.md` §6 and the approval questions.
-
-## Milestones
-| # | Status |
+| Milestone | Status |
 |---|---|
-| M0 Foundations | not started |
-| M1 Sync v2 | not started |
-| M2 World renderer | not started |
-| M3 Cards & camera | not started |
-| M4 Tactical unification | not started |
-| M5 GM command deck | not started |
-| M6 Session features | not started |
-| M7 Stage HUD + player desk | not started |
-| M8 Hardening & release | not started |
+| M0 Foundations: legacy preserved, cleanup, v2 core, undo/redo | done |
+| M1 Sync v2: per-section Firebase, inbox, chat path, emulator tests | done (18/18) |
+| M2 World renderer: terrain, sky, fog, weather, props | done |
+| M3 Cards, formation, camera director | done |
+| M4 Tactical in the same world: grid on terrain, map props, picking/painting/dragging | done |
+| M5 GM command deck | done |
+| M6 Overlays, chat, resources, music/ambience | done |
+| M7 TV stage and player desk | done |
+| M8 Tests, CI, docs, release, uploader | done; Firefox runs in CI only |
+
+## How to resume
+- **Unit tests:** `node tools/run-tests.mjs`.
+- **Browser tests:** `node tests/v2/e2e/ui.e2e.mjs`.
+- **Sync tests:** `FIREBASE_BIN=... FIREBASE_SDK_DIR=... node tests/v2/e2e/sync.e2e.mjs`. Needs Java, `firebase-tools` and the `firebase@10.14.1` npm package for the SDK files.
+- **Local server:** `GRIM_TEST=1 node server.js` also serves `tests/v2/harness/world.html`, a bare 3D world for visual checks driven through `window.store`.
+- **Debug hooks:** `window.__grim.store` (and `.world` on the TV) exist on every page.
+
+## Architecture notes for the next session
+- Every change is a command in `src/core/commands.js`. Add new behaviour there with its `sections` list; undo, sync and logging follow automatically.
+- `VOLATILE` sections (`log`, `chat`, `camera`, `cursors`, `music`) are excluded from undo.
+- Firebase room layout: `grim/rooms/{room}/{dmUid,mode,sceneId,schema,rev,s/<section>}`. The root keys are required by the deployed rules' `.validate`.
+- The world API is in `src/stage/world.js` (`setCampaign`, `setTool`, `setSelected`, `cardRects`, `stats`).
+
+## Open ideas, if the owner wants more
+- Imported glTF scenery packs, decals, light sources placed on the map.
+- Per-token facing and auras or areas on the tactical grid.
+- Automatic end-of-turn reminders (Frightened, persistent damage), offered as prompts rather than enforced rules.

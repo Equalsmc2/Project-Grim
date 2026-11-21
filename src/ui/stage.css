@@ -70,6 +70,8 @@ html, body { background: #000; overflow: hidden; }
 .stage.is-idle { cursor: none; }
 .viewer-controls button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--bone-2); cursor: pointer; }
 .viewer-controls button:hover { background: var(--ink-3); color: var(--bone); }
+.vc-file { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; color: var(--bone-2); cursor: pointer; }
+.vc-file:hover { background: var(--ink-3); }
 .viewer-controls select { height: 28px; width: auto; font-size: 12px; }
 .conn { display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; color: var(--ash); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conn i { width: 6px; height: 6px; border-radius: 50%; background: var(--ash); flex: none; }
