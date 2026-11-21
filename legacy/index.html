@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><base href="../"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050505"><title>GRIM — Campaign Stage</title><link rel="stylesheet" href="assets/grim-158/styles.css"><link rel="stylesheet" href="assets/grim-158/battle-map.css?v=3"></head>
+<body class="stage-page">
+<div class="stage-app scene-mode" id="stageApp" data-palette="grid">
+  <header class="stage-top">
+    <div class="brand"><span class="brand-mark">G.</span><span class="brand-main">GRIM<small>PATHFINDER 2E</small></span></div>
+    <div class="stage-center-top"><span id="chapterLabel" class="eyebrow">STAGE 01 / GRID</span><div class="mode-indicator"><span class="live-dot"></span><span id="stageModeLabel">SCENE MODE</span></div></div>
+    <div class="stage-actions"><span class="build-chip" aria-label="Build version">DESIGN REFINEMENT 1.5.8</span><span class="sync-pill" id="syncStatus">LOCAL · SYNC READY</span><button class="icon-button" id="toggleHud" title="Toggle HUD [H]" aria-label="Toggle HUD">◫</button><button class="icon-button" id="fullscreen" title="Fullscreen [F]" aria-label="Fullscreen">⛶</button></div>
+  </header>
+  <main class="stage-main" id="stageMain">
+    <div class="stage-background" aria-hidden="true"></div>
+    <span id="worldStatus" role="status">Starting 3D…</span>
+    <div class="grim-stage-audio" role="group" aria-label="Audio controls"><button type="button" id="stageSoundToggle" title="Audio can only start after a click">▶ Enable sound</button><span id="stageSoundLabel" role="status" aria-live="polite">Ambience off</span><label class="stage-music-import" for="stageMusicArchiveInput" title="Add personal soundtracks to this browser">Load music</label><input id="stageMusicArchiveInput" type="file" accept=".zip,application/zip" multiple hidden aria-label="Select personal soundtrack ZIPs"></div>
+    <div class="view-controls stage-only-ui" aria-label="Battlefield presentation controls" role="group">
+      <button class="view-button" data-camera-view="tactical" aria-pressed="false" title="Three-quarter tactical camera [1]">Tactical</button>
+      <button class="view-button active" data-camera-view="ground" aria-pressed="true" title="Low cinematic camera [2]">Ground</button>
+      <button class="view-button" data-camera-view="overhead" aria-pressed="false" title="Near-overhead camera [3]">Top</button>
+      <button class="view-button auto-pan-control" id="autoPanToggle" aria-pressed="false" title="Toggle automatic cinematic camera pan [C]">○ Cinematic off</button>
+      <button class="view-button" id="stageCameraReset" type="button" title="Reset the camera to the current view [0]">Reset</button>
+      <details class="stage-camera-settings" id="stageCameraSettings">
+        <summary class="view-button" aria-label="Camera settings">⚙ Settings</summary>
+        <div class="stage-camera-panel" role="group" aria-label="Cinematic camera settings">
+          <div class="stage-camera-panel-heading"><strong>CAMERA DIRECTOR</strong><span>Shared with DM Control</span></div>
+          <label class="camera-setting"><span>Shot style</span><select id="stageCinematicStyle" aria-label="Cinematic shot style"><option value="follow">Follow active turn</option><option value="orbit">Ambient orbit</option><option value="sweep">Wide sweep</option></select></label>
+          <label class="camera-setting"><span>Movement strength <output id="stageCinematicStrengthValue">1.5×</output></span><input id="stageCinematicStrength" type="range" min="0.4" max="2.4" step="0.1" value="1.5" aria-label="Cinematic movement strength"></label>
+          <label class="camera-setting"><span>Movement speed <output id="stageCinematicSpeedValue">1.0×</output></span><input id="stageCinematicSpeed" type="range" min="0.35" max="2.5" step="0.05" value="1" aria-label="Cinematic movement speed"></label>
+          <div class="stage-camera-local"><label class="grim-quality-picker" title="Graphics quality on this device">Quality <select id="stageQuality" aria-label="Graphics quality on this device"><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="high">High</option></select></label>
+            <label class="grim-quality-picker grim-motion-picker" title="Motion setting for this viewer only">Motion <select id="stageMotion" aria-label="Motion preference on this device"><option value="system">System</option><option value="reduce">Reduced</option><option value="full">Full</option></select></label></div>
+          <p class="camera-hint">Choose Full motion to see the effect. Dragging or zooming pauses it for 4.5 seconds, then the camera resumes. Combat cards remain in frame.</p>
+        </div>
+      </details>
+    </div><div id="worldCanvas"></div><div class="three-world" id="threeWorld"><div class="room-3d" id="room3d"><div class="field-boundary"></div><div class="field-mark"></div></div></div>
+    <div class="card-positions" id="cardPositions" aria-label="Combatant cards"></div>
+    <div class="scene-info" id="sceneInfo"><h1 id="sceneTitle">Training Grid</h1><p id="sceneDescription">Neutral environment for checking your layout and camera.</p><span class="scene-ambience" id="sceneAmbience">GRID ON / NEUTRAL LIGHT</span></div>
+    <div class="combat-info" id="combatInfo" hidden><div class="combat-main-label">ROUND <strong id="roundDisplay">1</strong></div><p id="turnDisplay">Fighter 04's turn</p><div class="initiative-track" id="initiativeTrack"></div></div>
+    <div class="stage-bottom-left"><span>GRIM / DESIGN REFINEMENT 1.5.8</span><span class="separator">/</span><span id="sceneFooter">TRAINING GRID</span></div>
+    <div class="camera-guide stage-only-ui">1–3: CAMERA VIEW <span>·</span> DRAG: ORBIT <span>·</span> WHEEL: ZOOM <span>·</span> 0: RESET <span>·</span> C: CINEMATIC</div>
+    
+  </main>
+</div><script type="module" src="assets/grim-158/stage.js?v=3"></script></body></html>

@@ -1,15 +1,14 @@
 {
   "name": "project-grim",
-  "version": "1.5.8",
+  "version": "2.0.1",
   "private": true,
-  "description": "Project Grim Pathfinder campaign stage and DM controls",
+  "description": "Project Grim \u2014 Pathfinder 2e cinematic stage, GM command deck and player desk",
   "scripts": {
     "start": "node server.js",
     "test": "node tools/run-tests.mjs",
-    "test:quick": "node tools/run-tests.mjs --quick",
-    "test:browser": "python tests/browser-smoke-151.py",
-    "test:layout": "python tools/check-layout.py",
-    "test:visual": "python tools/visual-regression.py",
-    "test:visual:update": "python tools/visual-regression.py --update-baselines"
+    "test:ui": "node tests/v2/e2e/ui.e2e.mjs",
+    "test:sync": "node tests/v2/e2e/sync.e2e.mjs",
+    "package": "node tools/package-release.mjs",
+    "test:sync:deployed": "RULES=deployed node tests/v2/e2e/sync.e2e.mjs"
   }
 }

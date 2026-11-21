@@ -40,7 +40,9 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
   const marker=dm?readMarker():null;
   let recoveryRequired=!!(marker&&marker.uid===user.uid&&Number(marker.revision)<=getState().updatedAt);
   let alive=true;
-  const canWrite=()=>alive&&dm&&!!auth.currentUser&&typeof navigator!=='undefined'&&navigator.onLine!==false;
+  // Grim 2.0.1 guard: a room upgraded to the 2.0 format is never read or written by this 1.5.8 build.
+  let upgradedTo2=false;
+  const canWrite=()=>alive&&dm&&!upgradedTo2&&!!auth.currentUser&&typeof navigator!=='undefined'&&navigator.onLine!==false;
   const readyText=dm?`DM device connected · ${safeRoom}`:player?`Player connected · ${safeRoom}`:`Viewer connected · ${safeRoom}`;
   status(readyText);
 
@@ -133,6 +135,7 @@ export async function connectCloud({dm=false,player=false,room='grim-demo',statu
     if(!alive)return;
     roomSnapshotReceived=true;
     const remote=snapshot.exists()?snapshot.val():null;
+    if(remote&&remote.schema===2){upgradedTo2=true;roomSnapshotReceived=false;status('This room now uses Grim 2.0 · open dm.html (not legacy) to run it');onStateLoaded(false);return;}
     if(dm&&remote&&remote.dmUid!==user.uid){
       roomSnapshotReceived=false;
       if(!upgradeReported){

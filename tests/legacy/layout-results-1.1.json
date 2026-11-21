@@ -1,0 +1,198 @@
+{
+  "fiveCards": [
+    {
+      "size": "1536x960",
+      "angle": "center",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1536x960",
+      "angle": "left",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1536x960",
+      "angle": "right",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "center",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "left",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "right",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "center",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "left",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "right",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "center",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "left",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "right",
+      "count": 5,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    }
+  ],
+  "sevenCards": [
+    {
+      "size": "1536x960",
+      "angle": "center",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1536x960",
+      "angle": "left",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1536x960",
+      "angle": "right",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "center",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "left",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1366x768",
+      "angle": "right",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "center",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "left",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "1024x768",
+      "angle": "right",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "center",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "left",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    },
+    {
+      "size": "390x844",
+      "angle": "right",
+      "count": 7,
+      "outside": false,
+      "overlap": false,
+      "scroll": false
+    }
+  ]
+}

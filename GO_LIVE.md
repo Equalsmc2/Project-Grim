@@ -1,51 +1,73 @@
-# MuseSink v3.0 — Go Live
+# Upgrading the live site to Project Grim 2.0.1 safely
 
-## Why the rules must change
+Nothing in this package deploys anything by itself. Every step below is one you do, and each can be undone.
 
-MuseSink v2 stored separate rooms under `musesinkRooms/{roomCode}`. MuseSink v3 deliberately **does not use rooms or invitation codes**. All listeners use a single synced home: `musesinkHub/v1`.
+The order matters:
 
-That new path is denied under the old RTDB rules. The new file `database.rules.json` grants authenticated anonymous users read/write access **only to MuseSink's v3 data paths**, with validation for playlists, songs, playback and each listener's presence. It denies reads/writes outside the defined structure by default.
+1. Back up.
+2. Publish the website.
+3. Upgrade your room from the GM laptop.
+4. Only then, optionally, deploy the new rules.
 
-## Before installing
+2.0.1 works with the rules you have deployed today, so step 4 can wait.
 
-1. Open your Firebase project **MuseSink** → **Realtime Database** → **Rules**.
-2. Keep a copy of the existing rules if you use other apps in this same database.
-3. Paste the full contents of `database.rules.json` and click **Publish**.
-4. Confirm **Authentication** → **Sign-in method** → **Anonymous** is **Enabled**.
-5. If you use GitHub Pages, verify its hostname is in **Authentication → Settings → Authorized domains**. Add it there if needed.
+---
 
-## Deploy
+## Step 0: Back up (about 5 minutes)
+1. **Firebase data.**
+   1. Open Firebase Console → Realtime Database → **Data**.
+   2. Click the **⋮** menu at the top → **Export JSON**. Keep the file; it contains every room.
+2. **Current rules.**
+   1. Open Realtime Database → **Rules**.
+   2. Copy everything into a text file named `rules-before-2.0.1.json`.
+3. **Your campaign in the browser.**
+   1. On the GM laptop, open the **current** live `dm.html` (still 1.5.8).
+   2. Make sure the status shows the room is synced.
+   3. If it offers to publish or recover unsynced changes, do that first.
+   4. Use **Environment → Prepared scenes → Export** if you rely on prepared scenes.
+4. **Note your room ID.** It is in 1.5.8 under **Connection & setup → Room ID**.
 
-1. Extract this full ZIP.
-2. Double-click `INSTALL_TO_GITHUB.bat`, or copy the files manually into your MuseSink GitHub repository root (beside the `.git` folder).
-3. Open GitHub Desktop → commit the changes → **Push origin**.
-4. If needed, open GitHub repository → **Settings → Pages** → deploy `main` branch from `/ (root)`.
-5. Open the live site and hard refresh using Ctrl+Shift+R.
-6. Confirm **LIVE SYNC** appears at the top.
-7. Each friend opens the **same website URL**, clicks **ENABLE AUDIO** once, and joins the one shared playlist library. No room codes, invites or accounts needed.
+## Step 1: Publish the website
+1. Extract `RELEASES/Project-Grim-2.0.1.zip`.
+2. Run `GITHUB-UPLOAD.bat` and choose your Project-Grim repository folder.
+3. Say **Y** to copy, review the change list, then **Y** to commit.
+4. Say **Y** to push only when you are ready. GitHub Pages updates about a minute later.
+5. Hard-refresh the live site (`Ctrl+Shift+R`) on every device you use: GM laptop, TV and phones.
 
-## First-use check
+The 1.5.8 build stays available at `legacy/dm.html` and `legacy/index.html`.
 
-1. Open the site on one computer and create a playlist.
-2. Open it on another PC, verify the playlist automatically appears.
-3. Add two YouTube links. Both should show cover thumbnails.
-4. Click play. After clicking Enable Audio, the computers should hear approximately the same moment of the same song.
-5. Try skipping and switching playlists from the other PC. Every connected listener should follow.
+## Step 2: Upgrade your room (GM laptop, same browser as before)
+1. Open the live `dm.html` **in the same browser profile you used for 1.5.8**. Your campaign loads automatically from that browser's storage.
+2. Open **Session**. Online play is already on if it was on in 1.5.8.
+3. The first connection upgrades your room in place. Before doing so Grim:
+   - saves the 1.5.8 room as a **local safety copy** (Session → Safety copies, downloadable);
+   - keeps an **exact copy of the 1.5.8 room inside the upgraded room** (Session → 1.5.8 room copy).
+4. Check the result: the status shows **Live**, the characters, HP, maps and portraits are all there, and the TV link shows the same scene.
 
-**The supplied ZIP includes the Firebase web configuration from MuseSink v2.4**. You should not need to retype the API key or database URL.
+**If anything looks wrong:**
+- **Session → 1.5.8 room copy → Restore 1.5.8 room** puts the original room back exactly as it was. It also switches 2.0's online sync off so the room isn't upgraded again. Then use `legacy/dm.html`.
+- Or load any entry under **Safety copies**. Loading is undoable with `Ctrl+Z`.
+- As a last resort, import the JSON you exported in Step 0 in the Firebase Console.
 
-## Previous music
+The 1.5.8 build will **not** overwrite an upgraded room: it shows "This room now uses Grim 2.0" and stays read-only.
 
-Existing v2 room data remains stored under `musesinkRooms` if it existed, but v3 does not automatically import it into the new shared library. If you had playlists you want to keep, export their URLs before switching or retain a backup of the previous database rules/data. The v3 install does not delete those database records.
+## Step 3: Share links and test with the table
+1. **Session → Copy TV link** and **Copy player link**. The format is the same as 1.5.8, so old links still work.
+2. Each player opens the link and picks their character. That phone now owns the sheet. The GM sees "Played on a linked phone" in the Combatant tab and can **Release** it if someone picked the wrong character.
+3. **Player chat** stays switched off until Step 4. Players see a short message instead; GM chat works.
 
-## Security and privacy
+## Step 4 (optional, recommended): Deploy the 2.0.1 rules
+This adds two things: **Firebase-enforced character ownership** and **player chat**. The room rules are unchanged, and nothing is loosened.
 
-There is no room code or password. This is intended for a small, trusted group. **Knowing the website URL is not a true access-control mechanism.** The app uses Firebase anonymous sign-in, so someone who finds the site could potentially join and edit the shared library. Do not put private information in playlist titles or display names. Stronger access control would require authentication or a backend allowlist.
+1. In the GM deck: **Session → Maintenance → Copy Firebase rules**. Or open `firebase-rtdb.rules.json` from the ZIP.
+2. Firebase Console → Realtime Database → **Rules** → select all → paste → **Publish**. Alternatively, from a signed-in Firebase CLI in the repository folder:
+   ```bash
+   npx -y firebase-tools@latest deploy --only database --project project-grim-ef4f0
+   ```
+3. Reload the GM deck, TV and phones. Phones re-claim their sheets automatically.
+4. **Session → Player devices** no longer mentions "enforced by this GM browser only".
 
-## Limitations
+**To undo Step 4:** paste `rules-before-2.0.1.json` back into the Rules tab and Publish. 2.0.1 keeps working; it falls back to GM-enforced ownership and no player chat.
 
-- YouTube embeds must be permitted by the original video and the browser. Some videos cannot play embedded.
-- Browser autoplay policies require each listener to click **ENABLE AUDIO**.
-- RTDB synchronizes playback intent and approximate timeline; YouTube ads, network jitter and buffering can create drift. Manual resync is provided.
-- Four playlists and four/five tracks appear at a time, with page arrows — no full-page scrolling on desktop or phone.
-- Cover-inspired colors are sampled when allowed by the thumbnail image host; otherwise a stable RGB pairing is used for the track.
+## Step 5: Clean up when you are confident (optional)
+After a session or two, **Session → 1.5.8 room copy → Delete the copy** frees that space inside the room. The local safety copies stay in the GM browser (the newest 20 are kept).

@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createBattleMap} from '../../assets/grim-158/battle-map-state.js';
+import {normalizeEnvironment} from '../../assets/grim-158/environment-state.js';
+import {createSceneTacticalOverlay,tacticalCellCenter,tacticalCellSize} from '../../assets/grim-158/scene-tactical-overlay.js';
+
+const map=createBattleMap({width:16,height:12});
+map.rows[1]='#'+map.rows[1].slice(1);
+map.rows[2]='T'+map.rows[2].slice(1);
+map.rows[3]='~'+map.rows[3].slice(1);
+const env=normalizeEnvironment({terrainWidth:32,terrainDepth:29,hills:.6,seed:444});
+const overlay=createSceneTacticalOverlay(map,env.terrainWidth,env.terrainDepth,env);
+const cell=tacticalCellSize(map,env.terrainWidth,env.terrainDepth);
+assert.equal(overlay.cellSize,cell);
+assert(cell>0);
+assert(Math.abs(tacticalCellCenter(map,cell,0,0).x)<env.terrainWidth*.5);
+assert(Math.abs(tacticalCellCenter(map,cell,15,11).z)<env.terrainDepth*.5);
+assert.equal(overlay.group.children.filter(child=>child.isLineSegments).length,2,'Grid and outline are in the same 3D group');
+assert(overlay.group.children.some(child=>child.isInstancedMesh),'DM walls and props are real 3D meshes');
+assert(overlay.group.children.some(child=>child.isMesh&&!child.isInstancedMesh),'Water follows the live terrain');
+assert(overlay.materials.every(item=>item.material.opacity===0),'Lines start hidden for the reveal transition');
+
+const world=readFileSync(new URL('../../assets/grim-158/world.js',import.meta.url),'utf8');
+const stage=readFileSync(new URL('../../assets/grim-158/stage.js',import.meta.url),'utf8');
+const index=readFileSync(new URL('../../legacy/index.html',import.meta.url),'utf8');
+assert(world.includes('setTacticalMap')&&world.includes('cameraPose(true)'), 'Tactical movement transitions the existing world camera');
+assert(world.includes('nativeCards.update(camera,width,height,env,landscapeHeight,time,fitScale,tacticalCellSize'), 'Cards shrink to grid cells without a separate token renderer');
+assert(!stage.includes('getBattleWorld')&&!index.includes('battleMapStage'),'The replacement stage is no longer mounted');
+assert(stage.includes('world.update(s.environment)')&&stage.includes('world.setTacticalMap'),'Original environment remains live in both modes');
+console.log('PASS: tactical grid overlays the live terrain with shared cards and camera.');
