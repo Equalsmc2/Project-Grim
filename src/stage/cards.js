@@ -220,13 +220,14 @@ function cardMaterial(texture) {
   const u = {
     uTime: { value: 0 }, uBurn: { value: 0 }, uFrost: { value: 0 }, uDamage: { value: 0 }, uActive: { value: 0 },
     uDown: { value: 0 }, uSeed: { value: Math.random() * 50 }, uSelected: { value: 0 }, uGhost: { value: 0 }, uEnemy: { value: 0 },
+    uFlash: { value: 0 }, uFlashCol: { value: new THREE.Color(1, 1, 1) }, uSweep: { value: -1 },
   };
   const m = new THREE.MeshStandardMaterial({ map: texture, emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0.42, roughness: 0.72, metalness: 0.05, transparent: true });
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform float uTime, uBurn, uFrost, uDamage, uActive, uDown, uSeed, uSelected, uGhost, uEnemy;
+uniform float uTime, uBurn, uFrost, uDamage, uActive, uDown, uSeed, uSelected, uGhost, uEnemy, uFlash, uSweep; uniform vec3 uFlashCol;
 ${NOISE}`)
       .replace('#include <emissivemap_fragment>', /* glsl */ `#include <emissivemap_fragment>
   vec2 cuv = vMapUv;
@@ -284,11 +285,45 @@ ${NOISE}`)
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * mix(vec3(0.7), vec3(0.85, 0.55, 0.5), uEnemy), uDown * 0.85);
     totalEmissiveRadiance *= 1.0 - uDown * 0.6;
   }
+  // Event flashes (hit, heal, shield, condition): strongest at the rim, washing inward.
+  if (uFlash > 0.001) {
+    float rim = smoothstep(0.22, 0.0, edge);
+    totalEmissiveRadiance += uFlashCol * uFlash * (0.1 + 1.1 * rim);
+  }
+  // A light sweep across the face (turn start, reveal).
+  if (uSweep > -0.5) {
+    float band = 1.0 - smoothstep(0.0, 0.09, abs((cuv.x + cuv.y * 0.6) - uSweep * 1.9 + 0.15));
+    totalEmissiveRadiance += vec3(1.0, 0.8, 0.55) * band * 0.9;
+  }
   diffuseColor.a *= 1.0 - uGhost * 0.55;
 `);
   };
   m.customProgramCacheKey = () => 'grim-card-v1';
   return { material: m, uniforms: u };
+}
+
+// ------------------------------------------------------------ card back (shared)
+let backTexture = null;
+function cardBackTexture() {
+  if (backTexture) return backTexture;
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 384;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(128, 170, 10, 128, 192, 230);
+  grd.addColorStop(0, '#2a2018'); grd.addColorStop(1, '#0c0b0a');
+  g.fillStyle = grd; g.fillRect(0, 0, 256, 384);
+  g.strokeStyle = 'rgba(217,138,60,.55)'; g.lineWidth = 2;
+  rr(g, 10, 10, 236, 364, 14); g.stroke();
+  g.strokeStyle = 'rgba(236,228,212,.16)'; g.lineWidth = 1;
+  rr(g, 18, 18, 220, 348, 10); g.stroke();
+  g.strokeStyle = 'rgba(217,138,60,.6)'; g.lineWidth = 1.5;
+  for (const r of [64, 50]) { g.beginPath(); g.arc(128, 192, r, 0, Math.PI * 2); g.stroke(); }
+  for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2; g.beginPath(); g.moveTo(128 + Math.cos(a) * 52, 192 + Math.sin(a) * 52); g.lineTo(128 + Math.cos(a) * (i % 3 ? 58 : 63), 192 + Math.sin(a) * (i % 3 ? 58 : 63)); g.stroke(); }
+  g.fillStyle = '#d98a3c'; g.font = `700 54px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('G', 128, 196);
+  backTexture = new THREE.CanvasTexture(c);
+  backTexture.colorSpace = THREE.SRGBColorSpace;
+  return backTexture;
 }
 
 // ------------------------------------------------------------ geometry
@@ -394,6 +429,12 @@ export function createCard(id) {
   root.add(spin); spin.add(pivot); pivot.add(holder);
   const face = new THREE.Mesh(geos.face, material);
   const body = new THREE.Mesh(geos.body, mats.body);
+  const backMat = new THREE.MeshStandardMaterial({ map: cardBackTexture(), emissiveMap: cardBackTexture(), emissive: 0xffffff, emissiveIntensity: 0.25, roughness: 0.6 });
+  const back = new THREE.Mesh(geos.face, backMat);
+  back.rotation.y = Math.PI;
+  back.position.z = 0;
+  back.userData.cardId = id;
+  holder.add(back);
   face.castShadow = false; body.castShadow = true;
   face.userData.cardId = id; body.userData.cardId = id;
   holder.add(body, face);
@@ -417,6 +458,27 @@ export function createCard(id) {
     fall: 0, goalFall: 0, active: 0, goalActive: 0, ghost: 0, goalGhost: 0, visible: 1, goalVisible: 1,
     hpRatio: 1, down: false, placed: false, selected: 0, goalSelected: 0, hover: 0,
     burning: false, frozen: false, shakeT: 0,
+    // one-shot animations
+    anim: { spin: 0, spinDur: 1.1, hop: 0, hit: 0, hitAmp: 0, hitDir: 1, flash: 0, flashDecay: 2.5, drop: 0, wobble: 0, sweep: -1, celebrate: 0 },
+  };
+
+  /** Fire an event animation. kind: turn | hit | heal | shield | condition | enter | reveal | revive | crit */
+  state.play = (kind, opts = {}) => {
+    const a = state.anim;
+    const flash = (hex, amount, decay = 2.5) => { uniforms.uFlashCol.value.set(hex); a.flash = Math.max(a.flash, amount); a.flashDecay = decay; };
+    if (kind === 'turn') { a.spin = 1; a.spinDur = 1.15; a.hop = 1; a.sweep = 0; }
+    else if (kind === 'hit') {
+      const sev = Math.min(1, Math.max(0.15, opts.fraction || 0.2));
+      a.hit = 1; a.hitAmp = 0.35 + sev * 0.9; a.hitDir = Math.random() < 0.5 ? -1 : 1;
+      flash(0xff3b22, 0.4 + sev * 0.7, 2.2);
+    }
+    else if (kind === 'crit') { a.hit = 1; a.hitAmp = 1.5; a.hitDir = Math.random() < 0.5 ? -1 : 1; flash(0xff2a12, 1.3, 1.6); }
+    else if (kind === 'heal') { a.celebrate = 1; flash(0x8fe08a, 0.8, 1.4); }
+    else if (kind === 'shield') { a.wobble = 0.6; flash(0x6fd6cf, 1.1, 1.6); }
+    else if (kind === 'condition') { a.wobble = 1; flash(opts.color || 0xece4d4, 0.9, 2); }
+    else if (kind === 'enter') { a.drop = 1; }
+    else if (kind === 'reveal') { a.spin = 1; a.spinDur = 0.8; a.sweep = 0; }
+    else if (kind === 'revive') { a.hop = 1; a.celebrate = 1; flash(0xf6d27a, 1.6, 1.2); }
   };
 
   state.paint = (data, portraitSrc, onRepaint) => {
@@ -453,14 +515,45 @@ export function createCard(id) {
     state.visible += (state.goalVisible - state.visible) * (1 - Math.exp(-dt * 5));
     state.selected += (state.goalSelected - state.selected) * k;
     root.position.copy(state.pos);
-    if (state.shakeT > 0) {
-      state.shakeT = Math.max(0, state.shakeT - dt);
-      const a = state.shakeT * 0.12;
-      root.position.x += Math.sin(time * 70) * a;
-    }
+    const a = state.anim;
     const s = state.scale * Math.max(0.001, state.visible);
-    holder.scale.setScalar(s);
-    holder.position.y = (CARD_H / 2) * s + 0.1 * s + (reduced ? 0 : Math.sin(time * 1.4 + uniforms.uSeed.value) * 0.03 * state.active * s);
+    const ease = (x) => 1 - Math.pow(1 - x, 3);
+    let lift = 0, spinY = 0, tiltX = 0, tiltZ = 0, pop = 1, jitter = 0;
+    if (reduced) { a.spin = a.hop = a.hit = a.drop = a.wobble = a.celebrate = 0; }
+    // Turn start: a full spin with a little hop and a scale pop.
+    if (a.spin > 0) {
+      a.spin = Math.max(0, a.spin - dt / a.spinDur);
+      const p = 1 - a.spin;
+      spinY = ease(p) * Math.PI * 2;
+      pop += Math.sin(p * Math.PI) * 0.12;
+    }
+    if (a.hop > 0) { a.hop = Math.max(0, a.hop - dt / 0.9); lift += Math.sin((1 - a.hop) * Math.PI) * 0.55; }
+    // Damage: recoil backwards, side-to-side shake that decays, a brief dip.
+    if (a.hit > 0) {
+      a.hit = Math.max(0, a.hit - dt / 0.75);
+      const e = a.hit * a.hit;
+      jitter = Math.sin(time * 58) * 0.11 * a.hitAmp * e;
+      tiltX = -0.32 * a.hitAmp * Math.sin((1 - a.hit) * Math.PI) * (0.4 + e);
+      tiltZ = Math.sin(time * 41) * 0.09 * a.hitAmp * e * a.hitDir;
+      lift -= 0.08 * a.hitAmp * e;
+    }
+    // Condition applied: a quick wobble.
+    if (a.wobble > 0) { a.wobble = Math.max(0, a.wobble - dt / 0.6); tiltZ += Math.sin((1 - a.wobble) * Math.PI * 5) * 0.12 * a.wobble; }
+    // Healing / revive: rise and a gentle bounce.
+    if (a.celebrate > 0) { a.celebrate = Math.max(0, a.celebrate - dt / 1.1); const p = 1 - a.celebrate; lift += Math.sin(p * Math.PI) * 0.35 * (1 - p * 0.3); pop += Math.sin(p * Math.PI * 2) * 0.04 * a.celebrate; }
+    // Entering the scene: drop from above with a bounce.
+    if (a.drop > 0) { a.drop = Math.max(0, a.drop - dt / 0.9); const p = 1 - a.drop; lift += (p < 0.6 ? (1 - p / 0.6) * 3.2 : Math.abs(Math.sin((p - 0.6) / 0.4 * Math.PI)) * 0.25 * (1 - p)); }
+    if (a.sweep > -0.5) { a.sweep += dt / 0.9; if (a.sweep > 1.2) a.sweep = -1; }
+    uniforms.uSweep.value = a.sweep;
+    if (a.flash > 0) a.flash = Math.max(0, a.flash - dt * a.flashDecay * Math.max(0.6, a.flash));
+    uniforms.uFlash.value = a.flash;
+    if (state.shakeT > 0) { state.shakeT = Math.max(0, state.shakeT - dt); jitter += Math.sin(time * 70) * state.shakeT * 0.12; }
+    root.position.x += jitter * s;
+    holder.scale.setScalar(s * pop);
+    holder.rotation.set(tiltX, spinY, tiltZ);
+    holder.position.y = (CARD_H / 2) * s + 0.1 * s + lift * s + (reduced ? 0 : Math.sin(time * 1.4 + uniforms.uSeed.value) * 0.05 * state.active * s);
+    // Active card breathes and leans very slightly.
+    if (!reduced && state.active > 0.01 && a.spin === 0 && a.hit === 0) holder.rotation.z += Math.sin(time * 0.9 + uniforms.uSeed.value) * 0.025 * state.active;
     base.scale.setScalar(s); slot.scale.setScalar(s); blob.scale.setScalar(s * (1 - state.fall * 0.2));
     ring.scale.setScalar(s);
     ring.material.uniforms.uAlpha.value = Math.max(state.active, state.selected * 0.8) * state.visible;
@@ -480,7 +573,7 @@ export function createCard(id) {
   };
 
   state.dispose = () => {
-    texture.dispose(); material.dispose(); ring.material.dispose();
+    texture.dispose(); material.dispose(); ring.material.dispose(); backMat.dispose();
     if (embers) { embers.geometry.dispose(); embers.material.dispose(); }
   };
   return state;
