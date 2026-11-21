@@ -81,6 +81,8 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   let lastPoseSent = 0, lastPoseSig = '';
   let obstacles = [];
   let disposed = false;
+  let everPlaced = false;  // no entrance animations for the first load
+
 
   // ------------------------------------------------------------ sizing
   let width = 1, height = 1, pixelRatio = 1, adaptive = 1;
@@ -127,6 +129,39 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     sun.shadow.camera.updateProjectionMatrix();
   }
 
+  // ------------------------------------------------------------ floating numbers
+  function floatText(card, text, color) {
+    if (reduced || card.visible < 0.5) return;
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 128;
+    const g = c.getContext('2d');
+    g.font = '800 84px Inter, system-ui, sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 10; g.strokeStyle = 'rgba(10,8,6,.85)'; g.strokeText(text, 128, 66);
+    g.fillStyle = color; g.fillText(text, 128, 66);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, fog: false });
+    const sp = new THREE.Sprite(mat);
+    sp.renderOrder = 20;
+    const s = card.scale;
+    const start = card.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6 * s, (CARD_H + 0.5) * s, 0));
+    sp.position.copy(start);
+    sp.scale.set(1.6 * s, 0.8 * s, 1);
+    scene.add(sp);
+    let t = 0;
+    effects.push({ tick(dt) {
+      t += dt;
+      const p = t / 1.6;
+      sp.position.y = start.y + p * 1.1 * s;
+      const pop = p < 0.12 ? 0.6 + (p / 0.12) * 0.6 : 1.2 - Math.min(0.2, (p - 0.12));
+      sp.scale.set(1.6 * s * pop, 0.8 * s * pop, 1);
+      mat.opacity = p < 0.7 ? 1 : Math.max(0, 1 - (p - 0.7) / 0.3);
+      if (p >= 1) { scene.remove(sp); tex.dispose(); mat.dispose(); return false; }
+      return true;
+    } });
+  }
+
   // ------------------------------------------------------------ cards
   function updateCards() {
     const c = campaign;
@@ -161,12 +196,32 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
         rank: rank.get(ch.id) || 0, active: ch.id === activeId, combat,
       };
       const prevRatio = card.hpRatio, prevDown = card.down, wasPlaced = card.placed;
+      const prev = card.last;
       card.paint(data, c.portraits[ch.id], () => updateCards());
       card.setFx(data);
-      if (wasPlaced && card.visible > 0.5) {
-        if (!prevDown && card.down && !reduced) effects.push(createShatter(scene, card));
-        else if (card.hpRatio < prevRatio - 0.001 && !reduced) card.shakeT = 0.35;
-      }
+      const shownNow = show && !ch.hidden;
+      if (prev && wasPlaced) {
+        // Event animations, driven purely by what changed in the shared state.
+        const hpDrop = prev.hp - ch.hp + Math.max(0, prev.tempHp - ch.tempHp);
+        const addedConds = ch.conditions.filter((x) => !prev.conditions.includes(x));
+        if (!prevDown && card.down) { if (!reduced) effects.push(createShatter(scene, card)); card.play('crit'); }
+        else if (prevDown && !card.down) card.play('revive');
+        else if (hpDrop > 0) card.play(hpDrop >= ch.maxHp * 0.3 ? 'crit' : 'hit', { fraction: hpDrop / Math.max(1, ch.maxHp) });
+        else if (ch.hp > prev.hp) card.play('heal');
+        else if (ch.tempHp > prev.tempHp) card.play('shield');
+        if (hpDrop > 0) floatText(card, `-${hpDrop}`, '#ff6a4d');
+        else if (ch.hp > prev.hp) floatText(card, `+${ch.hp - prev.hp}`, '#9be38a');
+        if (ch.tempHp > prev.tempHp) floatText(card, `+${ch.tempHp - prev.tempHp}`, '#7fd6cf');
+        if (!prevDown && card.down) floatText(card, ch.faction === 'enemy' ? 'Defeated' : 'Down', '#e0c39a');
+        if (addedConds.length && hpDrop <= 0) {
+          const fx = addedConds.map((x) => x.toLowerCase()).join(' ');
+          card.play('condition', { color: /burn|fire|flame/.test(fx) ? 0xff7a2a : /frozen|frost|ice|cold/.test(fx) ? 0x9cd0ff : /dying|wounded|doomed/.test(fx) ? 0xb4412f : 0xece4d4 });
+        }
+        if (data.active && !prev.active) card.play('turn');
+        if (prev.hidden && !ch.hidden) card.play('reveal');
+        if (!prev.shown && shownNow) card.play('enter');
+      } else if (!prev && campaign && card.visible === 0 && shownNow && cards.size > 1 && everPlaced) card.play('enter');
+      card.last = { hp: ch.hp, tempHp: ch.tempHp, conditions: [...ch.conditions], active: data.active, hidden: ch.hidden, shown: shownNow };
       let x, z, scale;
       if (tactical) {
         const p = board.get(ch.id);
@@ -571,6 +626,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
       rebuild(c.environment, mapRef);
       updateCards();
       if (first) { computeFraming(); directorGoal(0, 0); rig.snap(); }
+      everPlaced = true;
     },
     setQuality(next) {
       if (!QUALITY[next] || next === q) return;
