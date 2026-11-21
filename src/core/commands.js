@@ -492,6 +492,12 @@ def('player/edit', {
   },
 });
 
+def('cursors/set', {
+  sections: ['cursors'],
+  undoable: false,
+  apply(s, { cursors }) { Object.assign(s.cursors, cursors); },
+});
+
 // ---------------------------------------------------------------- whole campaign
 def('campaign/replace', {
   sections: ['meta', 'stage', 'characters', 'portraits', 'combat', 'environment', 'battleMaps', 'presentation', 'snapshots'],
