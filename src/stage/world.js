@@ -81,7 +81,9 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   let lastPoseSent = 0, lastPoseSig = '';
   let obstacles = [];
   let disposed = false;
-  let everPlaced = false;  // no entrance animations for the first load
+  let everPlaced = false;
+  let shakeAmt = 0;
+  const shake = (a) => { if (!reduced) shakeAmt = Math.min(1.2, Math.max(shakeAmt, a)); };  // no entrance animations for the first load
 
 
   // ------------------------------------------------------------ sizing
@@ -130,33 +132,55 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   }
 
   // ------------------------------------------------------------ floating numbers
-  function floatText(card, text, color) {
+  const FLOAT_STYLES = {
+    damage: { top: '#ff8a6a', bottom: '#8e1410', glow: 'rgba(255,60,30,.55)' },
+    crit: { top: '#fff0c8', bottom: '#c0281a', glow: 'rgba(255,90,40,.8)' },
+    heal: { top: '#e6ffd0', bottom: '#4f9a3a', glow: 'rgba(140,230,110,.45)' },
+    shield: { top: '#e2fffb', bottom: '#2f8a84', glow: 'rgba(110,220,210,.45)' },
+    word: { top: '#f5e2b8', bottom: '#8a6a3a', glow: 'rgba(240,200,120,.4)' },
+    doom: { top: '#ff9a8a', bottom: '#5a0a08', glow: 'rgba(200,20,10,.7)' },
+  };
+  /** Floating combat text in carved Cinzel capitals; size follows the size of the hit. */
+  function floatText(card, text, style = 'damage', weight = 0.3) {
     if (reduced || card.visible < 0.5) return;
+    const st = FLOAT_STYLES[style] || FLOAT_STYLES.damage;
+    const word = /[a-z]/i.test(text);
     const c = document.createElement('canvas');
-    c.width = 256; c.height = 128;
+    c.width = 512; c.height = 192;
     const g = c.getContext('2d');
-    g.font = '800 84px Inter, system-ui, sans-serif';
+    const px = word ? 74 : 96 + Math.min(1, weight) * 40;
+    g.font = `900 ${px}px Cinzel, 'Cormorant', Georgia, serif`;
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.lineWidth = 10; g.strokeStyle = 'rgba(10,8,6,.85)'; g.strokeText(text, 128, 66);
-    g.fillStyle = color; g.fillText(text, 128, 66);
+    const grad = g.createLinearGradient(0, 96 - px / 2, 0, 96 + px / 2);
+    grad.addColorStop(0, st.top); grad.addColorStop(1, st.bottom);
+    g.shadowColor = st.glow; g.shadowBlur = 26;
+    g.lineWidth = 12; g.strokeStyle = 'rgba(8,6,5,.92)'; g.lineJoin = 'round';
+    g.strokeText(text, 256, 100);
+    g.shadowBlur = 0;
+    g.fillStyle = grad; g.fillText(text, 256, 100);
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,240,210,.35)'; g.strokeText(text, 256, 100);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
     const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, fog: false });
     const sp = new THREE.Sprite(mat);
     sp.renderOrder = 20;
     const s = card.scale;
-    const start = card.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6 * s, (CARD_H + 0.5) * s, 0));
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    const start = card.pos.clone().add(new THREE.Vector3(word ? 0 : dir * (0.2 + Math.random() * 0.4) * s, (word ? CARD_H * 1.12 : CARD_H * 0.75) * s, 0.3));
     sp.position.copy(start);
-    sp.scale.set(1.6 * s, 0.8 * s, 1);
+    const size = (word ? 2.2 : 1.7) * s;
     scene.add(sp);
     let t = 0;
+    const crit = style === 'crit';
     effects.push({ tick(dt) {
       t += dt;
-      const p = t / 1.6;
-      sp.position.y = start.y + p * 1.1 * s;
-      const pop = p < 0.12 ? 0.6 + (p / 0.12) * 0.6 : 1.2 - Math.min(0.2, (p - 0.12));
-      sp.scale.set(1.6 * s * pop, 0.8 * s * pop, 1);
-      mat.opacity = p < 0.7 ? 1 : Math.max(0, 1 - (p - 0.7) / 0.3);
+      const p = t / (crit ? 2 : 1.6);
+      // Punch in, arc up and to the side, then fade.
+      const punch = p < 0.1 ? 0.4 + (p / 0.1) * (crit ? 1.1 : 0.8) : (crit ? 1.5 : 1.2) - Math.min(0.25, (p - 0.1) * 0.5);
+      sp.position.set(start.x + dir * p * 0.6 * s, start.y + Math.sin(Math.min(1, p * 1.4) * Math.PI * 0.5) * 1.3 * s, start.z);
+      if (crit && p < 0.25) sp.position.x += Math.sin(t * 80) * 0.04 * s;
+      sp.scale.set(size * punch, size * punch * 0.375, 1);
+      mat.opacity = p < 0.65 ? 1 : Math.max(0, 1 - (p - 0.65) / 0.35);
       if (p >= 1) { scene.remove(sp); tex.dispose(); mat.dispose(); return false; }
       return true;
     } });
@@ -209,10 +233,12 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
         else if (hpDrop > 0) card.play(hpDrop >= ch.maxHp * 0.3 ? 'crit' : 'hit', { fraction: hpDrop / Math.max(1, ch.maxHp) });
         else if (ch.hp > prev.hp) card.play('heal');
         else if (ch.tempHp > prev.tempHp) card.play('shield');
-        if (hpDrop > 0) floatText(card, `-${hpDrop}`, '#ff6a4d');
-        else if (ch.hp > prev.hp) floatText(card, `+${ch.hp - prev.hp}`, '#9be38a');
-        if (ch.tempHp > prev.tempHp) floatText(card, `+${ch.tempHp - prev.tempHp}`, '#7fd6cf');
-        if (!prevDown && card.down) floatText(card, ch.faction === 'enemy' ? 'Defeated' : 'Down', '#e0c39a');
+        const crit = hpDrop >= ch.maxHp * 0.3;
+        if (hpDrop > 0) { floatText(card, `${hpDrop}`, crit ? 'crit' : 'damage', hpDrop / Math.max(1, ch.maxHp)); shake(crit ? 0.55 : Math.min(0.3, 0.08 + hpDrop / Math.max(1, ch.maxHp))); }
+        else if (ch.hp > prev.hp) floatText(card, `+${ch.hp - prev.hp}`, 'heal', 0.2);
+        if (ch.tempHp > prev.tempHp) floatText(card, `+${ch.tempHp - prev.tempHp}`, 'shield', 0.2);
+        if (!prevDown && card.down) { setTimeout(() => floatText(card, ch.faction === 'enemy' ? 'Felled' : 'Fallen', ch.faction === 'enemy' ? 'word' : 'doom'), 250); shake(0.7); }
+        if (prevDown && !card.down) floatText(card, 'Risen', 'word');
         if (addedConds.length && hpDrop <= 0) {
           const fx = addedConds.map((x) => x.toLowerCase()).join(' ');
           card.play('condition', { color: /burn|fire|flame/.test(fx) ? 0xff7a2a : /frozen|frost|ice|cold/.test(fx) ? 0x9cd0ff : /dying|wounded|doomed/.test(fx) ? 0xb4412f : 0xece4d4 });
@@ -557,6 +583,14 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     directorGoal(time, dt);
     rig.step(dt, now);
     rig.apply(terrain.heightAt);
+    if (shakeAmt > 0.001) {
+      // Trauma-style shake: squared falloff, smooth noise.
+      const k = shakeAmt * shakeAmt * 0.35;
+      camera.position.x += (Math.sin(time * 47.3) + Math.sin(time * 31.1)) * 0.5 * k;
+      camera.position.y += (Math.sin(time * 53.7) + Math.sin(time * 27.9)) * 0.5 * k;
+      camera.rotation.z += Math.sin(time * 39.5) * 0.02 * k;
+      shakeAmt = Math.max(0, shakeAmt - dt * 1.6);
+    }
     sky.mesh.position.copy(camera.position);
 
     updateAtmosphere(time, dt);
@@ -642,6 +676,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     setReducedMotion(v) { reduced = !!v; },
     setTool(t) { tool = { ...tool, ...t }; },
     setSelected(id) { selectedId = id || ''; if (campaign) updateCards(); },
+    shake(a = 0.4) { shake(a); },
     resetCamera() { rig.user.yaw = 0; rig.user.pitch = 0; rig.user.zoom = 1; rig.user.pan.set(0, 0, 0); rig.user.lastInput = -1e9; rig.transition(performance.now(), 900); },
     getPose: () => rig.pose(),
     stats: () => ({ fps: Math.round(fps), pixelRatio: +pixelRatio.toFixed(2), calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, cards: cards.size, tactical, quality: q }),

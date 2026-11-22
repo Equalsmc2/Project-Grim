@@ -1,5 +1,5 @@
 // Initiative rail: always visible, one dense row per combatant.
-import { html, useState, Icon, Button, cx } from '../kit.js';
+import { html, useState, useEffect, useRef, Icon, Button, cx } from '../kit.js';
 import { initiativeOrder, parseHpEntry, hpState, parseCondition } from '../../core/rules.js';
 
 function HpEntry({ c, dispatch }) {
@@ -17,20 +17,37 @@ function HpEntry({ c, dispatch }) {
     onKeyDown=${(e) => { e.stopPropagation(); if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setV(''); e.currentTarget.blur(); } }} onBlur=${submit} />`;
 }
 
+function useFlash(c) {
+  // Remember the last HP so a row can flash red on damage and green on healing.
+  const prev = useRef(c.hp + c.tempHp);
+  const [flash, setFlash] = useState('');
+  useEffect(() => {
+    const now = c.hp + c.tempHp;
+    if (now !== prev.current) {
+      setFlash(now < prev.current ? 'flash-dmg' : 'flash-heal');
+      const t = setTimeout(() => setFlash(''), 700);
+      prev.current = now;
+      return () => clearTimeout(t);
+    }
+  }, [c.hp, c.tempHp]);
+  return flash;
+}
+
 function Row({ c, state, selected, active, rank, dispatch, onSelect }) {
   const hp = hpState(c);
+  const flash = useFlash(c);
   const portrait = state.portraits[c.id];
   const enemy = c.faction === 'enemy';
   const conds = c.conditions.map(parseCondition);
-  return html`<li class=${cx('rail-row', enemy ? 'is-foe' : 'is-pc', selected && 'is-selected', active && 'is-active', c.hidden && 'is-hidden', hp.down && 'is-down')}
+  return html`<li class=${cx('rail-row', enemy ? 'is-foe' : 'is-pc', selected && 'is-selected', active && 'is-active', c.hidden && 'is-hidden', hp.down && 'is-down', flash)}
     onClick=${() => onSelect(c.id)} aria-current=${active ? 'true' : undefined}>
-    <span class="rail-init num" title="Initiative">${c.initiative}</span>
+    <span class="rail-init num" title="Initiative" key=${c.initiative}>${c.initiative}</span>
     <span class="rail-portrait" style=${portrait ? `background-image:url(${portrait})` : ''}>${portrait ? '' : (c.symbol || c.name.slice(0, 2)).toUpperCase()}</span>
     <span class="rail-main">
       <span class="rail-name">${c.hidden ? html`<${Icon} name="eyeOff" size=${12} title="Hidden from the table" />` : null}${c.name}</span>
       <span class="rail-hp">
         <span class="hpbar"><i style=${`width:${hp.ratio * 100}%`} class=${hp.critical ? 'crit' : hp.bloodied ? 'blood' : ''}></i>${c.tempHp ? html`<b style=${`width:${Math.min(100, (c.tempHp / hp.max) * 100)}%`}></b>` : null}</span>
-        <span class="num">${hp.hp}<small>/${hp.max}</small>${c.tempHp ? html`<em>+${c.tempHp}</em>` : null}</span>
+        <span class="num"><b class="hp-n" key=${hp.hp}>${hp.hp}</b><small>/${hp.max}</small>${c.tempHp ? html`<em>+${c.tempHp}</em>` : null}</span>
       </span>
       ${conds.length ? html`<span class="rail-conds">${conds.slice(0, 4).map((x) => html`<i class=${cx('chip', x.fx && `fx-${x.fx}`)}>${x.name}${x.value ? ` ${x.value}` : ''}</i>`)}${conds.length > 4 ? html`<i class="chip">+${conds.length - 4}</i>` : null}</span>` : null}
       ${c.resources.length ? html`<span class="rail-res">${c.resources.map((r) => html`<span class="pips" title=${`${r.label} ${r.current}/${r.max}`}>${r.label.slice(0, 3)} ${Array.from({ length: Math.min(r.max, 6) }, (_, i) => html`<i class=${i < r.current ? 'on' : ''}></i>`)}</span>`)}</span>` : null}

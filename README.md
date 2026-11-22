@@ -1,4 +1,4 @@
-# Project Grim 2.0.2
+# Project Grim 2.1
 
 A Pathfinder 2e presentation and encounter tool. The GM runs the session from a laptop, and the table watches a lit, weathered 3D stage on a TV. Players manage their own sheets on their phones.
 

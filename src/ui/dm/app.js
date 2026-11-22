@@ -11,6 +11,8 @@ import { CombatantPanel, WorldPanel, MapPanel, ScenePanel, SessionPanel, fileToP
 import { Dock } from './dock.js';
 import { createAudioDirector } from '../../audio/director.js';
 import { FIREBASE_RULES } from '../../sync/rules.js';
+import { createSfx, playEvents } from '../../audio/sfx.js';
+import { diffEvents } from '../../stage/events.js';
 import { listBackups, getBackup, deleteBackup } from '../../sync/backups.js';
 
 const store = createStore();
@@ -34,6 +36,13 @@ const statusListeners = new Set();
 window.__grim.session = session;
 startPortraitService(store);
 const audio = createAudioDirector({ store });
+// The GM hears the same sound effects as the table when monitoring is on.
+const sfx = createSfx();
+let monitoring = false;
+{
+  let prev = store.getState();
+  store.subscribe((s, change) => { const ev = change.type === 'initial' || change.type === 'replace' ? [] : diffEvents(prev, s); prev = s; if (monitoring && ev.length) playEvents(sfx, ev); }, { immediate: false });
+}
 
 function useStatus() {
   const [s, set] = useState(sessionStatus);
@@ -151,7 +160,8 @@ function App() {
   const [monitor, setMonitor] = useState(false);
   const [opts, setOpts] = useState(getOptions());
   const [, force] = useState(0);
-  useEffect(() => audio.setEnabled(monitor), [monitor]);
+  useEffect(() => { audio.setEnabled(monitor); monitoring = monitor; if (monitor) { sfx.unlock(); } }, [monitor]);
+  useEffect(() => { sfx.setVolume(state.presentation.sfx * 0.7); }, [state.presentation.sfx]);
 
   const select = useCallback((id) => { setSelectedId(id); if (id) setTab('combatant'); }, []);
   useEffect(() => { if (selectedId && !state.characters.some((c) => c.id === selectedId)) setSelectedId(''); }, [state.characters]);

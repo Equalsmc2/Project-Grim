@@ -57,7 +57,7 @@ export function defaultCampaign(now = Date.now()) {
     environment: normalizeEnvironment(),
     battleMaps: defaultMaps(),
     music: normalizeMusic(),
-    presentation: { cardScale: 1, showHud: true, showSceneCards: false, chatOnStage: true },
+    presentation: { cardScale: 1, showHud: true, showSceneCards: false, chatOnStage: true, sfx: 0.7 },
     overlay: { kind: 'none', id: '', title: '', text: '', speaker: '', characterId: '', image: '', at: 0 },
     chat: [],
     snapshots: [],
@@ -152,6 +152,7 @@ export function normalizeSection(name, value, campaign) {
       showHud: value?.showHud !== false,
       showSceneCards: !!value?.showSceneCards,
       chatOnStage: value?.chatOnStage !== false,
+      sfx: clamp(num(value?.sfx, 0.7), 0, 1),
     };
     case 'overlay': return normalizeOverlay(value);
     case 'chat': return asArray(value).map(normalizeChatMessage).filter(Boolean).sort((a, b) => a.at - b.at).slice(-80);

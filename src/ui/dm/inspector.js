@@ -214,6 +214,7 @@ export function ScenePanel({ state, dispatch }) {
       <${Toggle} label="Show cards in scene mode" checked=${state.presentation.showSceneCards} onChange=${(v) => dispatch('pres/set', { showSceneCards: v })} />
       <${Toggle} label="Show labels and initiative on the TV" checked=${state.presentation.showHud} onChange=${(v) => dispatch('pres/set', { showHud: v })} />
       <${Toggle} label="Show chat messages on the TV" checked=${state.presentation.chatOnStage} onChange=${(v) => dispatch('pres/set', { chatOnStage: v })} />
+      <${Slider} label="Sound effects on the TV (hits, bells, banners)" value=${state.presentation.sfx} format=${pct} onInput=${(v) => dispatch('pres/set', { sfx: v })} />
       <${Slider} label="Card size" value=${state.presentation.cardScale} min=${0.7} max=${1.4} step=${0.05} format=${pct} onInput=${(v) => dispatch('pres/set', { cardScale: v })} />
     <//>
   </div>`;
