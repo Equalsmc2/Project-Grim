@@ -1,6 +1,6 @@
 {
   "name": "project-grim",
-  "version": "2.1.1",
+  "version": "2.1.3",
   "private": true,
   "description": "Project Grim \u2014 Pathfinder 2e cinematic stage, GM command deck and player desk",
   "scripts": {
