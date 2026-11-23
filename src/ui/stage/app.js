@@ -8,11 +8,126 @@ import { createSession, resolveConnection } from '../../app/session.js';
 import { createAudioDirector } from '../../audio/director.js';
 import { TRACK_MAP } from '../../audio/music-playback.js';
 import { importMusicArchives } from '../../audio/music-local.js';
+import { diffEvents } from '../../stage/events.js';
+import { createSfx, playEvents } from '../../audio/sfx.js';
+
+const sfx = createSfx();
+document.fonts?.load('900 64px Cinzel').catch(() => {});
+document.fonts?.load('700 64px Cinzel').catch(() => {});
+
+/** Presentation event bus for the TV: banners, boss bar, screen pulses, sounds. */
+const eventSubs = new Set();
+function startEventBus(store) {
+  window.__grim.sfx = sfx;
+  let prevState = null;
+  store.subscribe((s, change) => {
+    if (change.type === 'initial' || change.type === 'replace') { prevState = s; return; }
+    const events = diffEvents(prevState, s);
+    prevState = s;
+    if (!events.length) return;
+    playEvents(sfx, events);
+    eventSubs.forEach((f) => f(events, s));
+  }, { immediate: true });
+}
+function useEvents(fn) {
+  const ref = useRef(fn);
+  ref.current = fn;
+  useEffect(() => { const h = (e, s) => ref.current(e, s); eventSubs.add(h); return () => eventSubs.delete(h); }, []);
+}
+
+// Banner: one at a time; the bigger moment wins.
+const BANNERS = {
+  combatStart: { cls: 'b-ember', ms: 3200, rank: 3 },
+  round: { cls: 'b-round', ms: 1800, rank: 1 },
+  turn: { cls: 'b-turn', ms: 1700, rank: 0 },
+  fallen: { cls: 'b-death', ms: 4200, rank: 5 },
+  victory: { cls: 'b-gold', ms: 4200, rank: 6 },
+  wipe: { cls: 'b-death', ms: 5000, rank: 7 },
+  area: { cls: 'b-area', ms: 4200, rank: 2 },
+};
+function Banner({ state, reduced }) {
+  const [b, setB] = useState(null);
+  const timer = useRef(0);
+  const show = (kind, title, sub = '') => {
+    const def = BANNERS[kind];
+    setB((cur) => {
+      if (cur && BANNERS[cur.kind].rank > def.rank && Date.now() < cur.until) return cur;
+      clearTimeout(timer.current);
+      const ms = reduced ? Math.min(def.ms, 1800) : def.ms;
+      timer.current = setTimeout(() => setB(null), ms);
+      return { kind, title, sub, id: Math.random(), until: Date.now() + ms, ms };
+    });
+  };
+  useEvents((events, s) => {
+    for (const e of events) {
+      if (e.type === 'combatStart') show('combatStart', 'Battle Begins', 'Round 1');
+      else if (e.type === 'victory') show('victory', 'Foes Vanquished');
+      else if (e.type === 'wipe') show('wipe', 'The Party Has Fallen');
+      else if (e.type === 'down' && !e.enemy) show('fallen', 'Fallen', e.name);
+      else if (e.type === 'round') show('round', `Round ${e.round}`);
+      else if (e.type === 'turn' && s.presentation.showHud) show('turn', e.name, e.enemy ? 'The foe moves' : 'Takes the turn');
+      else if ((e.type === 'scene' || e.type === 'biome') && s.meta.mode === 'scene') show('area', getScene(s).name, getScene(s).ambience);
+    }
+  });
+  if (!b) return null;
+  const def = BANNERS[b.kind];
+  return html`<div class=${cx('banner', def.cls)} key=${b.id} style=${`--ms:${b.ms}ms`} aria-live="polite">
+    <span class="banner-band"></span>
+    ${b.kind === 'turn' || b.kind === 'round' || b.kind === 'area' ? html`<span class="banner-rule"></span>` : null}
+    <h2>${b.title}</h2>
+    ${b.sub ? html`<p>${b.sub}</p>` : null}
+    ${b.kind === 'area' ? html`<span class="banner-rule"></span>` : null}
+  </div>`;
+}
+
+/** Boss-style health bar for the foe in focus, with a trailing chunk for recent damage. */
+function BossBar({ state }) {
+  const [focus, setFocus] = useState(null);
+  const [hit, setHit] = useState({ total: 0, at: 0 });
+  const lastId = useRef('');
+  useEvents((events) => {
+    for (const e of events) {
+      if (e.type === 'damage' && e.enemy) {
+        setFocus({ id: e.id, until: Date.now() + 7000 });
+        setHit((h) => ({ total: (lastId.current === e.id && Date.now() - h.at < 2500 ? h.total : 0) + e.amount, at: Date.now() }));
+        lastId.current = e.id;
+      }
+    }
+  });
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => tick((n) => n + 1), 500); return () => clearInterval(t); }, []);
+  const active = state.characters.find((c) => c.id === state.combat.activeId);
+  const id = focus && Date.now() < focus.until ? focus.id : active?.faction === 'enemy' && !active.hidden ? active.id : '';
+  const c = state.characters.find((x) => x.id === id);
+  if (!c || state.meta.mode !== 'combat' || state.overlay.kind === 'dialogue') return null;
+  const hp = hpState(c);
+  const showHit = lastId.current === c.id && Date.now() - hit.at < 2200 && hit.total > 0;
+  return html`<div class=${cx('bossbar', hp.down && 'is-down')} key=${c.id}>
+    <div class="bb-head"><span class="bb-name">${c.name}</span>${showHit ? html`<span class="bb-hit num" key=${hit.at}>${hit.total}</span>` : null}</div>
+    <div class="bb-track"><i class="bb-trail" style=${`width:${hp.ratio * 100}%`}></i><i class="bb-fill" style=${`width:${hp.ratio * 100}%`}></i></div>
+  </div>`;
+}
+
+/** Full-screen hurt / heal pulses and a brief white flash on heavy blows. */
+function Pulse() {
+  const [p, setP] = useState(null);
+  useEvents((events) => {
+    const party = events.filter((e) => !e.enemy);
+    let kind = null;
+    if (events.some((e) => e.type === 'down' && !e.enemy)) kind = 'doom';
+    else if (events.some((e) => e.type === 'damage' && e.crit)) kind = 'crit';
+    else if (party.some((e) => e.type === 'damage')) kind = 'hurt';
+    else if (party.some((e) => e.type === 'heal' || e.type === 'revive')) kind = 'heal';
+    if (kind) setP({ kind, id: Math.random() });
+  });
+  return p ? html`<div class=${cx('pulse', `p-${p.kind}`)} key=${p.id} aria-hidden="true"></div>` : null;
+}
 
 const conn = resolveConnection('stage');
 // Online viewers keep their own cache so they never overwrite the GM's local campaign.
 const store = createStore(conn.online ? { key: `grim:view:${conn.room}`, legacyKey: null, channelName: null } : {});
 window.__grim = { store };
+startEventBus(store);
 let sessionStatus = { state: 'local', text: 'Local' };
 const statusSubs = new Set();
 const session = createSession({ store, role: 'stage', onStatus: (s) => { sessionStatus = s; statusSubs.forEach((f) => f(s)); } });
@@ -65,9 +180,9 @@ function Ribbon({ state }) {
   const ref = useRef(null);
   useEffect(() => { ref.current?.querySelector('.is-active')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [state.combat.activeId]);
   return html`<ol class="ribbon" ref=${ref} aria-label="Initiative order">
-    ${order.map((c) => { const hp = hpState(c); const img = state.portraits[c.id]; return html`<li class=${cx('rb', c.faction === 'enemy' ? 'foe' : 'pc', c.id === state.combat.activeId && 'is-active', hp.down && 'is-down')}>
+    ${order.map((c) => { const hp = hpState(c); const img = state.portraits[c.id]; return html`<li key=${c.id} class=${cx('rb', c.faction === 'enemy' ? 'foe' : 'pc', c.id === state.combat.activeId && 'is-active', hp.down && 'is-down')}>
       <span class="rb-art" style=${img ? `background-image:url(${img})` : ''}>${img ? '' : c.name.slice(0, 1)}</span>
-      <span class="rb-name">${c.name}</span>
+      <span class="rb-text"><span class="rb-name">${c.name}</span><span class="rb-hp"><i class="rb-trail" style=${`width:${hp.ratio * 100}%`}></i><i class="rb-fill" style=${`width:${hp.ratio * 100}%`}></i></span></span>
       <span class="rb-init num">${c.initiative}</span>
     </li>`; })}
   </ol>`;
@@ -152,19 +267,22 @@ function App() {
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
   }, []);
-  const toggleSound = () => { const v = !sound; setSound(v); audio.setEnabled(v); };
+  const toggleSound = () => { const v = !sound; setSound(v); audio.setEnabled(v); if (v) { sfx.unlock(); sfx.play('reveal'); } };
+  useEffect(() => { sfx.setVolume(sound ? state.presentation.sfx : 0); }, [sound, state.presentation.sfx]);
 
   const combat = state.meta.mode === 'combat';
   const tactical = combat && state.stage.view === 'tactical';
   const scene = getScene(state);
   const active = state.characters.find((c) => c.id === state.combat.activeId);
   const showHud = state.presentation.showHud && !hideHud;
-  const needsSound = !sound && (state.music.playing || state.environment.ambience !== 'none');
+  const needsSound = !sound && (state.music.playing || state.environment.ambience !== 'none' || state.presentation.sfx > 0);
   const track = state.music.playing ? TRACK_MAP.get(state.music.trackId) : null;
 
   return html`<div class=${cx('stage', idle && 'is-idle', reduced && 'reduced')}>
     <${World} state=${state} quality=${quality} reduced=${reduced} />
     <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <${Pulse} />
     ${showHud && !combat && state.overlay.kind !== 'title' ? html`<section class="scene-card" key=${scene.id + scene.name}>
       <span class="eyebrow">${scene.kicker}${scene.ambience ? html` · ${scene.ambience}` : ''}</span>
       <h1 class="serif">${scene.name}</h1>
@@ -175,7 +293,9 @@ function App() {
       ${active && !active.hidden ? html`<div class=${cx('turn-pill', active.faction === 'enemy' && 'foe')} key=${active.id}><span class="eyebrow">${active.faction === 'enemy' ? 'Foe acts' : 'Your turn'}</span><b class="serif">${active.name}</b></div>` : null}
       ${tactical ? html`<div class="map-pill"><span class="eyebrow">Battle map</span><b>${activeMap(state)?.name}</b></div>` : null}
     </header>` : null}
+    ${showHud && combat ? html`<${BossBar} state=${state} />` : null}
     ${showHud && combat ? html`<${Ribbon} state=${state} />` : null}
+    <${Banner} state=${state} reduced=${reduced} />
     <${Overlay} state=${state} reduced=${reduced} />
     <${ChatToasts} state=${state} />
     ${needsSound ? html`<button type="button" class="sound-gate" onClick=${toggleSound}><${Icon} name="volume" size=${18} /><span>Tap to enable sound</span></button>` : null}

@@ -5,6 +5,10 @@
 @font-face { font-family: 'Cormorant'; src: url('../../vendor/fonts/cormorant-700-normal.woff2') format('woff2'); font-weight: 700; font-display: swap; }
 @font-face { font-family: 'Cormorant'; src: url('../../vendor/fonts/cormorant-500-italic.woff2') format('woff2'); font-weight: 500; font-style: italic; font-display: swap; }
 
+@font-face { font-family: 'Cinzel'; src: url('../../vendor/fonts/cinzel-latin-600-normal.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Cinzel'; src: url('../../vendor/fonts/cinzel-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Cinzel'; src: url('../../vendor/fonts/cinzel-latin-900-normal.woff2') format('woff2'); font-weight: 900; font-display: swap; }
+
 :root {
   color-scheme: dark;
   --ink-0: #0b0a09;      /* deepest */
@@ -30,6 +34,7 @@
   --moss: #8fae7a;
   --teal: #7fb3b0;
 
+  --display: 'Cinzel', 'Trajan Pro', Georgia, serif;
   --serif: 'Cormorant', 'Cormorant Garamond', Georgia, serif;
   --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'SFMono-Regular', Consolas, monospace;

@@ -288,7 +288,7 @@ ${NOISE}`)
   // Event flashes (hit, heal, shield, condition): strongest at the rim, washing inward.
   if (uFlash > 0.001) {
     float rim = smoothstep(0.22, 0.0, edge);
-    totalEmissiveRadiance += uFlashCol * uFlash * (0.1 + 1.1 * rim);
+    totalEmissiveRadiance += uFlashCol * uFlash * (0.04 + 1.0 * rim);
   }
   // A light sweep across the face (turn start, reveal).
   if (uSweep > -0.5) {
@@ -472,7 +472,7 @@ export function createCard(id) {
       a.hit = 1; a.hitAmp = 0.35 + sev * 0.9; a.hitDir = Math.random() < 0.5 ? -1 : 1;
       flash(0xff3b22, 0.4 + sev * 0.7, 2.2);
     }
-    else if (kind === 'crit') { a.hit = 1; a.hitAmp = 1.5; a.hitDir = Math.random() < 0.5 ? -1 : 1; flash(0xff2a12, 1.3, 1.6); }
+    else if (kind === 'crit') { a.hit = 1; a.hitAmp = 1.5; a.hitDir = Math.random() < 0.5 ? -1 : 1; flash(0xff2a12, 0.9, 1.8); }
     else if (kind === 'heal') { a.celebrate = 1; flash(0x8fe08a, 0.8, 1.4); }
     else if (kind === 'shield') { a.wobble = 0.6; flash(0x6fd6cf, 1.1, 1.6); }
     else if (kind === 'condition') { a.wobble = 1; flash(opts.color || 0xece4d4, 0.9, 2); }
