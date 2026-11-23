@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-title Project Grim - GitHub Upload
+title Project Grim 2.0 - GitHub Upload
 
 rem ------------------------------------------------------------------
 rem  Copies the Project Grim 2.0 website from this folder into your
@@ -119,7 +119,7 @@ echo -----------------------------------
 choice /c YN /n /m "Commit these changes? [Y/N] "
 if errorlevel 2 goto :done
 "%GIT_EXE%" -C "%REPO%" add -A
-"%GIT_EXE%" -C "%REPO%" commit -m "Project Grim update"
+"%GIT_EXE%" -C "%REPO%" commit -m "Project Grim 2.0"
 if errorlevel 1 echo [INFO] Nothing new to commit.
 echo.
 echo Pushing publishes to GitHub. If GitHub Pages builds from "%BRANCH%",
