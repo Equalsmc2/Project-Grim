@@ -56,8 +56,8 @@ The 1.5.8 build will **not** overwrite an upgraded room: it shows "This room now
 2. Each player opens the link and picks their character. That phone now owns the sheet. The GM sees "Played on a linked phone" in the Combatant tab and can **Release** it if someone picked the wrong character.
 3. **Player chat** stays switched off until Step 4. Players see a short message instead; GM chat works.
 
-## Step 4 (optional, recommended): Deploy the 2.0.1 rules
-This adds two things: **Firebase-enforced character ownership** and **player chat**. The room rules are unchanged, and nothing is loosened.
+## Step 4 (recommended): Deploy the current rules
+This adds three things: **auto-join**, so every TV and phone that opens the site shows the GM's table with no special link; **Firebase-enforced character ownership**; and **player chat**. The room rules are unchanged, and nothing is loosened.
 
 1. In the GM deck: **Session → Maintenance → Copy Firebase rules**. Or open `firebase-rtdb.rules.json` from the ZIP.
 2. Firebase Console → Realtime Database → **Rules** → select all → paste → **Publish**. Alternatively, from a signed-in Firebase CLI in the repository folder:

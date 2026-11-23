@@ -380,7 +380,8 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     const strength = env.cinematicStrength / 1.5;
     const speed = env.cinematicSpeed;
     if (env.cinematicPan && !reduced) {
-      const t = time * speed;
+      // Director shots follow the wall clock, so every screen shows the same shot at the same moment.
+      const t = ((Date.now() / 1000) % 86400) * speed;
       const active = cards.get(activeId);
       if (env.cinematicStyle === 'follow' && active && campaign.meta.mode === 'combat') {
         g.target.x += (active.goal.x - g.target.x) * 0.3 * strength;

@@ -1,5 +1,5 @@
 // Shared bootstrap for the three pages: options, URL parameters, cloud sync.
-import { connectCloud, cleanRoom } from '../sync/cloud.js';
+import { connectCloud, cleanRoom, watchTable } from '../sync/cloud.js';
 
 const OPTIONS_KEY = 'grim:options:v1'; // shared with 1.5.8 so existing rooms carry over
 
@@ -18,7 +18,15 @@ export function newRoomId() {
   return 'grim-' + [...bytes].map((b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10);
 }
 
-/** Room/online settings: URL parameters win for viewers; the GM uses saved options. */
+// Set when this display follows the GM's published table (auto-join).
+let tableRoom = null;
+
+/**
+ * Room/online settings. The GM uses its saved options. Displays (TV, phones)
+ * follow the GM's published table when there is one, so every device shows
+ * the same campaign without special links; otherwise URL parameters, then
+ * saved options. Add ?local=1 to a display URL to opt out.
+ */
 export function resolveConnection(role) {
   const q = new URLSearchParams(location.search);
   const opts = getOptions();
@@ -30,7 +38,8 @@ export function resolveConnection(role) {
     const [host, port, authPort] = q.get('emulator').split(':');
     emulator = { host: host || '127.0.0.1', port: Number(port) || 9000, authPort: Number(authPort) || 9099 };
   }
-  return { online: online || !!emulator, room, emulator };
+  if (role !== 'gm' && tableRoom && q.get('local') !== '1') return { online: true, room: tableRoom, emulator, followingTable: true };
+  return { online: online || !!emulator, room, emulator, followingTable: false };
 }
 
 export function shareUrl(page, room) {
@@ -47,17 +56,40 @@ export function shareUrl(page, room) {
  * Connects when online sync is enabled. Returns a controller whose `cloud`
  * may be null (local-only play over browser tabs).
  */
-export function createSession({ store, role, onStatus, onChatDenied, onRoomChanged, onClaims, onNotice }) {
+export function createSession({ store, role, onStatus, onChatDenied, onRoomChanged, onClaims, onNotice, onTable = () => {} }) {
   let cloud = null;
   let epoch = 0;
+  let watching = false;
+  /** Displays watch the table record and hop to the GM's room whenever it changes. */
+  function followTable() {
+    if (watching || role === 'gm' || new URLSearchParams(location.search).get('local') === '1') return;
+    watching = true;
+    const { emulator } = resolveConnection(role);
+    watchTable({
+      emulator,
+      onChange: ({ supported, table }) => {
+        const next = supported && table?.active && typeof table.room === 'string' ? cleanRoom(table.room) : null;
+        onTable({ supported, room: next });
+        if (next !== tableRoom) {
+          const before = resolveConnection(role);
+          tableRoom = next;
+          const after = resolveConnection(role);
+          // Reconnect only if this display would actually end up somewhere else.
+          if (before.online !== after.online || before.room !== after.room) api.connect();
+        }
+        else if (!next && !cloud) onStatus({ state: 'local', text: supported ? 'Local · the GM is not online' : 'Local · this computer' });
+      },
+    }).catch(() => { onTable({ supported: false, room: null }); });
+  }
   const api = {
     get cloud() { return cloud; },
     async connect() {
       const my = ++epoch;
       cloud?.disconnect();
       cloud = null;
+      followTable();
       const conn = resolveConnection(role);
-      if (!conn.online) { onStatus({ state: 'local', text: 'Local · this computer' }); return null; }
+      if (!conn.online) { onStatus({ state: 'local', text: role === 'gm' ? 'Local · this computer' : 'Looking for the GM’s table…' }); return null; }
       try {
         const c = await connectCloud({
           store, role, room: conn.room, emulator: conn.emulator, onStatus, onChatDenied, onClaims, onNotice,

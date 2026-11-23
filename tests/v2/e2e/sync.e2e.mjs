@@ -96,6 +96,21 @@ await step('TV receives the campaign (characters, scene)', async () => {
   await poll(async () => (await S(tv)).characters.some((c) => c.id === 'drake'), 20000, 'TV has Drake');
 });
 
+let autoTv = null;
+await step(NEW ? 'a TV opened with no link joins the GM\'s table automatically' : 'without the 2.1.5 rules, a TV opened with no link stays local and says so', async () => {
+  const ctx = await context();
+  autoTv = await open(ctx, `index.html?emulator=${EMU}`);
+  if (NEW) {
+    await poll(async () => (await S(autoTv)).characters.some((c) => c.id === 'drake'), 25000, 'auto-joined');
+    const pointer = await (await fetch(`http://127.0.0.1:9000/grim/tables/main.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
+    assert.equal(pointer.room, ROOM);
+    assert.equal(pointer.active, true);
+  } else {
+    await new Promise((r) => setTimeout(r, 6000));
+    assert.ok(!(await S(autoTv)).characters.some((c) => c.id === 'drake'), 'not joined');
+  }
+});
+
 await step('combat, damage and conditions reach the TV', async () => {
   await D(gm, 'combat/start');
   await D(gm, 'char/hp', { id: 'drake', amount: -17 });
@@ -260,6 +275,10 @@ await step('a second GM browser cannot take over the room', async () => {
   await new Promise((r) => setTimeout(r, 1500));
   const s = await S(tv);
   assert.ok(s.characters.some((c) => c.id === 'drake'), 'original room untouched');
+  if (NEW) {
+    const pointer = await (await fetch(`http://127.0.0.1:9000/grim/tables/main.json?ns=project-grim-ef4f0-default-rtdb`, { headers: { Authorization: 'Bearer owner' } })).json();
+    assert.equal(pointer.room, ROOM, 'the table still points at the real GM');
+  }
   await otherCtx.close();
 });
 
@@ -316,6 +335,7 @@ await step('switching the GM deck to another room it owns takes the cloud copy (
   assert.equal(stored.s.characters[0].name, 'Zara of Room B', 'room B was not overwritten by the local campaign');
   const local = await gm.evaluate(async () => (await import('/src/sync/backups.js')).listBackups());
   assert.ok(local.some((b) => b.reason === 'This device before first sync with this room'), 'local campaign saved first');
+  if (NEW) await poll(async () => (await S(autoTv)).characters.some((c) => c.name === 'Zara of Room B'), 25000, 'the auto-joined TV followed the GM to the new room');
   assert.ok(before.length > 0);
 });
 

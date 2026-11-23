@@ -9,7 +9,8 @@ import { PortraitStudio } from '../../portrait/maker.js';
 import { renderSvg } from '../../portrait/art.js';
 
 const conn = resolveConnection('player');
-const store = createStore(conn.online ? { key: `grim:view:${conn.room}`, legacyKey: null, channelName: null } : {});
+// Displays read the GM's local copy (same computer) but never write it; the cloud fills in on other devices.
+const store = createStore({ persistLocal: false });
 window.__grim = { store };
 let status = { state: 'local', text: 'Same computer' };
 const subs = new Set();

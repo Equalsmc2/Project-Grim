@@ -125,7 +125,8 @@ function Pulse() {
 
 const conn = resolveConnection('stage');
 // Online viewers keep their own cache so they never overwrite the GM's local campaign.
-const store = createStore(conn.online ? { key: `grim:view:${conn.room}`, legacyKey: null, channelName: null } : {});
+// Displays read the GM's local copy (same computer) but never write it; the cloud fills in on other devices.
+const store = createStore({ persistLocal: false });
 window.__grim = { store };
 startEventBus(store);
 let sessionStatus = { state: 'local', text: 'Local' };

@@ -21,6 +21,7 @@ export function createStore({
   initial = null,
   now = () => Date.now(),
   historyLimit = HISTORY_LIMIT,
+  persistLocal = true,
 } = {}) {
   const tabId = uid('tab');
   let migratedFromLegacy = false;
@@ -52,7 +53,8 @@ export function createStore({
   }
 
   function persist(sections) {
-    if (!storage) return;
+    // Display devices (TV, phones) read the GM's local copy but never write it.
+    if (!storage || !persistLocal) return;
     try {
       const { portraits, ...rest } = state;
       storage.setItem(key, JSON.stringify(rest));

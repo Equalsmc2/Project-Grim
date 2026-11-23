@@ -29,6 +29,51 @@ export async function loadFirebase() {
 }
 
 /**
+ * Starts (or reuses) the Firebase app and signs in anonymously. Shared per
+ * app: two parallel callers (the table watcher and the room connection) must
+ * not sign in twice, or a fresh device would end up with two identities.
+ */
+const firebaseSessions = new Map();
+function openFirebase(emulator, sdk) {
+  const key = emulator ? `emu:${emulator.host}:${emulator.port}` : 'default';
+  if (!firebaseSessions.has(key)) {
+    const p = startFirebase(emulator, sdk);
+    firebaseSessions.set(key, p);
+    p.catch(() => firebaseSessions.delete(key));
+  }
+  return firebaseSessions.get(key);
+}
+async function startFirebase(emulator, sdk) {
+  const F = sdk || (await loadFirebase());
+  const appName = emulator ? 'grim-emulator' : '[DEFAULT]';
+  const app = F.getApps().find((a) => a.name === appName) || F.initializeApp(emulator ? { ...firebaseConfig, databaseURL: `http://${emulator.host}:${emulator.port}?ns=${firebaseConfig.projectId}-default-rtdb` } : firebaseConfig, appName === '[DEFAULT]' ? undefined : appName);
+  const auth = F.getAuth(app);
+  const db = F.getDatabase(app);
+  if (emulator && !app.__grimEmu) {
+    app.__grimEmu = true;
+    try { F.connectAuthEmulator(auth, `http://${emulator.host}:${emulator.authPort}`, { disableWarnings: true }); } catch {}
+    try { F.connectDatabaseEmulator(db, emulator.host, emulator.port); } catch {}
+  }
+  const prior = await new Promise((resolve, reject) => { const off = F.onAuthStateChanged(auth, (u) => { off(); resolve(u); }, reject); });
+  if (prior && !prior.isAnonymous) await F.signOut(auth);
+  const user = auth.currentUser?.isAnonymous ? auth.currentUser : prior?.isAnonymous ? prior : (await F.signInAnonymously(auth)).user;
+  return { F, app, auth, db, user };
+}
+
+/** The site's table: which room the GM is running. Every screen follows it. */
+export const TABLE_PATH = 'grim/tables/main';
+
+/**
+ * Watches the table record. onChange({supported, table}) where table is
+ * {room, dmUid, active, at} or null. supported=false means the deployed
+ * rules predate auto-join (2.1.5); devices then rely on shared links.
+ */
+export async function watchTable({ emulator = null, sdk = null, onChange }) {
+  const { F, db } = await openFirebase(emulator, sdk);
+  return F.onValue(F.ref(db, TABLE_PATH), (snap) => onChange({ supported: true, table: snap.exists() ? snap.val() : null }), () => onChange({ supported: false, table: null }));
+}
+
+/**
  * @param {object} o
  * @param {ReturnType<import('../core/store.js').createStore>} o.store
  * @param {'gm'|'stage'|'player'} o.role
@@ -44,18 +89,7 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
   const gm = role === 'gm';
   const status = (state, text) => onStatus({ state, text });
   status('connecting', 'Connecting…');
-  const F = sdk || (await loadFirebase());
-  const appName = emulator ? 'grim-emulator' : '[DEFAULT]';
-  const app = F.getApps().find((a) => a.name === appName) || F.initializeApp(emulator ? { ...firebaseConfig, databaseURL: `http://${emulator.host}:${emulator.port}?ns=${firebaseConfig.projectId}-default-rtdb` } : firebaseConfig, appName === '[DEFAULT]' ? undefined : appName);
-  const auth = F.getAuth(app);
-  const db = F.getDatabase(app);
-  if (emulator) {
-    try { F.connectAuthEmulator(auth, `http://${emulator.host}:${emulator.authPort}`, { disableWarnings: true }); } catch {}
-    try { F.connectDatabaseEmulator(db, emulator.host, emulator.port); } catch {}
-  }
-  const prior = await new Promise((resolve, reject) => { const off = F.onAuthStateChanged(auth, (u) => { off(); resolve(u); }, reject); });
-  if (prior && !prior.isAnonymous) await F.signOut(auth);
-  const user = prior?.isAnonymous ? prior : (await F.signInAnonymously(auth)).user;
+  const { F, auth, db, user } = await openFirebase(emulator, sdk);
 
   const roomRef = F.ref(db, `grim/rooms/${safeRoom}`);
   const editsRef = F.ref(db, `grim/playerEdits/${safeRoom}`);
@@ -225,6 +259,7 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
       try {
         await reconcile(remote);
         ready = true;
+        void publishTable(true);
         if (claimsNode) store.dispatch('claims/replace', { claims: claimsNode });
         lastRemoteRev = store.getState().rev;
         if (dirty.size) outbox.queue(true);
@@ -344,6 +379,22 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     return false;
   }
 
+  // ------------------------------------------------------------ table pointer (auto-join)
+  // The GM announces its room so every screen that opens the site joins it.
+  let tableState = 'unknown'; // published | denied | unknown
+  async function publishTable(active) {
+    if (!gm) return false;
+    try {
+      await F.set(F.ref(db, TABLE_PATH), { room: safeRoom, dmUid: user.uid, active: !!active, at: Date.now() });
+      tableState = 'published';
+      return true;
+    } catch (e) {
+      tableState = 'denied';
+      console.info('[grim] auto-join not available:', e.code || e.message);
+      return false;
+    } finally { onNotice({ kind: 'table', state: tableState }); }
+  }
+
   // ------------------------------------------------------------ 1.5.8 backup inside the room
   async function removeLegacyBackup() {
     if (!gm || !legacyBackup) return false;
@@ -398,6 +449,8 @@ export async function connectCloud({ store, role, room, onStatus = () => {}, onR
     get hasLegacyBackup() { return !!legacyBackup; },
     removeLegacyBackup,
     restoreLegacyRoom,
+    publishTable,
+    get tableState() { return tableState; },
     flush: () => (gm ? outbox.flush({ force: true }) : Promise.resolve(true)),
     get pending() { return gm ? dirty.size > 0 || outbox.hasPending : false; },
     disconnect() {

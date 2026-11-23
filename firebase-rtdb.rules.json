@@ -10,6 +10,28 @@
           ".validate": "newData.hasChildren(['dmUid', 'mode', 'sceneId']) && newData.child('dmUid').isString()"
         }
       },
+      "tables": {
+        "$table": {
+          ".read": "auth != null",
+          ".write": "auth != null && newData.exists() && root.child('grim/rooms').child(newData.child('room').val()).child('dmUid').val() === auth.uid && (!data.exists() || data.child('dmUid').val() === auth.uid || !root.child('grim/rooms').child(data.child('room').val()).exists())",
+          ".validate": "newData.hasChildren(['room', 'dmUid', 'active', 'at']) && newData.child('room').isString() && newData.child('room').val().matches(/^[a-z0-9-]{1,60}$/) && newData.child('dmUid').val() === auth.uid && newData.child('active').isBoolean() && newData.child('at').isNumber()",
+          "room": {
+            ".validate": true
+          },
+          "dmUid": {
+            ".validate": true
+          },
+          "active": {
+            ".validate": true
+          },
+          "at": {
+            ".validate": true
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
       "claims": {
         "$roomId": {
           ".read": "auth != null",

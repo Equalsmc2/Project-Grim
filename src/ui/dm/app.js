@@ -196,7 +196,7 @@ function App() {
   const sessionApi = {
     online: opts.online, room: opts.room, status,
     links: { copy: async (page) => { const url = shareUrl(page, opts.room); try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy this link', url); } } },
-    setOnline: (v) => { const next = setOptions({ online: v, room: v && opts.room === 'grim-demo' ? newRoomId() : opts.room }); setOpts(next); session.connect(); },
+    setOnline: async (v) => { if (!v) await session.cloud?.publishTable(false); const next = setOptions({ online: v, room: v && opts.room === 'grim-demo' ? newRoomId() : opts.room }); setOpts(next); session.connect(); },
     setRoom: (v) => { const next = setOptions({ room: String(v).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60) || 'grim-demo' }); setOpts(next); session.connect(); },
     publish: async () => { const ok = await session.cloud?.flush(); toast(ok ? 'Published' : 'Not published yet — check the connection'); },
     exportCampaign: () => { const { log, camera, cursors, ...rest } = store.getState(); download(`grim-campaign-${new Date().toISOString().slice(0, 10)}.json`, rest); },

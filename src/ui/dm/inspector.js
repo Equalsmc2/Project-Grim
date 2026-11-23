@@ -233,6 +233,7 @@ export function SessionPanel({ state, dispatch, session }) {
     <${Section} title="Online play">
       <${Toggle} label="Sync to the TV and phones through Firebase" checked=${online} onChange=${setOnline} />
       <div class=${cx('status-line', `st-${status.state}`)}><i></i><span>${status.text}</span></div>
+      ${online && cloud ? html`<p class="hint">${cloud.tableState === 'published' ? 'Auto-join is on: any TV, phone or browser that opens this site joins this table automatically — no special link needed.' : cloud.tableState === 'denied' ? 'Auto-join needs the 2.1.5 Firebase rules (Maintenance → Copy Firebase rules). Until then, open screens with the links below.' : 'Checking auto-join…'}</p>` : null}
       <${Field} label="Room" value=${room} maxLength=${60} onCommit=${setRoom} />
       <div class="row wrap">
         <${Button} icon="link" onClick=${() => links.copy('index.html')}>Copy TV link<//>
