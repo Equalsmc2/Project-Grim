@@ -254,14 +254,14 @@ function makeKinds(ground, seed) {
 
 // ------------------------------------------------------------ material
 export function createPropMaterial() {
-  const uniforms = { uTime: { value: 0 }, uWind: { value: new THREE.Vector2(0.5, 0.2) }, uSnow: { value: 0 }, uWet: { value: 0 } };
+  const uniforms = { uTime: { value: 0 }, uSwayAmt: { value: 0.5 }, uWind: { value: new THREE.Vector2(0.5, 0.2) }, uSnow: { value: 0 }, uWet: { value: 0 } };
   const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0, flatShading: true });
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aSway; attribute float aLeaf; uniform float uTime; uniform vec2 uWind; varying float vUp;')
+      .replace('#include <common>', '#include <common>\nattribute float aSway; attribute float aLeaf; uniform float uTime; uniform float uSwayAmt; uniform vec2 uWind; varying float vUp;')
       .replace('#include <begin_vertex>', /* glsl */ `#include <begin_vertex>
-        if (aSway > 0.0) {
+        if (aSway > 0.0 && uSwayAmt > 0.001) {
           #ifdef USE_INSTANCING
             vec3 iPos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
             // Wind blows in world space; convert it into this instance's rotated space.
@@ -277,14 +277,15 @@ export function createPropMaterial() {
           float gust = 0.55 + 0.3 * sin(uTime * 0.55 - phase) + 0.15 * sin(uTime * 1.31 - phase * 1.7);
           float lean = clamp(strength, 0.0, 3.0) * 0.022 * gust;            // steady lean with the wind
           float sway = sin(uTime * 1.15 + phase * 3.0) * 0.008 * (0.5 + strength); // small back-and-forth
-          float a = (lean + sway) * aSway;                                    // bend angle grows towards the crown
+          // Hard cap: even a storm at full sway leans a crown at most ~6 degrees.
+          float a = clamp((lean + sway) * aSway * uSwayAmt * 2.0, -0.1, 0.1);
           // Rotate about the root so the plant keeps its length (no stretching).
           float h = max(transformed.y, 0.0);
           float sa = sin(a), ca = cos(a);
           transformed.xz += dir * (h * sa);
           transformed.y = transformed.y - h + h * ca;
           // Leaves flutter a touch on their own.
-          float f = aLeaf * sin(uTime * 5.3 + transformed.x * 4.0 + transformed.z * 3.0 + phase * 7.0) * 0.012 * min(strength, 2.0) * aSway;
+          float f = aLeaf * sin(uTime * 5.3 + transformed.x * 4.0 + transformed.z * 3.0 + phase * 7.0) * 0.012 * min(strength, 2.0) * aSway * uSwayAmt * 2.0;
           transformed.x += f; transformed.z -= f * 0.6;
         }
       `)
