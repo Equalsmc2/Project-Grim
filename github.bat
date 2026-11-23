@@ -76,7 +76,7 @@ if errorlevel 2 goto :done
 
 echo.
 echo Copying...
-robocopy "%SOURCE_ROOT%" "%REPO%" index.html dm.html player.html favicon.svg server.js package.json README.md PROGRESS.md DESIGN_PRINCIPLES.md MUSIC_SETUP.md GO_LIVE.md firebase.json .firebaserc firebase-rtdb.rules.json .gitignore RUN-GRIM.bat RUN-TESTS.bat IMPORT-MUSIC.bat github.bat GITHUB-UPLOAD.bat /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
+robocopy "%SOURCE_ROOT%" "%REPO%" index.html dm.html player.html favicon.svg server.js package.json README.md PROGRESS.md DESIGN_PRINCIPLES.md MUSIC_SETUP.md GO_LIVE.md firebase.json .firebaserc firebase-rtdb.rules.json .gitignore RUN-GRIM.bat RUN-TESTS.bat IMPORT-MUSIC.bat github.bat GITHUB-UPLOAD.bat FIX-REPO.bat /R:1 /W:1 /NP /NFL /NDL /NJH /NJS
 if errorlevel 8 goto :copy_failed
 for %%F in (src vendor legacy docs tests tools .github) do (
     if exist "%SOURCE_ROOT%\%%F\" (
