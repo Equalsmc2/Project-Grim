@@ -165,7 +165,8 @@ float gRough = 0.92; float gWater = 0.0; vec3 gBump = vec3(0.0);
   };
   material.customProgramCacheKey = () => 'grim-terrain-v1';
 
-  const seg = quality === 'low' ? 150 : quality === 'high' ? 280 : 220;
+  // The encounter area is near-flat; resolution matters mostly for distant hills, which fog softens.
+  const seg = quality === 'low' ? 128 : quality === 'high' ? 240 : 180;
   let mesh = null;
   let heightAt = () => 0;
   let cellsTex = null;
