@@ -42,22 +42,35 @@ function jitterVerts(geo, amount, rand) {
   return geo;
 }
 
-function merge(geos) {
-  let count = 0;
-  for (const g of geos) count += g.attributes.position.count;
-  const pos = new Float32Array(count * 3), col = new Float32Array(count * 3), sway = new Float32Array(count);
+/**
+ * Merges parts into one geometry. For plants (`bend` > 0) every vertex,
+ * trunk included, gets its normalised height (aSway, 0 at the root, 1 at the
+ * crown) so the whole plant bends from its base as one piece; foliage parts
+ * also get aLeaf = 1 for a tiny independent flutter. Rigid scenery gets 0.
+ */
+function merge(geos, bend = 0) {
+  let count = 0, top = 0.001;
+  for (const g of geos) {
+    count += g.attributes.position.count;
+    for (let i = 0; i < g.attributes.position.count; i++) top = Math.max(top, g.attributes.position.getY(i));
+  }
+  const pos = new Float32Array(count * 3), col = new Float32Array(count * 3), sway = new Float32Array(count), leaf = new Float32Array(count);
   let o = 0;
   for (const g of geos) {
     pos.set(g.attributes.position.array, o * 3);
     col.set(g.attributes.color.array, o * 3);
-    if (g.userData.sway !== undefined) sway.fill(g.userData.sway, o, o + g.attributes.position.count);
-    else for (let i = 0; i < g.attributes.position.count; i++) sway[o + i] = Math.max(0, g.attributes.position.getY(i));
-    o += g.attributes.position.count;
+    const n = g.attributes.position.count;
+    if (bend > 0) {
+      for (let i = 0; i < n; i++) sway[o + i] = Math.max(0, g.attributes.position.getY(i)) / top * bend;
+      if (g.userData.sway !== 0) leaf.fill(1, o, o + n);
+    }
+    o += n;
   }
   const out = new THREE.BufferGeometry();
   out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   out.setAttribute('color', new THREE.BufferAttribute(col, 3));
   out.setAttribute('aSway', new THREE.BufferAttribute(sway, 1));
+  out.setAttribute('aLeaf', new THREE.BufferAttribute(leaf, 1));
   out.computeVertexNormals();
   out.computeBoundingSphere();
   return out;
@@ -215,13 +228,14 @@ const SCATTER = {
 function makeKinds(ground, seed) {
   const f = FOLIAGE[ground] || FOLIAGE.grass;
   const rockCol = ROCK[ground] || 0x6a6760;
-  const variants = (fn, n = 3) => Array.from({ length: n }, (_, i) => merge(fn(rng(seed * 31 + i * 977 + fn.name.length))));
+  // bend: how far the crown leans in a strong wind (radians-ish). Rocks and ruins never move.
+  const variants = (fn, n = 3, bend = 0) => Array.from({ length: n }, (_, i) => merge(fn(rng(seed * 31 + i * 977 + fn.name.length)), bend));
   return {
-    conifer: variants((r) => conifer(r, { foliage: f.conifer })),
-    broadleaf: variants((r) => broadleaf(r, { foliage: f.leaf })),
-    deadTree: variants(deadTree, 2),
-    bush: variants((r) => bush(r, { foliage: f.bush })),
-    tuft: variants((r) => grassTuft(r, { color: f.tuft }), 2),
+    conifer: variants((r) => conifer(r, { foliage: f.conifer }), 3, 0.7),
+    broadleaf: variants((r) => broadleaf(r, { foliage: f.leaf }), 3, 0.8),
+    deadTree: variants(deadTree, 2, 0.35),
+    bush: variants((r) => bush(r, { foliage: f.bush }), 3, 0.6),
+    tuft: variants((r) => grassTuft(r, { color: f.tuft }), 2, 2.2),
     rock: variants((r) => rock(r, { color: rockCol })),
     boulder: variants((r) => rock(r, { color: rockCol, scale: 1.9 }), 2),
     log: variants(log, 1),
@@ -245,18 +259,34 @@ export function createPropMaterial() {
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aSway; uniform float uTime; uniform vec2 uWind; varying float vUp;')
+      .replace('#include <common>', '#include <common>\nattribute float aSway; attribute float aLeaf; uniform float uTime; uniform vec2 uWind; varying float vUp;')
       .replace('#include <begin_vertex>', /* glsl */ `#include <begin_vertex>
-        #ifdef USE_INSTANCING
-          vec3 iPos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
-        #else
-          vec3 iPos = vec3(0.0);
-        #endif
-        float phase = iPos.x * 0.37 + iPos.z * 0.29;
-        float gust = 0.6 + 0.4 * sin(uTime * 0.7 + phase * 0.5);
-        float sw = aSway * aSway * 0.045 * length(uWind) * gust;
-        transformed.x += sin(uTime * 1.9 + phase) * sw * (0.6 + uWind.x);
-        transformed.z += cos(uTime * 1.6 + phase * 1.3) * sw * (0.6 + uWind.y);
+        if (aSway > 0.0) {
+          #ifdef USE_INSTANCING
+            vec3 iPos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+            // Wind blows in world space; convert it into this instance's rotated space.
+            vec3 wLocal = transpose(mat3(instanceMatrix)) * vec3(uWind.x, 0.0, uWind.y);
+          #else
+            vec3 iPos = vec3(0.0);
+            vec3 wLocal = vec3(uWind.x, 0.0, uWind.y);
+          #endif
+          float strength = length(uWind);
+          vec2 dir = length(wLocal.xz) > 0.0001 ? normalize(wLocal.xz) : vec2(1.0, 0.0);
+          // Gusts roll across the field (phase from world position), so neighbours move together.
+          float phase = dot(iPos.xz, vec2(0.11, 0.07));
+          float gust = 0.55 + 0.3 * sin(uTime * 0.55 - phase) + 0.15 * sin(uTime * 1.31 - phase * 1.7);
+          float lean = clamp(strength, 0.0, 3.0) * 0.022 * gust;            // steady lean with the wind
+          float sway = sin(uTime * 1.15 + phase * 3.0) * 0.008 * (0.5 + strength); // small back-and-forth
+          float a = (lean + sway) * aSway;                                    // bend angle grows towards the crown
+          // Rotate about the root so the plant keeps its length (no stretching).
+          float h = max(transformed.y, 0.0);
+          float sa = sin(a), ca = cos(a);
+          transformed.xz += dir * (h * sa);
+          transformed.y = transformed.y - h + h * ca;
+          // Leaves flutter a touch on their own.
+          float f = aLeaf * sin(uTime * 5.3 + transformed.x * 4.0 + transformed.z * 3.0 + phase * 7.0) * 0.012 * min(strength, 2.0) * aSway;
+          transformed.x += f; transformed.z -= f * 0.6;
+        }
       `)
       .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n vUp = normalize(mat3(modelMatrix) * objectNormal).y;');
     shader.fragmentShader = shader.fragmentShader
@@ -266,7 +296,7 @@ export function createPropMaterial() {
         diffuseColor.rgb = mix(diffuseColor.rgb * (1.0 - uWet * 0.28), vec3(0.88, 0.9, 0.94), snowCover);`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, 0.45, uWet * 0.6);');
   };
-  material.customProgramCacheKey = () => 'grim-props-v1';
+  material.customProgramCacheKey = () => 'grim-props-v2';
   return { material, uniforms };
 }
 

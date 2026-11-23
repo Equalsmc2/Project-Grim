@@ -14,11 +14,16 @@ import { effectiveTime } from '../core/environment.js';
 import { activeMap, boardPositions } from '../core/battlemap.js';
 import { initiativeOrder } from '../core/rules.js';
 
+// pixel: max device pixel ratio · budget: max rendered pixels (keeps 4K TVs fast)
+// shadowEvery: re-render the shadow map every N frames · fps: frame cap
 const QUALITY = {
-  low: { pixel: 1, shadow: 0, antialias: false },
-  balanced: { pixel: 1.5, shadow: 1024, antialias: true },
-  high: { pixel: 2, shadow: 2048, antialias: true },
+  low: { pixel: 1, budget: 1.3e6, shadow: 0, shadowEvery: 0, antialias: false, fps: 30 },
+  balanced: { pixel: 1.5, budget: 2.6e6, shadow: 1024, shadowEvery: 2, antialias: true, fps: 60 },
+  high: { pixel: 2, budget: 4.2e6, shadow: 2048, shadowEvery: 1, antialias: true, fps: 60 },
 };
+const MOON_LIGHT = new THREE.Color(0x9fb4e0);
+const tmpV = new THREE.Vector3();
+const obM4 = new THREE.Matrix4(), obS = new THREE.Vector3(), obP = new THREE.Vector3(), obQ = new THREE.Quaternion();
 const TACTICAL_SCALE = 0.58;
 
 export function createWorld(container, { role = 'stage', quality = 'balanced', reducedMotion = false, onEvent = () => {} } = {}) {
@@ -85,13 +90,17 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   let shakeAmt = 0;
   const shake = (a) => { if (!reduced) shakeAmt = Math.min(1.2, Math.max(shakeAmt, a)); };  // no entrance animations for the first load
 
+
   // ------------------------------------------------------------ sizing
   let width = 1, height = 1, pixelRatio = 1, adaptive = 1;
   function resize() {
     const r = container.getBoundingClientRect();
     width = Math.max(1, Math.round(r.width));
     height = Math.max(1, Math.round(r.height));
-    pixelRatio = Math.min(window.devicePixelRatio || 1, QUALITY[q].pixel) * adaptive;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, QUALITY[q].pixel);
+    // Cap the rendered pixel count: a 4K TV at full resolution costs 4× a 1080p one for little visible gain.
+    pixelRatio = Math.min(pixelRatio, Math.sqrt(QUALITY[q].budget / (width * height)));
+    pixelRatio = Math.max(0.5, pixelRatio) * adaptive;
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
@@ -184,7 +193,9 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
       return true;
     } });
   }
+
   // ------------------------------------------------------------ cards
+  let selCell = null;
   function updateCards() {
     const c = campaign;
     const combat = c.meta.mode === 'combat';
@@ -197,6 +208,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     const enemies = visible.filter((x) => x.faction === 'enemy');
     const formation = planFormation({ players, enemies, mapW: mapRef.width, mapH: mapRef.height, cardScale: c.presentation.cardScale });
     const board = boardPositions(mapRef, c.characters);
+    selCell = selectedId ? board.get(selectedId) || null : null;
     const rank = new Map(visible.map((x, i) => [x.id, i + 1]));
     activeId = combat ? c.combat.activeId : '';
     const seen = new Set();
@@ -293,7 +305,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   }
 
   function tickObstacles(dt) {
-    const m4 = new THREE.Matrix4(), s = new THREE.Vector3(), p = new THREE.Vector3(), qq = new THREE.Quaternion();
+    const m4 = obM4, s = obS, p = obP, qq = obQ;
     const dirty = new Set();
     for (const o of obstacles) {
       if (!o.mesh || Math.abs(o.fade - o.goal) < 0.001) continue;
@@ -387,7 +399,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
       if (now < spotlightUntil && active) {
         const left = (spotlightUntil - now) / 2800;
         const w = Math.sin(Math.min(1, (1 - left) * 2.2) * Math.PI * 0.5) * Math.min(1, left * 3);
-        g.target.lerp(new THREE.Vector3(active.goal.x, active.goal.y + CARD_H * active.goalScale * 0.5, active.goal.z), 0.55 * w);
+        g.target.lerp(tmpV.set(active.goal.x, active.goal.y + CARD_H * active.goalScale * 0.5, active.goal.z), 0.55 * w);
         g.dist *= 1 - 0.38 * w;
         g.yaw += THREE.MathUtils.clamp(active.goal.x * 0.02, -0.18, 0.18) * w;
       }
@@ -453,7 +465,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     hemi.color.copy(a.hemiSky);
     hemi.groundColor.copy(a.hemiGround);
     hemi.intensity = a.hemiI * (1 + fl * 2.5);
-    sun.color.copy(a.night > 0.5 ? new THREE.Color(0x9fb4e0) : a.sun);
+    sun.color.copy(a.night > 0.5 ? MOON_LIGHT : a.sun);
     sun.intensity = a.sunI * (1 + fl * 1.5);
     sun.position.copy(a.lightDir).multiplyScalar(120);
     sunTarget.position.set(0, 0, 0);
@@ -562,9 +574,23 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   const clock = new THREE.Clock();
   let raf = 0, frameTimes = [], lastAdapt = 0, frames = 0, fpsAt = performance.now(), fps = 0;
   const camPos = new THREE.Vector3();
+  let lastRender = 0, frameNo = 0, lastCap = 60;
   function frame() {
     raf = requestAnimationFrame(frame);
     if (disposed || !campaign || document.hidden || width < 2) return;
+    // Frame cap: Low quality, and the GM's preview while nobody is touching it, run at 30 fps.
+    const tNow = performance.now();
+    const idlePreview = role === 'gm' && tNow - rig.user.lastInput > 2500 && !dragCard && !paintStroke && effects.length === 0;
+    const cap = idlePreview ? 30 : QUALITY[q].fps;
+    if (tNow - lastRender < 1000 / cap - 2) return;
+    lastRender = tNow;
+    if (cap !== lastCap) { frameTimes = []; lastCap = cap; }
+    frameNo++;
+    if (renderer.shadowMap.enabled) {
+      const every = QUALITY[q].shadowEvery || 1;
+      renderer.shadowMap.autoUpdate = false;
+      if (frameNo % every === 0) renderer.shadowMap.needsUpdate = true;
+    }
     const dt = Math.min(0.05, clock.getDelta());
     const time = clock.elapsedTime;
     const now = performance.now();
@@ -574,7 +600,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     terrain.uniforms.uFocus.value = tacticalBlend;
     const hc = hoverCell || (dragCard?.cell ?? null);
     terrain.uniforms.uHover.value.set(hc ? hc.x : -1, hc ? hc.y : -1, hc ? 1 : 0);
-    const sel = selectedId && tactical ? boardPositions(mapRef, campaign.characters).get(selectedId) : null;
+    const sel = selectedId && tactical ? selCell : null;
     terrain.uniforms.uSelect.value.set(sel ? sel.x : -1, sel ? sel.y : -1, sel ? 1 : 0);
 
     if (framingDirty) computeFraming();
@@ -635,8 +661,9 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     if (now - fpsAt > 1000) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }
     if (now - lastAdapt > 2500 && frameTimes.length >= 60) {
       const avg = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-      if (avg > 1 / 40 && adaptive > 0.6) { adaptive = Math.max(0.6, adaptive - 0.1); resize(); lastAdapt = now; }
-      else if (avg < 1 / 58 && adaptive < 1) { adaptive = Math.min(1, adaptive + 0.05); resize(); lastAdapt = now; }
+      // Judge against the active frame cap, so a deliberate 30 fps cap never lowers the resolution.
+      if (avg > 1.4 / cap && adaptive > 0.6) { adaptive = Math.max(0.6, adaptive - 0.1); resize(); lastAdapt = now; }
+      else if (avg < 1.08 / cap && adaptive < 1) { adaptive = Math.min(1, adaptive + 0.05); resize(); lastAdapt = now; }
     }
   }
   raf = requestAnimationFrame(frame);
@@ -647,7 +674,12 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   const api = {
     setCampaign(c) {
       const first = !campaign;
+      const prev = campaign;
       campaign = c;
+      // Sections that did not change keep their identity in the store, so a camera-only
+      // update (the GM orbiting in tactical view) skips all rebuild and card work.
+      const same = (k) => prev && prev[k] === c[k];
+      if (!first && ['meta', 'stage', 'characters', 'portraits', 'combat', 'environment', 'battleMaps', 'presentation'].every(same)) return;
       mapRef = activeMap(c);
       const wasTactical = tactical;
       tactical = c.meta.mode === 'combat' && c.stage.view === 'tactical';
@@ -655,7 +687,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
         rig.transition(performance.now(), 1800);
         rig.user.yaw = 0; rig.user.pitch = 0; rig.user.zoom = 1; rig.user.pan.set(0, 0, 0);
       }
-      rebuild(c.environment, mapRef);
+      if (!(same('environment') && same('battleMaps'))) rebuild(c.environment, mapRef);
       updateCards();
       if (first) { computeFraming(); directorGoal(0, 0); rig.snap(); }
       everPlaced = true;
