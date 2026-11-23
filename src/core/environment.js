@@ -16,13 +16,13 @@ export const ENV_DEFAULT = Object.freeze({
   ambience: 'none', ambienceVolume: 0.55,
   cinematicPan: false, cinematicSpeed: 1, cinematicStrength: 1.5, cinematicStyle: 'follow',
   variation: 0.35, path: false, pathX: 0, pathZ: 0, pathAngle: 0, pathWidth: 2, pathEdge: 0.4,
-  weather: 'none', intensity: 0.5, windAngle: 35, windSpeed: 1, fog: 0, density: 0, props: 'mixed',
+  weather: 'none', intensity: 0.5, sway: 0.5, windAngle: 35, windSpeed: 1, fog: 0, density: 0, props: 'mixed',
   terrainWidth: 32, terrainDepth: 20, seed: 7301,
 });
 
 const RANGES = {
   variation: [0, 1], pathX: [-7, 7], pathZ: [-4, 4], pathAngle: [-180, 180], pathWidth: [0.5, 6], pathEdge: [0, 1],
-  intensity: [0, 1], windAngle: [0, 360], windSpeed: [0, 5], fog: [0, 1], density: [0, 1],
+  intensity: [0, 1], sway: [0, 1], windAngle: [0, 360], windSpeed: [0, 5], fog: [0, 1], density: [0, 1],
   terrainWidth: [18, 48], terrainDepth: [12, 36], timeOfDay: [0, 24], cycleSpeed: [1, 96], timeEpoch: [0, 9999999999999],
   cloudCover: [0, 1], accumulation: [0, 1], ambienceVolume: [0, 1], cinematicSpeed: [0.35, 2.5], cinematicStrength: [0.4, 2.4],
   seed: [1, 2147483647],

@@ -129,6 +129,7 @@ export function WorldPanel({ state, dispatch, onExportScenes, onImportScenes }) 
         <${Slider} label="Wind direction" value=${e.windAngle} min=${0} max=${360} step=${5} format=${(v) => `${v}°`} onInput=${(v) => set({ windAngle: v })} />
         <${Slider} label="Wind speed" value=${e.windSpeed} min=${0} max=${5} step=${0.1} format=${(v) => v.toFixed(1)} onInput=${(v) => set({ windSpeed: v })} />
       </div>
+      <${Slider} label="Tree & grass sway (0 = still)" value=${e.sway} format=${(v) => (v === 0 ? 'Still' : pct(v))} onInput=${(v) => set({ sway: v })} />
       <${Slider} label="Ground accumulation (puddles / snow)" value=${e.accumulation} format=${pct} onInput=${(v) => set({ accumulation: v })} />
     <//>
     <${Section} title="Terrain">

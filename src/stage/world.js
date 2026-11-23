@@ -480,6 +480,7 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
     terrain.uniforms.uTime.value = time;
     propMat.uniforms.uSnow.value = snowAcc;
     propMat.uniforms.uWet.value = wetness;
+    propMat.uniforms.uSwayAmt.value = env.sway;
     propMat.uniforms.uTime.value = reduced ? 0 : time;
     propMat.uniforms.uWind.value.set(Math.cos(wa), Math.sin(wa)).multiplyScalar(0.4 + env.windSpeed * (env.weather === 'blizzard' || env.weather === 'sandstorm' || storm ? 1.6 : 1));
     weather.set({ weather: env.weather, intensity: env.intensity, windAngle: env.windAngle, windSpeed: env.windSpeed, quality: q });
