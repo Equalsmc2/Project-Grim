@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-title Project Grim - GitHub Upload
+title Project Grim 2.0 - GitHub Upload
 
 rem ------------------------------------------------------------------
 rem  Copies the Project Grim 2.0 website from this folder into your
@@ -56,10 +56,7 @@ if errorlevel 1 (
     echo [ACTION NEEDED] This repository has no GitHub remote. Publish it in GitHub Desktop first.
     goto :done
 )
-rem usebackq lets the command itself be quoted (the Git path may contain spaces).
-set "BRANCH="
-for /f "usebackq delims=" %%B in (`"%GIT_EXE%" -C "%REPO%" rev-parse --abbrev-ref HEAD`) do set "BRANCH=%%B"
-if not defined BRANCH set "BRANCH=current branch"
+for /f "delims=" %%B in ('"%GIT_EXE%" -C "%REPO%" rev-parse --abbrev-ref HEAD') do set "BRANCH=%%B"
 
 echo.
 echo   Repository: %REPO%
@@ -119,7 +116,7 @@ echo -----------------------------------
 choice /c YN /n /m "Commit these changes? [Y/N] "
 if errorlevel 2 goto :done
 "%GIT_EXE%" -C "%REPO%" add -A
-"%GIT_EXE%" -C "%REPO%" commit -m "Project Grim update"
+"%GIT_EXE%" -C "%REPO%" commit -m "Project Grim 2.0"
 if errorlevel 1 echo [INFO] Nothing new to commit.
 echo.
 echo Pushing publishes to GitHub. If GitHub Pages builds from "%BRANCH%",
@@ -129,7 +126,7 @@ if errorlevel 2 (
     echo Not pushed. You can push later from GitHub Desktop.
     goto :done
 )
-"%GIT_EXE%" -C "%REPO%" push origin HEAD
+"%GIT_EXE%" -C "%REPO%" push origin "%BRANCH%"
 if errorlevel 1 (
     echo [ERROR] Push failed. Open GitHub Desktop, fetch/pull, then push again. Nothing was forced.
     goto :done
