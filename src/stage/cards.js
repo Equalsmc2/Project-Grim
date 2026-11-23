@@ -325,7 +325,6 @@ function cardBackTexture() {
   backTexture.colorSpace = THREE.SRGBColorSpace;
   return backTexture;
 }
-
 // ------------------------------------------------------------ geometry
 let geoCache = null;
 function cardGeometries() {

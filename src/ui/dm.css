@@ -229,7 +229,6 @@ select.mini { height: 26px; font-size: var(--t-xs); width: auto; }
 
 .claim-line { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-2); background: var(--slate-dim); border: 1px solid var(--line); font-size: var(--t-sm); color: var(--bone-2); }
 .claim-line span { flex: 1; }
-
 /* 2.1 interaction polish */
 .btn, .seg-item, .chipbtn, .tab, .rail-row, .terrain, .pm-option, .pm-swatch { transition: background .15s var(--ease), border-color .15s var(--ease), color .15s, transform .12s var(--ease), box-shadow .2s; }
 .btn:active, .chipbtn:active, .terrain:active, .pm-option:active { transform: translateY(1px) scale(.97); }

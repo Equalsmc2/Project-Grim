@@ -85,7 +85,6 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
   let shakeAmt = 0;
   const shake = (a) => { if (!reduced) shakeAmt = Math.min(1.2, Math.max(shakeAmt, a)); };  // no entrance animations for the first load
 
-
   // ------------------------------------------------------------ sizing
   let width = 1, height = 1, pixelRatio = 1, adaptive = 1;
   function resize() {
@@ -185,7 +184,6 @@ export function createWorld(container, { role = 'stage', quality = 'balanced', r
       return true;
     } });
   }
-
   // ------------------------------------------------------------ cards
   function updateCards() {
     const c = campaign;
